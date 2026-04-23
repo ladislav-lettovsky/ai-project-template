@@ -6,11 +6,6 @@ green **"Use this template"** button at the top of this page to bootstrap
 a new project with zero hygiene debt — uv, ruff, ty, pre-commit, just,
 GitHub Actions CI, Cursor rules, and a Claude Code config all preconfigured.
 
-A fresh fork scores roughly **32-34/40** on the portfolio modernization
-rubric before you write a single line of product code. The remaining
-points come from project-specific work (real invariants, test coverage,
-ADRs) that no template can provide.
-
 ---
 
 ## What you get
@@ -68,7 +63,7 @@ git init
 
 ---
 
-## First 60 seconds after forking
+## Actions after forking
 
 ```bash
 # 1. Install dependencies
@@ -81,7 +76,7 @@ just install-hooks
 just check
 ```
 
-If `just check` is green, your fork is healthy. Now go read
+If `just check` is green, your fork is healthy. Read
 [docs/post-fork-checklist.md](./docs/post-fork-checklist.md) for the
 full bootstrap process (renaming the placeholder package, filling in
 AGENTS.md, adding a domain-specific Cursor rule).
@@ -90,16 +85,10 @@ AGENTS.md, adding a domain-specific Cursor rule).
 
 ## Why this exists
 
-After modernizing four public AI portfolio repos to a consistent 36/40
-gold-standard (see the [originating portfolio](https://github.com/ladislav-lettovsky)),
-the same set of hygiene scaffolding was copy-pasted every time: ruff +
-ty + pre-commit + just + a specific CI shape + Cursor rules + Claude Code
+This GitHub template provides scaffolding, including ruff +
+ty + pre-commit + just + CI + Cursor rules + Claude Code
 settings + AGENTS.md structure.
-
-This template extracts that scaffolding so future projects start at gold-
-standard parity on day one. It's the 80/20 version — a GitHub template,
-not a cookiecutter. Fewer moving parts, faster to use, still captures
-90% of the value.
+ to umpstart future projects.
 
 ---
 
@@ -113,17 +102,6 @@ not a cookiecutter. Fewer moving parts, faster to use, still captures
 - **Minimal placeholders** — no fake content that might ship unchanged;
   placeholders are flagged with `TODO:` or `your_package` so they can't
   be accidentally committed as-is
-
----
-
-## Portfolio lineage
-
-This template was distilled from the scaffolding pattern applied to:
-
-- [ai-delivery-exception-system](https://github.com/ladislav-lettovsky/ai-delivery-exception-system) — LangGraph multi-agent last-mile delivery
-- [ai-ehr-assistant](https://github.com/ladislav-lettovsky/ai-ehr-assistant) — PHI-scoped EHR agent
-- [ai-rag-knowledge-analyst](https://github.com/ladislav-lettovsky/ai-rag-knowledge-analyst) — RAG over knowledge articles
-- [ai-toolkit](https://github.com/ladislav-lettovsky/ai-toolkit) — CLI scaffolder for AI projects
 
 ---
 
