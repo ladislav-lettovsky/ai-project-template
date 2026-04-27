@@ -1,5 +1,7 @@
+# 🚀 Scaffold to Jump-Start New AI Project
+
 ![CI](https://github.com/ladislav-lettovsky/ai-project-template/actions/workflows/ci.yml/badge.svg)
-# ai-project-template
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ladislav-lettovsky/ai-project-template)
 
 A GitHub template repository for modern Python / AI projects. Click the
 green **"Use this template"** button at the top of this page to bootstrap
