@@ -20,6 +20,7 @@ dev = [
     "pre-commit>=4.0",
     "ruff>=0.15.10",
     "ty>=0.0.30",
+    "jsonschema>=4.0",
 ]
 
 # If your project has a CLI entry point, uncomment and edit:

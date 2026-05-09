@@ -1,0 +1,121 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Reviewer Output",
+    "description": "Schema for the structured JSON the Codex Reviewer subagent emits inside <!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON --> blocks in PR bodies. Consumed by scripts/validate_reviewer.py and (Phase 4) scripts/route_pr.py.",
+    "type": "object",
+    "required": ["summary", "findings", "coverage", "risk_assessment", "confidence"],
+    "properties": {
+      "summary": {
+        "type": "string",
+        "description": "One- to three-sentence human-readable TL;DR of the review. Drives no automation; for human skim only."
+      },
+      "findings": {
+        "type": "array",
+        "description": "Structured findings. The Phase 4 Router branches on this array.",
+        "items": {
+          "type": "object",
+          "required": ["id", "type", "severity", "requirement_ids", "description", "evidence", "suggested_action"],
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Stable internal ID for this finding (e.g., 'F1', 'F2'). Lets PR threads reference findings by ID."
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "missing_requirement",
+                "missing_decision",
+                "extra_scope",
+                "invariant_risk",
+                "weak_test",
+                "hidden_side_effect",
+                "unclear_behavior",
+                "observability_gap",
+                "rollback_gap",
+                "validation_gap",
+                "prompt_injection_risk"
+              ],
+              "description": "Categorical failure mode. Eleven enum values cover the orthogonal review concerns; new types require a schema bump."
+            },
+            "severity": {
+              "type": "string",
+              "enum": ["critical", "warning", "nit"],
+              "description": "critical => blocks merge (Phase 4 routes to 'blocked'); warning => human should look; nit => style/preference."
+            },
+            "requirement_ids": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Spec requirement IDs this finding relates to (e.g., ['R1'], ['REQ-FAREWELL-02']). Empty array if the finding is repo-wide rather than tied to a specific requirement."
+            },
+            "description": {
+              "type": "string",
+              "description": "Plain-language description of what's wrong."
+            },
+            "evidence": {
+              "type": "string",
+              "description": "Pointer to the specific code or spec location supporting the finding (e.g., 'src/farewell.py:18', 'spec ## Decisions D2')."
+            },
+            "suggested_action": {
+              "type": "string",
+              "description": "Concrete remediation. One sentence, actionable."
+            }
+          }
+        }
+      },
+      "coverage": {
+        "type": "object",
+        "description": "Quantitative requirement and test coverage. Phase 4 Router may gate on requirements_covered == requirements_total.",
+        "required": ["requirements_total", "requirements_covered", "tests_expected", "tests_present"],
+        "properties": {
+          "requirements_total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Count of R* / REQ-* IDs in the spec's Requirements section."
+          },
+          "requirements_covered": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Count of those requirements the implementation actually satisfies."
+          },
+          "tests_expected": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Count of T* IDs in the spec's Test Plan section."
+          },
+          "tests_present": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Count of those tests actually present in the diff."
+          }
+        }
+      },
+      "risk_assessment": {
+        "type": "object",
+        "description": "Categorical risk along three orthogonal axes.",
+        "required": ["scope_fit", "invariant_risk", "production_risk"],
+        "properties": {
+          "scope_fit": {
+            "type": "string",
+            "enum": ["correct", "over_scope", "under_scope"],
+            "description": "Does the diff implement exactly what the spec authorized? over_scope = added unrequested features; under_scope = missed requirements."
+          },
+          "invariant_risk": {
+            "type": "string",
+            "enum": ["low", "medium", "high"],
+            "description": "Likelihood the change violates an INV* in the spec or in AGENTS.md invariants."
+          },
+          "production_risk": {
+            "type": "string",
+            "enum": ["low", "medium", "high"],
+            "description": "Likelihood the change causes a production incident if shipped without further review."
+          }
+        }
+      },
+      "confidence": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100,
+        "description": "Reviewer's self-reported confidence in this review, 0-100. Phase 4 Router gates auto-merge on confidence >= 60 by default."
+      }
+    }
+  }

@@ -49,6 +49,11 @@ lint-changed-specs:
 scan-injection:
     uv run scripts/scan_injection.py
 
+# Validate the Reviewer's structured-JSON block in a PR body file.
+# Usage: `just validate-reviewer <pr-body-file>` (or `-` for stdin)
+validate-reviewer pr_body:
+    uv run scripts/validate_reviewer.py {{pr_body}}
+
 # Full quality gate: all pre-commit hooks + type check + tests + spec hygiene.
 # This is the same command CI runs.
 check: pre-commit
