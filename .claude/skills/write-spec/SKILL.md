@@ -1,12 +1,13 @@
 ---
 name: write-spec
 description: |
-  Draft a new spec under docs/specs/<slug>.md following the §5.1 structure
-  enforced by scripts/lint_spec.py. Use whenever the user asks for a spec,
-  feature plan, or implementation contract for work estimated >30 minutes.
-  Walks through every required section in order, names common failure
-  modes, and produces a draft the Planner can hand to the human for
-  commit.
+  Loaded by the Planner subagent (and only by the Planner subagent) when
+  drafting a new spec under docs/specs/<slug>.md following the §5.1
+  structure enforced by scripts/lint_spec.py. Walks through every required
+  section in order, names common failure modes, and produces a draft the
+  Planner hands to the human for commit. NOT for direct invocation by the
+  main session — if the user asks for a spec, the Planner subagent should
+  be invoked first; this skill is loaded inside that subagent's context.
 ---
 
 # Writing a spec
@@ -28,21 +29,39 @@ If the work is < 30 minutes — fix one typo, rename one variable, add one
 log line — say so explicitly and offer to proceed without a spec. Specs
 are for work substantial enough to benefit from the structure.
 
-## When this skill does NOT apply
+## When this skill applies
 
-- Reviewing or revising an *existing* spec — read the existing spec
-  first; this skill is for green-field drafting.
-- Writing a postmortem — that's a different skill (Phase 5,
-  `.claude/skills/postmortem/SKILL.md`).
-- Writing tests, code, or documentation that doesn't authorize work.
+This skill is loaded by the Planner subagent. The Planner has already
+decided spec-drafting is appropriate before loading this skill (see the
+Planner's Operating Notes for the consequence-based criteria). Inside the
+Planner's context, this skill applies for:
+
+- "write a spec for…"
+- "plan how we should add / change / remove …"
+- "draft a feature for …"
+- Any implementation request the Planner judged to need a spec — i.e.,
+  any work meeting the consequence-based criteria (red-zone touch,
+  multi-file, public-interface change, future-reader-needs-context, or
+  the fallback >30-min-by-hand rule).
+
+If the Planner has loaded this skill but the work is genuinely trivial
+(one-line typo, single-variable rename, single log line), the Planner
+should NOT have loaded this skill — it should have advised the user to
+proceed without a spec. If you find yourself loaded for trivial work,
+flag the mismatch in the plan output rather than producing a spec
+nobody will read.
 
 ## Pre-flight (before you write a single section)
 
 1. **Read the request twice.** The spec is the contract; ambiguity here
    produces wrong code later. If after two reads the goal isn't clear,
    STOP and ask one clarifying question.
-2. **Estimate effort honestly.** If it's <30 min, suggest skipping the
-   spec. If it's >2 days, suggest splitting into multiple specs.
+2. **Re-confirm the work warrants a spec.** The Planner already judged
+   this against the consequence-based criteria, but as a final check:
+   if the work is genuinely trivial (no red-zone, single file, no
+   public-interface change, fast to grok from the diff alone), surface
+   that and suggest skipping the spec. If it's >2 days of work, suggest
+   splitting into multiple specs.
 3. **Identify external inputs.** Does this work require reading from
    MCP tools, web search, external docs, user input, or untrusted files?
    If yes, the `## Security / Prompt-Injection Review` section is

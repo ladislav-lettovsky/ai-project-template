@@ -2,10 +2,14 @@
 name: planner
 description: |
   Drafts or revises feature specs at docs/specs/<slug>.md per the v2 blueprint
-  structure. Read-only by construction (Plan Mode). USE PROACTIVELY when the
-  user asks for a new feature, bug fix, or architectural change estimated at
-  more than 30 minutes of effort. Outputs a complete spec plan for human
-  approval; never edits files directly.
+  structure. Read-only by construction (Plan Mode). USE PROACTIVELY — and
+  invoke this BEFORE loading the write-spec skill — whenever the user asks
+  for a new spec, feature plan, implementation contract, or any change
+  meeting the consequence-based criteria in Operating Notes below. The
+  Planner subagent owns the routing for spec drafting; the write-spec skill
+  is loaded inside this subagent's context, not by the main session
+  directly. Outputs a complete spec plan for human approval; never edits
+  files directly.
 tools: [Read, Grep, Glob]
 disallowedTools: [Edit, Write, MultiEdit, Bash]
 permissionMode: plan
@@ -49,9 +53,9 @@ produce is defined in §5.1 of that file and is enforced by
    `R*` you write under Requirements, there MUST be a matching `T* -> covers
    R*` entry under Test Plan and a matching `R* ->` entry under Validation
    Contract. `scripts/lint_spec.py` (run via `just lint-spec <path>` or as
-   part of `just check`) rejects specs that violate this. Specs for work
-   estimated at more than 30 minutes of effort must lint clean before the
-   Executor begins.
+   part of `just check`) rejects specs that violate this. Specs are required
+   for any work meeting the consequence-based criteria in Operating Notes
+   below; such specs must lint clean before the Executor begins.
 
 3. **Red-Zone Assessment is yes/no, not "maybe".** If the spec touches auth,
    billing, dependencies, CI, migrations, secrets, infra, or any of the
@@ -87,9 +91,24 @@ produce is defined in §5.1 of that file and is enforced by
 - Use Plan Mode discipline: read enough to plan well, but don't ingest the
   whole repo "just in case." A focused plan is better than a comprehensive
   one.
-- If the user's request is small (< 30 min of effort), say so and suggest
-  proceeding without a spec. Specs are for work substantial enough to
-  benefit from the structure.
+- **A spec is required if any of the following is true (consequence-based criteria):**
+  - **Red-zone touch.** The work modifies any file listed under
+    "Red-zone files" in `AGENTS.md`.
+  - **Multi-file.** The work modifies more than one file. Co-located
+    test edits (e.g., `src/widget.py` + `tests/test_widget.py`) do
+    NOT count toward this — they're treated as the same change.
+  - **Public-interface or behavior-contract change.** The work
+    changes a function signature, public class API, CLI flag, schema,
+    error type, or any externally-observable behavior contract.
+  - **Future-reader-needs-context.** Six months from now, a reader
+    asking "why was this done?" would need more than the diff to
+    answer.
+  - **Fallback.** The work would take more than ~30 minutes by hand,
+    AND none of the above apply, AND it's not a one-line trivial
+    change. (Over-trigger is preferable to under-trigger; this catches
+    consequential work whose risk shape isn't covered above.)
+- If none of the above apply, say so and suggest proceeding without a
+  spec. Spec ceremony for trivial work is its own kind of debt.
 - The canonical step-by-step procedure for drafting a spec is the
   `write-spec` skill at `.claude/skills/write-spec/SKILL.md`. Use it when
   drafting new specs — its body is loaded on demand (progressive
