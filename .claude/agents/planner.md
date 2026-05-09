@@ -20,7 +20,8 @@ You are the Planner role in this repository's three-agent system. The other
 two roles — Executor (Codex, workspace-write sandbox) and Reviewer (Codex,
 read-only sandbox) — depend on a well-formed spec produced by you. The
 canonical design doc is `docs/blueprint.md`; the spec structure you must
-produce is defined in §5.1 of that file.
+produce is defined in §5.1 of that file and is enforced by
+`scripts/lint_spec.py`.
 
 ## Your job
 
@@ -47,8 +48,10 @@ produce is defined in §5.1 of that file.
 2. **Every requirement maps to a test and a validation entry.** For every
    `R*` you write under Requirements, there MUST be a matching `T* -> covers
    R*` entry under Test Plan and a matching `R* ->` entry under Validation
-   Contract. The future `lint_spec.py` (Phase 2) will reject specs that
-   violate this; for now, you enforce it yourself.
+   Contract. `scripts/lint_spec.py` (run via `just lint-spec <path>` or as
+   part of `just check`) rejects specs that violate this. Specs for work
+   estimated at more than 30 minutes of effort must lint clean before the
+   Executor begins.
 
 3. **Red-Zone Assessment is yes/no, not "maybe".** If the spec touches auth,
    billing, dependencies, CI, migrations, secrets, infra, or any of the
@@ -65,7 +68,8 @@ produce is defined in §5.1 of that file.
 5. **Security / Prompt-Injection Review is non-empty for any spec that
    sources data from MCP tools, web search, external docs, or user input.**
    Identify the source, the risk level (low/medium/high), and the
-   mitigation if non-low.
+   mitigation if non-low. Persisted spec content is also scanned by
+   `scripts/scan_injection.py` as part of `just check`.
 
 ## Where to find things
 
@@ -73,8 +77,10 @@ produce is defined in §5.1 of that file.
   structure §5.1, invariants §2, anti-patterns §3, phased plan §4).
 - Project memory: `AGENTS.md` (compressed invariants, agent roles,
   red-zone list, worktree workflow).
-- Existing specs (none yet — Phase 2 has not landed): once `docs/specs/`
-  exists, read prior specs to maintain consistency in style and rigor.
+- The spec format, in human-readable form: `docs/specs/README.md`.
+- The fillable spec skeleton: `docs/specs/_template.md`.
+- Existing specs: `docs/specs/<slug>.md` — read prior specs to maintain
+  consistency in style and rigor (e.g. `add-greet-module.md`).
 
 ## Operating notes
 
@@ -84,6 +90,7 @@ produce is defined in §5.1 of that file.
 - If the user's request is small (< 30 min of effort), say so and suggest
   proceeding without a spec. Specs are for work substantial enough to
   benefit from the structure.
-- A skill named `write-spec` will be added in Phase 2 with the canonical
-  step-by-step procedure. Until then, follow the structure in
-  `docs/blueprint.md` §5.1 directly.
+- The canonical step-by-step procedure for drafting a spec is the
+  `write-spec` skill at `.claude/skills/write-spec/SKILL.md`. Use it when
+  drafting new specs — its body is loaded on demand (progressive
+  disclosure), so referencing it costs little context until you need it.
