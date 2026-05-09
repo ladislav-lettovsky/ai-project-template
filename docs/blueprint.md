@@ -25,6 +25,14 @@ Material additions:
 
 What did NOT change: the deterministic Router, the structured-JSON Reviewer schema, the risk-tier-driven routing eligibility, the bounded adaptive thresholds, the spec-as-document discipline, the red-zone enumeration, the phased-execution exit criteria, and the anti-patterns. v2 layers; it does not rewrite.
 
+### Document hygiene (added during Phase 2/3 implementation)
+
+Two editorial conventions emerged from shipping Phases 2 and 3 against the live repo. They are not invariants — they are how this document and `AGENTS.md` stay readable as the system grows.
+
+**AGENTS.md describes the present; this blueprint describes the trajectory.** When a phase ships, the corresponding capability gets promoted in `AGENTS.md` from a forward-looking marker (`*(Phase N)*`) to live full text, and the marker is deleted. Backward markers like "added in Phase N" are noise — by the time someone reads `AGENTS.md`, they care what's true today, not what shipped when. The blueprint, by contrast, *does* keep historical markers (Phase numbers, "added in v2") because its purpose is to explain how the system arrived at its present state. Two documents, two audiences, one source of truth per claim.
+
+**Bootstrap exception for phase-implementation PRs.** Invariant 1 requires every PR to link an authorizing spec, and §5.1 requires every spec to pass `lint_spec.py`. Phase-implementation PRs are recursive: the PR that *introduces* `lint_spec.py` cannot itself be linted by `lint_spec.py`, and the PR that introduces the Reviewer schema cannot itself produce a Reviewer JSON validating against that schema. Acknowledge the recursion explicitly in the PR body ("bootstrap PR — introduces the gate it would otherwise be subject to") rather than pretending the invariant was satisfied. Future-you will need this note when grepping the spec history for the first lint-clean spec.
+
 ---
 
 ## Purpose of this document
@@ -171,7 +179,14 @@ These are the rules that stay true across all phases. If a proposed change viola
 
 **Why (picturable):** `README.md` describes what this repo does. `AGENTS.md` defines how agents work in it. `docs/specs/` captures *the history of what was built and why*. Specs-as-docs are reviewable, diffable, searchable. Lint-enforced structure means a spec can't silently degrade into a vague prompt — the CI rejects it.
 
-**Tripwire:** If you find yourself asking Codex to "just do X" without a spec file, and the work is more than 30 minutes of effort, stop and write the spec first. Ad-hoc prompts are fine for small work; they are not fine for work that will be reviewed or that another agent needs to understand.
+**Tripwire — consequence-based, not time-based.** If any of the following is true, the work needs a spec before code lands:
+
+- The change touches a red-zone file (per the canonical list in §5.5 / AGENTS.md).
+- The change touches multiple unrelated files (a file plus its co-located tests does not count as multi-file).
+- The change alters a public interface or behavior contract.
+- A future reader will need context the PR diff cannot provide on its own.
+
+A wall-clock time threshold (the v1 "more than 30 minutes" wording) was an unreliable proxy: an agent's wall-clock is far shorter than a human's, some 5-minute changes are radioactive, and arbitrary time numbers invite gaming ("this will only take 28 minutes"). The signals above are what actually drive review burden, and they are first-class fields in the spec format itself. (Lesson learned during the Phase 2 demo; see also §5.10 Planner template and §5.11 write-spec skill, which mirror these criteria.)
 
 ### Invariant 4 — No regression of the existing gold-standard
 
@@ -653,6 +668,21 @@ if __name__ == "__main__":
 }
 ```
 
+**Asymmetric strictness.** The schema deliberately omits
+`additionalProperties: false` at the top level and on every nested
+object. The contract is "reject malformed output, tolerate unknown
+fields." A future Reviewer iteration may want to emit an extra hint
+field (e.g., `cited_issue_ids`, `mcp_provenance`) before the schema
+is updated; a strict schema would reject that PR and the Reviewer's
+extra signal would be lost. Lesson from Phase 3 calibration: schema
+strictness is a one-way door — easy to tighten later, painful to
+loosen once tools downstream depend on a strict contract. Bias toward
+forward-compatibility, validate the required fields exhaustively.
+
+The schema also omits `$id`. The schema is template-local and is
+expected to ship with each fork; a hard-coded `$id` URL would be a
+copy-paste hazard for downstream repos.
+
 ### 5.5 Red-zone file list (canonical)
 
 Files/paths that trigger `review:human` regardless of other signals AND are blocked at edit-time by the PreToolUse hook (see §5.8):
@@ -889,7 +919,7 @@ Cleanup: a weekly `git worktree prune` plus a SubagentStop hook that warns about
 ```md
 ---
 name: planner
-description: Drafts and revises specs in docs/specs/. Read-only by construction (Plan Mode). Use when creating a new spec or revising an existing one.
+description: USE PROACTIVELY for any request that mentions drafting, writing, or revising a spec under docs/specs/. Invoke this subagent BEFORE loading the write-spec skill — the skill is loaded by this subagent, not by the main agent. Read-only by construction (Plan Mode); produces plans that the human commits.
 tools: [Read, Grep, Glob]
 disallowedTools: [Edit, Write, MultiEdit, Bash]
 permissionMode: plan
@@ -906,10 +936,25 @@ Hard rules:
 2. You MUST set `risk_tier` and `complexity`. T0 + low is the only combination eligible for `review:codex` by default. Setting T0/low when the work is consequential is a tripwire — when in doubt, escalate.
 3. Every requirement R* MUST have a matching test T* and a Validation Contract entry.
 4. If the spec sources data from MCP tools or web search, the Security / Prompt-Injection Review section MUST identify the source and the risk level.
-5. If the work is >30 minutes of effort, the spec is mandatory. Ad-hoc prompts are only acceptable for sub-30-minute work.
+
+When does work need a spec? Use these consequence-based criteria — *not* a wall-clock time threshold:
+
+- The change touches a red-zone file (per AGENTS.md / §5.5).
+- The change touches multiple unrelated files (a file plus its co-located tests does not count as multi-file).
+- The change alters a public interface or behavior contract.
+- A future reader will need context the PR diff cannot provide on its own.
+
+If none of the above is true, an ad-hoc prompt is fine.
 
 Use the `write-spec` skill (`.claude/skills/write-spec/SKILL.md`) for the canonical workflow.
 ```
+
+**Routing-primacy lesson.** Claude Code routes between subagents and skills based on `description:` text matching the user's prompt. In the Phase 2 demo, the `write-spec` skill's description matched the user's "draft a spec" prompt more literally than the Planner subagent's, so the skill loaded into the *main* agent (which has Edit/Write tools) instead of the constrained Planner subagent. The mitigation is belt-and-suspenders:
+
+- The Planner subagent description claims primacy explicitly ("USE PROACTIVELY ... invoke this BEFORE loading the write-spec skill").
+- The skill description scopes itself as Planner-loaded (see §5.11), not as a generally-callable spec-drafting playbook.
+
+This is a fragility worth knowing: any future skill whose description matches a user prompt more literally than its parent subagent will exhibit the same routing race. If you add a new skill scoped to a subagent, sharpen both descriptions in the same PR.
 
 **Codex Executor + Reviewer (`.codex/config.toml`):**
 
@@ -958,13 +1003,18 @@ Phase 2 skill: `.claude/skills/write-spec/SKILL.md`
 ```md
 ---
 name: write-spec
-description: Use when drafting a new spec under docs/specs/ or when revising one. Walks through the §5.1 structure step by step and verifies the result will pass lint_spec.py.
+description: Loaded by the Planner subagent when drafting a new spec under docs/specs/ or when revising one. NOT a generally-callable spec-drafting playbook — invoke the Planner subagent instead, which loads this skill. Walks through the §5.1 structure step by step and verifies the result will pass lint_spec.py.
 ---
 
 # Writing a spec
 
-Step 1: Confirm the work is real (>30 min effort, or it's a fix that needs a test).
-Step 2: Pick a slug. Filename is `docs/specs/<slug>.md`.
+Step 1: Confirm the work needs a spec. Use these consequence-based criteria — *not* a time threshold:
+  - touches a red-zone file (per AGENTS.md), OR
+  - touches multiple unrelated files (co-located tests don't count), OR
+  - alters a public interface or behavior contract, OR
+  - a future reader will need context the PR diff cannot provide.
+  If none apply, an ad-hoc prompt is fine — do not draft a spec.
+Step 2: Pick a slug. Filename is `docs/specs/<slug>.md` (the `.md` extension is mandatory; `lint_spec.py` filters on it).
 Step 3: Fill the Metadata block. Choose risk_tier honestly — T0 is "could not break anything important if wrong."
 Step 4: Decompose: Context → Problem Statement → Requirements (with stable IDs).
 Step 5: For every R*, write a T* in Test Plan and an entry in Validation Contract.
@@ -1120,6 +1170,10 @@ Notice what is NOT here:
 3. **Routing rule calibration loop.** The `max_changed_files: 3` and `max_diff_lines: 150` thresholds in §5.3 are gut-feel. The first 20 PRs through the Router will probably produce several "the Router routed this wrong" events. The adaptive mechanism in §5.13 handles *mechanical* tightening; big directional changes (e.g., "we need a `max_diff_lines` of 500 for this repo") are human calls made by editing the policy file directly.
 
 4. **Reviewer-prompt calibration is the hardest prompt engineering in the system.** The Reviewer must be adversarial without being noisy, must produce schema-valid JSON reliably, and must cite evidence from the diff. Expect 3–5 iterations of `developer_instructions` before the 6-of-10 useful-finding bar in Phase 3's exit criterion is met. The `calibrate-reviewer` skill (Phase 3 addition) codifies the iteration procedure.
+
+   **Goodhart-aware framing.** The 6-of-10 bar is a heuristic, not an SLA. The right response to a borderline calibration window (say 5 of 10) is to read the noise and the misses, then revise the Reviewer's `developer_instructions` accordingly — *not* to torque the threshold up or down. Treating the metric as a target rather than a signal is exactly the failure mode Goodhart's Law warns about: the moment "useful finding rate" becomes the optimization target, the Reviewer learns to produce verbose, technically-true findings that score well and inform little. Use the metric to find Reviewer drift; use human judgment to fix it.
+
+   A Phase 2 corollary: the same caution applies to the spec-trigger criteria. A "30 minutes of effort" threshold is a Goodhart target waiting to happen ("this will only take 28 minutes"). The consequence-based criteria in Invariant 3 / §5.10 / §5.11 are deliberately harder to game because they reference the actual signals that drive review burden.
 
 5. **Fenced-block parsing is fragile.** Extracting JSON between `<!-- REVIEWER_JSON -->` markers assumes the Reviewer puts exactly one such block in the PR body. The fallback "emit minimum-confidence JSON on error" pattern in the Reviewer's `developer_instructions` is the mitigation. Expect at least one post-mortem about a malformed output.
 
