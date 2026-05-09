@@ -1,8 +1,9 @@
 # {PROJECT_NAME} — AI Agent Memory
 
-> **AI-native development governance.** This repo follows the v2 blueprint at
+> **AI-native development governance.** This repo follows the blueprint at
 > [`docs/blueprint.md`](docs/blueprint.md) — a multi-agent system with a Planner
-> (Claude Code), Executor (Codex), Reviewer (Codex), and a deterministic Router.
+> (Claude Code), Executor (Codex), Reviewer (Codex, evidence-only in Phase 3),
+> and a deterministic Router (Phase 4).
 > Defense-in-depth via hooks → pre-commit → `just check` → CI → branch protection.
 
 ## What this is
@@ -35,7 +36,7 @@ prompt does not.
   - Mode: `sandbox_mode = "workspace-write"`, `approval_policy = "on-request"`.
   - Implements one spec per branch in its own git worktree.
   - Runs `just check` before declaring done.
-- **Reviewer — Codex subagent** (added in Phase 3; `.codex/config.toml [agents.reviewer]`)
+- **Reviewer — Codex subagent** (`.codex/config.toml [agents.reviewer]`)
   - Mode: `sandbox_mode = "read-only"`, `model_reasoning_effort = "high"`.
   - Outputs schema-valid JSON (never prose) per `.reviewer-schema.json`.
   - Bias: false positives over false negatives.
@@ -48,9 +49,10 @@ prompt does not.
 - `just type` — ty check
 - `just test` — full pytest run
 - `just check` — pre-commit + type + test + spec-lint + injection-scan (the same command CI runs)
-- `just lint-spec <path>` — lint a spec under `docs/specs/` (Phase 2)
-- `just lint-changed-specs` — lint specs touched on the current branch (Phase 2)
-- `just scan-injection` — scan LLM-input artifacts for injection patterns (Phase 2)
+- `just lint-spec <path>` — lint a spec under `docs/specs/`
+- `just lint-changed-specs` — lint specs touched on the current branch
+- `just scan-injection` — scan LLM-input artifacts for injection patterns
+- `just validate-reviewer <pr-body-file>` — validate Reviewer JSON against `.reviewer-schema.json`
 - `uv sync`, `uv sync --extra dev`
 - TODO: add your project's entry points (e.g., `uv run python -m your_package`)
 - Read-only git: `git status`, `git diff`, `git log`, `git branch`
@@ -83,7 +85,13 @@ sufficient for day-to-day work.
 4. **No regression of gold-standard tooling.** Preserve `uv`, `ty`, `just`,
    `pytest`, pre-commit, strict CI (no `|| true`). Tool swaps require an
    invariant version bump, not an in-PR argument.
-5. *(Phase 3)* Reviewer output is structured JSON, not prose.
+5. **Reviewer output is structured JSON, not prose.** The Codex Reviewer
+   produces a JSON document conforming to `.reviewer-schema.json`, fenced
+   inside `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` markers in
+   the PR body. `scripts/validate_reviewer.py` (run via `just
+   validate-reviewer <pr-body-file>`, and in the Phase 4 route-pr CI
+   workflow) rejects unparseable or non-conforming output. Any review that
+   fails schema validation routes the PR to `review:human` automatically.
 6. *(Phase 4)* Risk tier is a first-class routing input.
 7. **Hooks are tripwires, not vibes.** Every tripwire enforceable at edit-time
    MUST be a hook in `.claude/settings.json` (or Codex command rules), not
@@ -115,7 +123,7 @@ uv.lock
 .pre-commit-config.yaml
 justfile
 .routing-policy.json            (Phase 4)
-.reviewer-schema.json           (Phase 3)
+.reviewer-schema.json
 ```
 
 To intentionally edit a red-zone file, do so from a human terminal session
@@ -138,20 +146,22 @@ Read-only sessions (Planner subagent, ad-hoc questions) do not need worktrees.
   * TODO: describe each subdirectory's purpose
 - `tests/` — pytest test suite
 - `docs/` — project documentation
-  * `docs/blueprint.md` — the AI-native dev environment blueprint (v2)
-  * `docs/specs/` — per-feature specs (Phase 2+)
+  * `docs/blueprint.md` — the AI-native dev environment blueprint
+  * `docs/specs/` — per-feature specs
     - `docs/specs/README.md` — spec format documentation
     - `docs/specs/_template.md` — fillable spec skeleton
   * `docs/telemetry/` — events.jsonl + dashboard (Phase 5+)
 - `.scratch/` — sanctioned scratchpad for exploratory work (git-ignored contents)
 - `.claude/agents/` — Claude Code subagent definitions
 - `.claude/skills/` — Agent Skills (progressive disclosure playbooks)
-  * `.claude/skills/write-spec/SKILL.md` — spec-writing playbook (Phase 2)
+  * `.claude/skills/write-spec/SKILL.md` — spec-writing playbook
 - `.claude/settings.json` — Claude Code permissions + hook config
 - `.codex/config.toml` — Codex agent definitions (Executor, Reviewer)
 - `scripts/hooks/` — Claude Code lifecycle hook scripts
-- `scripts/lint_spec.py` — spec structure linter (Phase 2)
-- `scripts/scan_injection.py` — prompt-injection scanner (Phase 2)
+- `scripts/lint_spec.py` — spec structure linter
+- `scripts/scan_injection.py` — prompt-injection scanner
+- `scripts/validate_reviewer.py` — Reviewer JSON validator
+- `.reviewer-schema.json` — Reviewer output JSON Schema
 
 ## Testing conventions
 

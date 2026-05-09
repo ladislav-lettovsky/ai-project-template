@@ -203,7 +203,7 @@ Checklist that includes the standard items (all `R*` satisfied, tests
 passing, `just check` green, CI green, no invariant violations,
 branch named `spec/<slug>`, PR description links the spec, PR body
 contains the `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->`
-block — empty until Phase 3).
+block).
 
 ## Pre-handoff checklist (before presenting the plan to the human)
 
