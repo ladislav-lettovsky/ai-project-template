@@ -7,6 +7,9 @@
       "Bash(just type)",
       "Bash(just test)",
       "Bash(just check)",
+      "Bash(just lint-spec*)",
+      "Bash(just lint-changed-specs)",
+      "Bash(just scan-injection)",
       "Bash(uv sync)",
       "Bash(uv sync --extra dev)",
       "Bash(uv run pytest*)",
@@ -93,6 +96,16 @@
           {
             "type": "command",
             "command": "uv run scripts/hooks/check_branch_name.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run scripts/hooks/require_just_check.py"
           }
         ]
       }

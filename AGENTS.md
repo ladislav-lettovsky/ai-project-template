@@ -30,6 +30,7 @@ prompt does not.
   - Mode: read-only (Plan Mode). Cannot edit files; produces plans for human approval.
   - Drafts and revises specs at `docs/specs/<slug>.md`.
   - Sets `risk_tier` (T0/T1/T2/T3) and `complexity` (low/medium/high) on every spec.
+  - Spec drafting playbook: `.claude/skills/write-spec/SKILL.md`.
 - **Executor — Codex subagent** (`.codex/config.toml [agents.executor]`)
   - Mode: `sandbox_mode = "workspace-write"`, `approval_policy = "on-request"`.
   - Implements one spec per branch in its own git worktree.
@@ -46,7 +47,10 @@ prompt does not.
 - `just lint-fix` — ruff check with --fix
 - `just type` — ty check
 - `just test` — full pytest run
-- `just check` — pre-commit + type + test (the same command CI runs)
+- `just check` — pre-commit + type + test + spec-lint + injection-scan (the same command CI runs)
+- `just lint-spec <path>` — lint a spec under `docs/specs/` (Phase 2)
+- `just lint-changed-specs` — lint specs touched on the current branch (Phase 2)
+- `just scan-injection` — scan LLM-input artifacts for injection patterns (Phase 2)
 - `uv sync`, `uv sync --extra dev`
 - TODO: add your project's entry points (e.g., `uv run python -m your_package`)
 - Read-only git: `git status`, `git diff`, `git log`, `git branch`
@@ -73,7 +77,9 @@ sufficient for day-to-day work.
    `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` block. *Why:* every PR
    is a verifiable trace.
 2. *(Phase 4)* Router is deterministic Python, not an LLM.
-3. *(Phase 2)* Specs are documentation in `docs/specs/`, lint-enforced.
+3. **Specs are documentation in `docs/specs/`, lint-enforced.** `scripts/lint_spec.py`
+   gates `just check`; the `Stop` hook refuses session completion if a touched
+   spec fails the linter.
 4. **No regression of gold-standard tooling.** Preserve `uv`, `ty`, `just`,
    `pytest`, pre-commit, strict CI (no `|| true`). Tool swaps require an
    invariant version bump, not an in-PR argument.
@@ -134,12 +140,18 @@ Read-only sessions (Planner subagent, ad-hoc questions) do not need worktrees.
 - `docs/` — project documentation
   * `docs/blueprint.md` — the AI-native dev environment blueprint (v2)
   * `docs/specs/` — per-feature specs (Phase 2+)
+    - `docs/specs/README.md` — spec format documentation
+    - `docs/specs/_template.md` — fillable spec skeleton
   * `docs/telemetry/` — events.jsonl + dashboard (Phase 5+)
 - `.scratch/` — sanctioned scratchpad for exploratory work (git-ignored contents)
 - `.claude/agents/` — Claude Code subagent definitions
+- `.claude/skills/` — Agent Skills (progressive disclosure playbooks)
+  * `.claude/skills/write-spec/SKILL.md` — spec-writing playbook (Phase 2)
 - `.claude/settings.json` — Claude Code permissions + hook config
 - `.codex/config.toml` — Codex agent definitions (Executor, Reviewer)
 - `scripts/hooks/` — Claude Code lifecycle hook scripts
+- `scripts/lint_spec.py` — spec structure linter (Phase 2)
+- `scripts/scan_injection.py` — prompt-injection scanner (Phase 2)
 
 ## Testing conventions
 
@@ -161,9 +173,11 @@ itself is kept via `.gitkeep`).
 
 ## Before saying "done"
 
-1. `just check` passes (ruff + ty + pytest)
+1. `just check` passes (ruff + ty + pytest + lint-changed-specs + scan-injection)
 2. Any new public function has a test and a type-annotated signature
 3. No new `print()` calls in production code — use `logging.getLogger(__name__)`
 4. If the change affects behavior, `README.md` and `CONTRIBUTING.md` reviewed
 5. Diff against `main` looks like what you'd want in a PR review
 6. PR description links the authorizing spec (Invariant 1)
+7. Any spec touched on this branch lints clean (the `Stop` hook will block
+   session completion otherwise)
