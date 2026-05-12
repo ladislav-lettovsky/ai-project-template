@@ -1,6 +1,7 @@
 # Tighten Planner spec-drafting routing and trigger criteria
 
 ## Metadata
+
 - spec_id: SPEC-20260508-tighten-planner-spec-drafting
 - owner: Ladislav Lettovsky
 - status: drafted
@@ -41,6 +42,7 @@ Planner subagent definition and the `write-spec` skill, especially
 their `description:` frontmatter and trigger language).
 
 ## Assumptions
+
 - A1: `.claude/agents/planner.md` and `.claude/skills/write-spec/SKILL.md`
   are the only locations referencing the 30-minute threshold or the
   Planner-vs-skill routing surface. (`grep -r "30 min" .` should
@@ -52,6 +54,7 @@ their `description:` frontmatter and trigger language).
   add telemetry to detect it; see NG3).
 
 ## Decisions
+
 - D1: Sharpen `.claude/agents/planner.md`'s `description:` frontmatter
   to claim primacy over the `write-spec` skill — language like
   "USE PROACTIVELY ... invoke this BEFORE loading the write-spec skill."
@@ -105,6 +108,7 @@ addressed in one PR because they share the same surface.
   `lint-changed-specs` and `scan-injection`) passes green.
 
 ## Non-Goals
+
 - [ ] NG1: No edits to `AGENTS.md`, `docs/post-fork-checklist.md`,
   `docs/blueprint.md`, or any other file outside the two named
   red-zone files.
@@ -121,6 +125,7 @@ addressed in one PR because they share the same surface.
 ## Interfaces
 
 **Modified files:**
+
 - `.claude/agents/planner.md` — frontmatter `description:` field
   (R1, D1); body sections "Operating notes" and any other 30-min
   reference (R3, D3).
@@ -134,7 +139,7 @@ not code interfaces.
 **Behavioural contract:**
 
 | User says | Pre-change behavior | Post-change behavior |
-|---|---|---|
+| --- | --- | --- |
 | "Draft a spec for X" | Main agent loads write-spec, writes the file directly | Planner subagent invoked, drafts plan, human commits |
 | "Add a one-line print statement" (sub-30-min, single file) | Planner suggests skipping spec (time-based) | Planner suggests skipping spec (consequence-based: trivial, no red-zone, no interface change) |
 | "Refactor src/widget.py and update its tests" (multi-file but trivially time-quick) | Planner may skip spec if estimated <30 min | Planner skips spec because co-located test edits do not count as multi-file |
@@ -142,6 +147,7 @@ not code interfaces.
 | "Touch AGENTS.md to add an invariant" | Planner requires spec | Planner requires spec (red-zone trigger; equivalent) |
 
 ## Invariants to Preserve
+
 - [ ] INV1: `just check` stays green (Invariant 4 from AGENTS.md).
 - [ ] INV2: No new runtime dependencies in `pyproject.toml`.
 - [ ] INV3: The Planner subagent remains read-only — `tools:`,
@@ -153,6 +159,7 @@ not code interfaces.
   is unchanged.
 
 ## Red-Zone Assessment
+
 - auth: no
 - billing: no
 - dependencies: no
@@ -185,6 +192,7 @@ existing `just check` gate.
   - R5: `just check` runs green locally before push, and CI is green.
 
 No automated tests are added because:
+
 - Description routing is enforced by Claude Code's runtime, not by
   repo-side code.
 - Documentation language is best validated by human read.
@@ -192,7 +200,7 @@ No automated tests are added because:
 ## Validation Contract
 
 | Requirement | Validator |
-|---|---|
+| --- | --- |
 | R1 | Manual diff review: planner.md `description:` frontmatter |
 | R2 | Manual diff review: SKILL.md `description:` frontmatter |
 | R3 | Manual diff review: planner.md body sections |
@@ -200,6 +208,7 @@ No automated tests are added because:
 | R5 | `just check` green locally and in CI |
 
 ## Edge Cases
+
 - EC1: A user explicitly bypasses the Planner with `/agents write-spec`
   (or equivalent slash-command in their Claude Code version) — the
   skill still loads. This is intended (explicit user override). No
@@ -213,6 +222,7 @@ No automated tests are added because:
   wording must say so.
 
 ## Security / Prompt-Injection Review
+
 - source: in-process LLM input only. The Planner subagent reads its
   own description from `.claude/agents/planner.md`; the skill reads
   its own description from SKILL.md. No external data flows. No MCP
@@ -248,6 +258,7 @@ flags, no service restarts.
    red-zone was touched intentionally and by which path.
 
 ## Done When
+
 - [ ] R1 through R5 satisfied
 - [ ] Decisions D1-D4 preserved or explicitly deferred
 - [ ] Test T1 (manual review checklist) passes

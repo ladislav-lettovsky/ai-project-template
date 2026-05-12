@@ -125,6 +125,7 @@ confusion.
 ## Done state
 
 After this checklist, your project should:
+
 - Pass `just check` from a fresh clone with `uv sync --extra dev`
 - Have a meaningful `AGENTS.md` with 3-5 real invariants
 - Have at least one domain-specific Cursor rule

@@ -1,6 +1,7 @@
 # Add `greet` module to `your_package`
 
 ## Metadata
+
 - spec_id: SPEC-20260506-add-greet-module
 - owner: Ladislav Lettovsky
 - status: drafted
@@ -10,9 +11,11 @@
 - branch: spec/add-greet-module
 
 ## Context
+
 The repository is the living `ai-project-template` and currently has no example
 production module under `src/your_package/`. A trivially small, well-formed
 module is useful as:
+
 1. A worked example for spec-driven flow when Phase 2 of the blueprint lands
    (this spec exercises the §5.1 structure end-to-end).
 2. A smoke surface for `just check` — a real public function with type hints,
@@ -25,6 +28,7 @@ The feature itself is intentionally trivial. Its purpose is structural, not
 functional.
 
 ## Assumptions
+
 - A1: The package layout is `src/your_package/` (src layout, per CLAUDE.md
   "Where things live").
 - A2: `tests/` at the repo root is the pytest test suite location.
@@ -37,6 +41,7 @@ functional.
   Google- or PEP-257-style docstring).
 
 ## Decisions
+
 - D1: `greet` lives in its own module `src/your_package/greet.py` rather than
   being added to `__init__.py`. Rationale: keeps the module a clean,
   importable unit and makes future extensions (e.g., locale-aware greetings)
@@ -54,6 +59,7 @@ functional.
   source. Rationale: helpful errors are part of the contract, not polish.
 
 ## Problem Statement
+
 The repository has no canonical example of a minimal, fully-tested public
 function in `src/your_package/`. New contributors and forks of the template
 have nothing concrete to pattern-match against. Add a small public function
@@ -61,6 +67,7 @@ have nothing concrete to pattern-match against. Add a small public function
 (typing, docstrings, validation, tests with requirement-ID citations).
 
 ## Requirements (STRICT)
+
 - [ ] REQ-GREET-01: `greet(name)` returns the string `"Hello, <name>!"` when
   `name` is a non-empty `str`. The exact format includes the comma, the
   space, and the trailing exclamation point.
@@ -78,6 +85,7 @@ have nothing concrete to pattern-match against. Add a small public function
   `Example:` section showing one call and its expected return value).
 
 ## Non-Goals
+
 - [ ] NG1: No locale-, timezone-, or time-of-day-aware greetings (no
   "Good morning" variants). The signature is `(name: str) -> str` only.
 - [ ] NG2: No internationalization or translation infrastructure.
@@ -91,11 +99,14 @@ have nothing concrete to pattern-match against. Add a small public function
 - [ ] NG6: No async variant.
 
 ## Interfaces
+
 **New files:**
+
 - `src/your_package/greet.py` — defines `def greet(name: str) -> str: ...`.
 - `tests/test_greet.py` — pytest test module covering all three behaviours.
 
 **Public API surface added:**
+
 - `your_package.greet.greet(name: str) -> str`
 
 **Behavioural contract:**
@@ -110,6 +121,7 @@ have nothing concrete to pattern-match against. Add a small public function
 No existing entrypoints, CLI commands, schemas, or UI surfaces are modified.
 
 ## Invariants to Preserve
+
 - [ ] INV1: `just check` (ruff + ty + pytest) remains green after this change.
 - [ ] INV2: No new `print()` calls in production code — the function returns;
   it does not print (per CLAUDE.md "Before saying done" #3).
@@ -119,6 +131,7 @@ No existing entrypoints, CLI commands, schemas, or UI surfaces are modified.
 - [ ] INV5: Red-zone files are not touched (Invariant 7 in AGENTS.md).
 
 ## Red-Zone Assessment
+
 - auth: no
 - billing: no
 - dependencies: no
@@ -158,17 +171,18 @@ marker is needed.
 
 ## Validation Contract
 
-| Requirement   | Validator                                                                   |
-|---------------|-----------------------------------------------------------------------------|
-| REQ-GREET-01  | `pytest tests/test_greet.py::test_greet_returns_hello_for_non_empty_name`   |
-| REQ-GREET-02  | `pytest tests/test_greet.py::test_greet_raises_value_error_on_empty_string` |
-| REQ-GREET-03  | `pytest tests/test_greet.py::test_greet_raises_type_error_on_non_string`    |
-| REQ-GREET-04  | `ty` passes against `src/your_package/greet.py` in `just type`             |
-| REQ-GREET-05  | Assertion inside T1 that `greet.__doc__` contains an example marker        |
+| Requirement | Validator |
+| --- | --- |
+| REQ-GREET-01 | `pytest tests/test_greet.py::test_greet_returns_hello_for_non_empty_name` |
+| REQ-GREET-02 | `pytest tests/test_greet.py::test_greet_raises_value_error_on_empty_string` |
+| REQ-GREET-03 | `pytest tests/test_greet.py::test_greet_raises_type_error_on_non_string` |
+| REQ-GREET-04 | `ty` passes against `src/your_package/greet.py` in `just type` |
+| REQ-GREET-05 | Assertion inside T1 that `greet.__doc__` contains an example marker |
 
 All validators are exercised by `just check`.
 
 ## Edge Cases
+
 - EC1: Whitespace-only input (`"  "`, `"\n"`) is non-empty; returns `"Hello,   !"`.
   This spec does not strip whitespace — that is a UI concern.
 - EC2: Very long names. No length limit; memory is the caller's concern.
@@ -179,6 +193,7 @@ All validators are exercised by `just check`.
 - EC6: `str` subclass. `isinstance(name, str)` is `True`; call succeeds.
 
 ## Security / Prompt-Injection Review
+
 - source: in-process Python function argument. No MCP tools, web search,
   file reads, network responses, or LLM output.
 - risk: low
@@ -187,19 +202,23 @@ All validators are exercised by `just check`.
   a sensitive sink are responsible for context-appropriate escaping.
 
 ## Observability
+
 None required. The function is pure, synchronous, and in-process; no I/O
 boundaries, retries, error rates, or latency properties to capture.
 
 ## Rollback / Recovery
+
 Purely additive change — no existing module imports `greet`. Rollback by
 reverting the commit that added `greet.py` and `test_greet.py`.
 
 ## Implementation Slices
+
 1. **Slice 1 (single commit):** create `src/your_package/greet.py` and
    `tests/test_greet.py`. Run `just check`. Open one PR. The change is small
    enough that splitting adds churn without value.
 
 ## Done When
+
 - [ ] All requirement IDs REQ-GREET-01 through REQ-GREET-05 satisfied.
 - [ ] Decisions D1–D4 preserved, or any deviation noted in the PR with rationale.
 - [ ] Tests T1, T2, T3 present with docstrings citing requirement IDs.

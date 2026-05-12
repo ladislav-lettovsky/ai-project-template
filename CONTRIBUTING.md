@@ -57,12 +57,12 @@ on `scratch` by default means edits land somewhere safe.
 
 ### Branch name conventions
 
-| Branch                | Purpose                                           |
-| :-------------------- | :------------------------------------------------ |
-| `main`                | Production-ready code; CI must pass before merge. |
-| `spec/<slug>`         | Implementing an authorized spec.                  |
-| `fix/<slug>`          | Bug fix, with or without a spec.                  |
-| `scratch`             | Ephemeral parking branch (do not push).           |
+| Branch | Purpose |
+| --- | --- |
+| `main` | Production-ready code; CI must pass before merge. |
+| `spec/<slug>` | Implementing an authorized spec. |
+| `fix/<slug>` | Bug fix, with or without a spec. |
+| `scratch` | Ephemeral parking branch (do not push). |
 | `feat/`, `refactor/`, `chore/`, `docs/`, `test/` | Conventional prefixes for ad-hoc work. |
 
 Specs of any non-trivial size should land on `spec/<slug>` so the
