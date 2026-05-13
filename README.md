@@ -20,6 +20,7 @@ hooks. The full design is documented in
 ## What you get
 
 ### Tooling
+
 - `pyproject.toml` — project metadata, dependencies, `ruff` + `ty` + `jsonschema` configuration
 - `justfile` — canonical task runner (`just check` is the full quality gate)
 - `.pre-commit-config.yaml` — branch protection + hygiene + ruff + ty

@@ -1,6 +1,7 @@
 # Add `farewell` module to `your_package`
 
 ## Metadata
+
 - spec_id: SPEC-20260508-add-farewell-module
 - owner: Ladislav Lettovsky
 - status: drafted
@@ -10,6 +11,7 @@
 - branch: spec/add-farewell-module
 
 ## Context
+
 The repository now has a `greet` module (`add-greet-module.md`) as a worked
 example of the spec-driven flow. A second, symmetrical module serves two
 purposes:
@@ -26,6 +28,7 @@ The feature itself is intentionally trivial. Its purpose is structural, not
 functional.
 
 ## Assumptions
+
 - A1: The package layout is `src/your_package/` (src layout, per CLAUDE.md
   "Where things live").
 - A2: `tests/` at the repo root is the pytest test suite location.
@@ -38,6 +41,7 @@ functional.
   same conventions apply here.
 
 ## Decisions
+
 - D1: `farewell` lives in its own module `src/your_package/farewell.py` rather
   than being added to `__init__.py` or to `greet.py`. Rationale: mirrors the
   `greet` module decision (D1 in `add-greet-module.md`); keeps each module a
@@ -53,12 +57,14 @@ functional.
   part of the contract, not polish.
 
 ## Problem Statement
+
 The `greet` module established the convention for a minimal public function, but
 there is no complementary exit function. Add a public function
 `farewell(name: str) -> str` returning `"Goodbye, <name>!"` that mirrors
 `greet` in validation discipline, typing, docstring, and test coverage.
 
 ## Requirements (STRICT)
+
 - [ ] REQ-FAREWELL-01: `farewell(name)` returns the string `"Goodbye, <name>!"`
   when `name` is a non-empty `str`. The exact format includes the comma, the
   space, and the trailing exclamation point.
@@ -76,6 +82,7 @@ there is no complementary exit function. Add a public function
   `Example:` section showing one call and its expected return value).
 
 ## Non-Goals
+
 - [ ] NG1: No locale-, timezone-, or time-of-day-aware farewells. The signature
   is `(name: str) -> str` only.
 - [ ] NG2: No internationalization or translation infrastructure.
@@ -89,11 +96,14 @@ there is no complementary exit function. Add a public function
 - [ ] NG6: No async variant.
 
 ## Interfaces
+
 **New files:**
+
 - `src/your_package/farewell.py` — defines `def farewell(name: str) -> str: ...`.
 - `tests/test_farewell.py` — pytest test module covering all behaviours.
 
 **Public API surface added:**
+
 - `your_package.farewell.farewell(name: str) -> str`
 
 **Behavioural contract:**
@@ -108,6 +118,7 @@ there is no complementary exit function. Add a public function
 No existing entrypoints, CLI commands, schemas, or UI surfaces are modified.
 
 ## Invariants to Preserve
+
 - [ ] INV1: `just check` (ruff + ty + pytest) remains green after this change.
 - [ ] INV2: No new `print()` calls in production code — the function returns;
   it does not print (per CLAUDE.md "Before saying done" #3).
@@ -117,6 +128,7 @@ No existing entrypoints, CLI commands, schemas, or UI surfaces are modified.
 - [ ] INV5: Red-zone files are not touched (Invariant 7 in AGENTS.md).
 
 ## Red-Zone Assessment
+
 - auth: no
 - billing: no
 - dependencies: no
@@ -156,17 +168,18 @@ marker is needed.
 
 ## Validation Contract
 
-| Requirement      | Validator                                                                        |
-|------------------|----------------------------------------------------------------------------------|
-| REQ-FAREWELL-01  | `pytest tests/test_farewell.py::test_farewell_returns_goodbye_for_non_empty_name`   |
-| REQ-FAREWELL-02  | `pytest tests/test_farewell.py::test_farewell_raises_value_error_on_empty_string`   |
-| REQ-FAREWELL-03  | `pytest tests/test_farewell.py::test_farewell_raises_type_error_on_non_string`      |
-| REQ-FAREWELL-04  | `ty` passes against `src/your_package/farewell.py` in `just type`               |
-| REQ-FAREWELL-05  | Assertion inside T1 that `farewell.__doc__` contains an example marker           |
+| Requirement | Validator |
+| --- | --- |
+| REQ-FAREWELL-01 | `pytest tests/test_farewell.py::test_farewell_returns_goodbye_for_non_empty_name` |
+| REQ-FAREWELL-02 | `pytest tests/test_farewell.py::test_farewell_raises_value_error_on_empty_string` |
+| REQ-FAREWELL-03 | `pytest tests/test_farewell.py::test_farewell_raises_type_error_on_non_string` |
+| REQ-FAREWELL-04 | `ty` passes against `src/your_package/farewell.py` in `just type` |
+| REQ-FAREWELL-05 | Assertion inside T1 that `farewell.__doc__` contains an example marker |
 
 All validators are exercised by `just check`.
 
 ## Edge Cases
+
 - EC1: Whitespace-only input (`"  "`, `"\n"`) is non-empty; returns
   `"Goodbye,   !"`. This spec does not strip whitespace — that is a UI concern.
 - EC2: Very long names. No length limit; memory is the caller's concern.
@@ -177,6 +190,7 @@ All validators are exercised by `just check`.
 - EC6: `str` subclass. `isinstance(name, str)` is `True`; call succeeds.
 
 ## Security / Prompt-Injection Review
+
 - source: in-process Python function argument. No MCP tools, web search,
   file reads, network responses, or LLM output.
 - risk: low
@@ -185,19 +199,23 @@ All validators are exercised by `just check`.
   a sensitive sink are responsible for context-appropriate escaping.
 
 ## Observability
+
 None required. The function is pure, synchronous, and in-process; no I/O
 boundaries, retries, error rates, or latency properties to capture.
 
 ## Rollback / Recovery
+
 Purely additive change — no existing module imports `farewell`. Rollback by
 reverting the commit that added `farewell.py` and `test_farewell.py`.
 
 ## Implementation Slices
+
 1. **Slice 1 (single commit):** create `src/your_package/farewell.py` and
    `tests/test_farewell.py`. Run `just check`. Open one PR. The change is small
    enough that splitting adds churn without value.
 
 ## Done When
+
 - [ ] All requirement IDs REQ-FAREWELL-01 through REQ-FAREWELL-05 satisfied.
 - [ ] Decisions D1–D4 preserved, or any deviation noted in the PR with rationale.
 - [ ] Tests T1, T2, T3 present with docstrings citing requirement IDs.

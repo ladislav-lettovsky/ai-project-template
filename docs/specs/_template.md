@@ -7,9 +7,14 @@ lint and block `just check`.
 Delete this comment block from your spec before committing.
 -->
 
+<!-- markdownlint-disable MD033 -->
+<!-- Angle-bracket placeholders below (e.g., <slug>, <Feature Title>) are
+     fillable template tokens, not inline HTML. -->
+
 # <Feature Title>
 
 ## Metadata
+
 - spec_id: SPEC-<YYYYMMDD>-<slug>
 - owner: <your name>
 - status: drafted
