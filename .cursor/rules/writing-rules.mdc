@@ -84,3 +84,4 @@ the definitive signal the rule was fetched and used.
 ## See also
 
 @AGENTS.md
+Agent-requested example: @.cursor/rules/session-workflow.mdc

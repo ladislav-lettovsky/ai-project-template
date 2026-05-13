@@ -109,6 +109,10 @@ sufficient for day-to-day work.
 > Each entry: What/where (concrete file or directory) — Why (picturable
 > failure when violated) — Tripwire (the rule's negation, in observable form).
 
+Optional artifacts under `.scratch/` (including optional `lessons.md`) are **not**
+part of merge traceability or CI—they complement specs and gates; they do not
+replace them.
+
 ## Red-zone files
 
 Paths blocked at edit-time by `scripts/hooks/check_red_zone.py` (see Invariant 7)
@@ -186,6 +190,18 @@ itself is kept via `.gitkeep`).
 - Create on demand: `mkdir -p .scratch`
 - Preferred file names: `<topic>.py`, `<topic>.md`, `<topic>.sql`, etc.
 - Do NOT place exploratory files at the repo root — always use `.scratch/`
+
+## Interactive session habits
+
+These complement specs and CI; they do not replace them.
+
+- **Ambiguous or non-spec work:** sketch a short plan before multi-step edits; if
+  the approach fails repeatedly, stop and re-plan.
+- **Lessons:** optionally append corrections to `.scratch/lessons.md` (format and
+  habits in `.cursor/rules/session-workflow.mdc`); treat as session notes unless
+  promoted to `docs/` or a spec.
+- **Change discipline:** smallest fix that addresses the cause; avoid unrelated
+  refactors unless a spec requires them.
 
 ## Before saying "done"
 

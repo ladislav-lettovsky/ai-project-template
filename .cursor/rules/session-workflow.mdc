@@ -1,0 +1,56 @@
+---
+description: Load for multi-step or ambiguous work without an authorizing spec, scratch lessons, re-planning, change discipline, and parallel investigation in Cursor.
+---
+
+# Interactive session workflow (Cursor)
+
+Portable habits also summarized in `AGENTS.md` § Interactive session habits.
+
+## Non-trivial work without an authorizing spec
+
+When work is **not** already governed by a spec under `docs/specs/` (adhoc
+investigations, ambiguous bugs, exploratory refactors):
+
+- If the approach needs **more than three concrete steps** or spans multiple
+  packages, **outline a short plan first** (bullet list is enough), then execute.
+- If findings contradict the plan or failures repeat, **stop and re-plan** before
+  stacking speculative fixes.
+
+**Spec-backed delivery:** the spec is the plan—do not duplicate it in scratch files.
+
+## Lessons (optional)
+
+After a **corrected mistake** (wrong assumption, failed `just check`, hook
+failure, misunderstood invariant), append one line to `.scratch/lessons.md`
+(create if missing):
+
+`- YYYY-MM-DD: <what went wrong> → <correct rule or file to read>`
+
+At the **start of a long session**, skim `.scratch/lessons.md` if it exists.
+
+Do **not** commit lessons unless the human promotes them into `docs/` or a spec.
+
+## Change discipline
+
+- Prefer the **smallest** change that satisfies the request.
+- Fix **root causes** (why tests or hooks failed), not symptoms—unless the human
+  explicitly asks for a temporary workaround; then state that in the summary/PR.
+- Avoid drive-by refactors in files unrelated to the task.
+
+## Quality bar (balanced)
+
+If a fix feels brittle or hacky **and** a proper fix is localized and low-risk,
+prefer the proper fix. For trivial one-liners or pure style, do not expand scope.
+
+## Context hygiene
+
+For parallel investigations (tracing usage across dirs, comparing hook vs CI
+behavior), prefer **splitting work** (subagents or focused passes) over one long
+sequential dig when the host supports it.
+
+Formal delivery still follows Executor/Reviewer boundaries in `AGENTS.md`.
+
+## See also
+
+@AGENTS.md
+@.cursor/rules/00-always.mdc
