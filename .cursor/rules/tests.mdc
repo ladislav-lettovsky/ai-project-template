@@ -6,12 +6,14 @@ globs: tests/**/*.py
 # Test conventions
 
 ## Canonical commands
+
 - Run all tests: `just test` (wraps `uv run pytest`)
 - Full quality gate: `just check` (pre-commit + ty + pytest)
 - Skip integration: `pytest -m "not integration"` (if you have them)
 - Run only integration: `pytest -m integration`
 
 ## File and class structure
+
 - One test file per source module/concern (e.g., `test_state.py` for `models/state.py`)
 - Module docstring required: `"""Tests for X."""`
 - Plain `def test_*` functions, or group related tests in `Test<Concept>` classes
@@ -20,6 +22,7 @@ globs: tests/**/*.py
   so pytest won't collect them
 
 ## Markers
+
 - `@pytest.mark.integration` for tests requiring live APIs — registered in
   `pyproject.toml [tool.pytest.ini_options]`
 - `@pytest.mark.skipif(not HAS_DATA, reason="Data files not present")` for
@@ -27,13 +30,16 @@ globs: tests/**/*.py
 - Never let a test hard-fail on missing env; use `skipif` with a clear reason
 
 ## Environment setup belongs in `conftest.py`
+
 Shared setup (sys.path, env vars) lives in `tests/conftest.py`, not in
 individual test files. If you need a new shared fixture, add it there.
 
 ## What not to test
+
 - LLM output content (non-deterministic) — test structure, not prose
 - Private helpers of production code — test the public surface
 - Prompt strings verbatim — they change; test behavior under mocked responses instead
 
 ## See also
+
 @AGENTS.md

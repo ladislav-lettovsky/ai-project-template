@@ -60,6 +60,12 @@ prompt does not.
 ## Commands with preconditions
 
 - `git commit` is allowed on a non-`main` branch **only after `just check` passes with no errors**. On `main`, always ask first.
+- After any update to local `main` (PR merge, `git pull`, fast-forward, etc.),
+  immediately `git switch` to a parking branch — by convention `scratch`,
+  forked from the new `main` tip. This keeps the working copy off `main`
+  so no edits or commits land there by accident. Create real work
+  branches from `main`, not from `scratch`. If `scratch` is missing or
+  stale, recreate it with `git switch -c scratch` from the current `main`.
 
 ## Commands that need explicit approval
 
@@ -108,7 +114,7 @@ sufficient for day-to-day work.
 Paths blocked at edit-time by `scripts/hooks/check_red_zone.py` (see Invariant 7)
 and routed to `review:human` once Phase 4's Router lands.
 
-```
+```text
 AGENTS.md
 CLAUDE.md                       (symlink → AGENTS.md)
 .claude/settings.json
@@ -143,18 +149,18 @@ Read-only sessions (Planner subagent, ad-hoc questions) do not need worktrees.
 ## Where things live
 
 - `src/{your_package}/` — production package (src layout)
-  * TODO: describe each subdirectory's purpose
+  - TODO: describe each subdirectory's purpose
 - `tests/` — pytest test suite
 - `docs/` — project documentation
-  * `docs/blueprint.md` — the AI-native dev environment blueprint
-  * `docs/specs/` — per-feature specs
+  - `docs/blueprint.md` — the AI-native dev environment blueprint
+  - `docs/specs/` — per-feature specs
     - `docs/specs/README.md` — spec format documentation
     - `docs/specs/_template.md` — fillable spec skeleton
-  * `docs/telemetry/` — events.jsonl + dashboard (Phase 5+)
+  - `docs/telemetry/` — events.jsonl + dashboard (Phase 5+)
 - `.scratch/` — sanctioned scratchpad for exploratory work (git-ignored contents)
 - `.claude/agents/` — Claude Code subagent definitions
 - `.claude/skills/` — Agent Skills (progressive disclosure playbooks)
-  * `.claude/skills/write-spec/SKILL.md` — spec-writing playbook
+  - `.claude/skills/write-spec/SKILL.md` — spec-writing playbook
 - `.claude/settings.json` — Claude Code permissions + hook config
 - `.codex/config.toml` — Codex agent definitions (Executor, Reviewer)
 - `scripts/hooks/` — Claude Code lifecycle hook scripts
