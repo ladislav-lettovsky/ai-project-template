@@ -34,6 +34,8 @@ Two editorial conventions emerged from shipping Phases 2 and 3 against the live 
 
 **Bootstrap exception for phase-implementation PRs.** Invariant 1 requires every PR to link an authorizing spec, and §5.1 requires every spec to pass `lint_spec.py`. Phase-implementation PRs are recursive: the PR that *introduces* `lint_spec.py` cannot itself be linted by `lint_spec.py`, and the PR that introduces the Reviewer schema cannot itself produce a Reviewer JSON validating against that schema. Acknowledge the recursion explicitly in the PR body ("bootstrap PR — introduces the gate it would otherwise be subject to") rather than pretending the invariant was satisfied. Future-you will need this note when grepping the spec history for the first lint-clean spec.
 
+**Optional session complements (non-normative).** Teams may adopt lightweight habits alongside specs: an ephemeral **lessons** log under `.scratch/` and an explicit **re-plan** rule when adhoc work goes sideways. These artifacts sit **outside** the merge gate—they reduce repeated mistakes and wasted trials but must **not** compete with `docs/specs/` as the authorizing plan for delivery work. Cursor may encode host-specific guidance under `.cursor/rules/` (agent-requested rules); other hosts rely on the portable subset in `AGENTS.md`.
+
 ---
 
 ## Purpose of this document
