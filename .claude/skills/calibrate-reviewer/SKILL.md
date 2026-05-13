@@ -23,12 +23,14 @@ This skill is how you make that judgment.
 ## When this skill applies
 
 Use this skill when you have:
+
 1. A merged or open PR with a Reviewer JSON in its body, AND
 2. You've personally read the diff and formed your own opinion of what's
    good/bad about it, AND
 3. You want to score the Reviewer's findings against your opinion.
 
 Do NOT use this skill for:
+
 - General PR review (just review the PR normally).
 - Spec drafting (use `write-spec` instead).
 - Code-quality assessment of the diff (the Reviewer reviews the diff;
@@ -108,6 +110,7 @@ Iterate if you observe ANY of:
    re-anchor the fallback stub.
 
 Do NOT iterate for:
+
 - A single bad PR (noise is normal).
 - A finding you disagree with but can't quickly explain why.
 - Stylistic preferences about how findings are worded.
@@ -138,13 +141,14 @@ You can declare Phase 3 done when ALL of:
 
 If you hit 3-of-3 useful on the first attempt, that's suspect (the bar
 is calibrated for ~67% useful). Look for:
+
 - Is the bar too easy? Are you scoring "useful" generously?
 - Are the demo PRs unrepresentative? Pick a harder one for PR #4.
 
 ## Common Reviewer failure modes (and the fix)
 
 | Symptom | Likely cause | Iteration |
-|---|---|---|
+| --- | --- | --- |
 | Findings are all `nit` | Severity-bias too cautious | Add: "use `warning` when an issue would be uncomfortable post-merge" |
 | Findings cite no evidence | Evidence rule under-emphasized | Move evidence rule earlier; add example |
 | Findings are vague ("could improve X") | Output is drifting toward prose | Re-anchor the schema in instructions; add more enum examples |
