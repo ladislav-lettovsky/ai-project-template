@@ -66,6 +66,16 @@ prompt does not.
   so no edits or commits land there by accident. Create real work
   branches from `main`, not from `scratch`. If `scratch` is missing or
   stale, recreate it with `git switch -c scratch` from the current `main`.
+- **First step on a new implementation prompt while on `scratch`:** read the
+  prompt, decide whether it describes a new capability (→ `spec/<slug>`) or a
+  bug fix (→ `fix/<slug>`), and rename the parking branch *before* doing any
+  work: `git branch -m scratch spec/<slug>` (or `fix/<slug>`). The
+  `check_branch_name.py` UserPromptSubmit hook (Invariant 1) rejects prompts
+  on any branch other than `main`, `spec/*`, or `fix/*`, so staying on
+  `scratch` will block the next prompt. If `scratch` is missing, branch
+  directly from `main` with `git switch -c spec/<slug>` (or `fix/<slug>`)
+  instead. Recreate `scratch` only after the work merges (see the parking
+  rule above).
 
 ## Commands that need explicit approval
 

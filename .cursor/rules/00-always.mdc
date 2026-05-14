@@ -46,6 +46,12 @@ the recipes are the contract between dev machines and CI.
   so no edits or commits land there by accident. Create real work
   branches from `main`, not from `scratch`. If `scratch` is missing or
   stale, recreate it with `git switch -c scratch` from the current `main`.
+- **First step on a new implementation prompt while on `scratch`:** classify
+  the prompt as a new capability (→ `spec/<slug>`) or a fix (→ `fix/<slug>`)
+  and rename the parking branch *before* any other action:
+  `git branch -m scratch spec/<slug>` (or `fix/<slug>`). The
+  `check_branch_name.py` hook rejects prompts on any branch other than
+  `main`, `spec/*`, or `fix/*`.
 
 ## Ephemeral / scratch work
 

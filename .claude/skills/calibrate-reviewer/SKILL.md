@@ -13,10 +13,10 @@ description: |
 
 The Phase 3 exit criterion (per `docs/blueprint.md` §4) is behavioral:
 
-> *"On 3 consecutive PRs, the Codex Reviewer's JSON has been evaluated by
+> *"On 10 consecutive PRs, the Codex Reviewer's JSON has been evaluated by
 > human with scoring: useful / noise / missed real issue I caught. At
-> least 2 of 3 PRs should produce at least one useful finding. All 3 must
-> pass schema validation."*
+> least 6 of 10 PRs should produce at least one useful finding. All 10
+> must pass schema validation."*
 
 This skill is how you make that judgment.
 
@@ -42,7 +42,7 @@ Before scoring:
 
 1. Run `just validate-reviewer <pr-body-file>`. If it exits non-zero, the
    Reviewer failed at the structural level. Skip the per-finding scoring
-   for this PR — it counts toward the "all 3 must pass schema validation"
+   for this PR — it counts toward the "all 10 must pass schema validation"
    criterion as a fail. Note the schema error and move on.
 2. If validation passes, extract the JSON. Read `summary` first to
    anchor on the Reviewer's overall framing.
@@ -67,12 +67,9 @@ plus one `missed`. The PR-level question is "did the Reviewer produce
 at least one useful finding?" — yes here, even though most findings
 were noise.
 
-## The 6-of-10 bar (a reframing of the blueprint's 2-of-3)
+## The 6-of-10 bar
 
-The blueprint says 2-of-3 PRs must produce ≥1 useful finding. That's a
-short window — useful for kickoff, but volatile (one bad day on the
-prompt will fail it). Once you're past the initial 3, switch to a
-rolling window: 6-of-10 most recent PRs producing ≥1 useful finding.
+A rolling window: 6-of-10 most recent PRs producing ≥1 useful finding.
 
 If the rolling 10 drops below 6 useful: stop, iterate the prompt,
 restart the count.
@@ -88,9 +85,8 @@ prompt_iteration: vN  (the developer_instructions hash you were running)
 notes: <one or two sentences>
 ```
 
-Append to `docs/telemetry/reviewer-calibration.md` (Phase 5 will move
-this to `events.jsonl`; for the 3-PR calibration window, plain
-markdown is fine).
+Append to `.scratch/reviewer-calibration.md` (Phase 5 will move this to
+`events.jsonl`; for the 10-PR calibration window, plain markdown is fine).
 
 ## When to iterate the developer_instructions
 
@@ -105,7 +101,7 @@ Iterate if you observe ANY of:
 3. **All findings are nits.** Reviewer is too cautious about emitting
    `warning` or `critical`. Add language: "use warning when an issue
    would be uncomfortable to discover post-merge."
-4. **Schema validation fails twice in 3 PRs.** Fence-extraction or
+4. **Schema validation fails twice in 10 PRs.** Fence-extraction or
    field-set is unstable. Tighten the output format instructions and
    re-anchor the fallback stub.
 
@@ -131,19 +127,19 @@ Do NOT iterate for:
 
 You can declare Phase 3 done when ALL of:
 
-- [ ] 3 consecutive PRs scored.
-- [ ] All 3 produced schema-valid Reviewer JSON.
-- [ ] At least 2 of 3 produced ≥1 useful finding.
+- [ ] 10 consecutive PRs scored.
+- [ ] All 10 produced schema-valid Reviewer JSON.
+- [ ] At least 6 of 10 produced ≥1 useful finding.
 - [ ] You've confirmed via Codex session log that Reviewer ran with
   `sandbox_mode = "read-only"` (the runtime guarantee, not the prompt).
 - [ ] At least one PR produced a `missing_*` or `invariant_risk`
   finding — proves the Reviewer can flag real bugs, not just nits.
 
-If you hit 3-of-3 useful on the first attempt, that's suspect (the bar
-is calibrated for ~67% useful). Look for:
+If you hit 10-of-10 useful on the first attempt, that's suspect (the bar
+is calibrated for ~60% useful). Look for:
 
 - Is the bar too easy? Are you scoring "useful" generously?
-- Are the demo PRs unrepresentative? Pick a harder one for PR #4.
+- Are the demo PRs unrepresentative? Pick a harder one for PR #11.
 
 ## Common Reviewer failure modes (and the fix)
 
