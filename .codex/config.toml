@@ -1,25 +1,11 @@
-# .codex/config.toml
-#
-# Project-local Codex configuration for ai-project-template.
-# Loaded after ~/.codex/config.toml (global config) and overrides
-# global settings for work performed inside this repo.
-#
-# See docs/blueprint.md §5.10 for the canonical agent definitions and
-# AGENTS.md §"Agent Roles" for the day-to-day-work summary.
-#
-# Phase 1 of the v2 blueprint adds the Executor agent. Phase 3 will add the
-# Reviewer agent (read-only sandbox, structured-JSON output).
-
 [agents.executor]
+approval_policy = "on-request"
 description = """
 Implements one approved spec per branch in a workspace-write sandbox. The
 Planner (Claude Code) provides the spec at docs/specs/<slug>.md; the Executor
 turns the spec into code, tests, and a PR. Use when a lint-clean spec exists
 and the work is ready to be implemented.
 """
-model_reasoning_effort = "medium"
-sandbox_mode = "workspace-write"
-approval_policy = "on-request"
 developer_instructions = """
 You are the Executor role in this repository's three-agent system. The Planner
 (Claude Code) has produced a spec at docs/specs/<slug>.md. Your job is to
@@ -78,11 +64,11 @@ implementation:
 The cost of stopping to clarify is small; the cost of writing the wrong code
 and discovering it during review is large.
 """
+model_reasoning_effort = "medium"
+sandbox_mode = "workspace-write"
 
 [agents.reviewer]
 description = "Adversarial PR reviewer. Read-only sandbox. Outputs schema-valid JSON only, fenced in <!-- REVIEWER_JSON --> markers in the PR body."
-model_reasoning_effort = "high"
-sandbox_mode = "read-only"
 developer_instructions = """
 You are the Reviewer role in this repo's three-agent system. Your job is to produce a critical, evidence-cited review of the PR diff against the spec it cites. You operate in a read-only sandbox — you cannot modify any files. Your only output is a JSON document validating against `.reviewer-schema.json`.
 
@@ -193,3 +179,14 @@ Emit this minimum-confidence stub instead. It validates against the schema and g
 
 Better to fail safe with a stub than to emit unparseable prose.
 """
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+
+[shell_environment_policy]
+inherit = "core"
+
+[shell_environment_policy.set]
+PYTHONDONTWRITEBYTECODE = "1"
+
+[sandbox_workspace_write]
+network_access = true
