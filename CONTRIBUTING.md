@@ -51,6 +51,20 @@ Treat `scratch` as ephemeral: when work has a name, rename it
 (`git switch -c spec/<slug>`). This pattern eliminates the most common
 foot-gun in this repo: editing files while sitting on `main`.
 
+**First step on a new implementation prompt while on `scratch`:** before
+doing any other work, read the prompt, decide whether it describes a new
+capability (→ `spec/<slug>`) or a bug fix (→ `fix/<slug>`), and rename
+the parking branch in place:
+
+```bash
+git branch -m scratch spec/<slug>   # or fix/<slug>
+```
+
+The `check_branch_name.py` UserPromptSubmit hook (Invariant 1) rejects
+prompts on any branch other than `main`, `spec/*`, or `fix/*`, so a
+session that stays on `scratch` will be blocked at the next prompt.
+Recreate `scratch` from `main` only after the work merges.
+
 The `no-commit-to-branch` pre-commit hook will reject commits to
 `main` regardless, but it can't catch *edits* — only commits. Sitting
 on `scratch` by default means edits land somewhere safe.

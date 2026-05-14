@@ -75,7 +75,7 @@ agent's eager context.
 - `.claude/skills/write-spec/SKILL.md` — spec-writing walkthrough,
   loaded by the Planner
 - `.claude/skills/calibrate-reviewer/SKILL.md` — Reviewer calibration
-  procedure (3-PR / 6-of-10 scoring)
+  procedure (6-of-10 scoring)
 
 ### Prompt-injection defense
 
