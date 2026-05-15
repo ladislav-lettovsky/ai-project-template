@@ -7,6 +7,10 @@
           {
             "type": "command",
             "command": "uv run scripts/hooks/check_red_zone.py"
+          },
+          {
+            "type": "command",
+            "command": "uv run scripts/hooks/check_no_edits_on_scratch.py"
           }
         ]
       }

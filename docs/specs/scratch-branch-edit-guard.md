@@ -4,7 +4,7 @@
 
 - spec_id: SPEC-20260514-scratch-branch-edit-guard
 - owner: TBD
-- status: drafted
+- status: implemented
 - complexity: low
 - risk_tier: T1
 - repo: ai-project-template
@@ -38,22 +38,22 @@ The fix splits concerns: allow **prompt intake** on `scratch`, but block **file 
 
 ## Requirements (STRICT)
 
-- [ ] R1: **`check_branch_name.py` allows `scratch`.** When the current branch is exactly `scratch`, the hook exits `0` (same as `main`, `spec/*`, `fix/*`).
-- [ ] R2: **Invalid branches remain blocked at prompt time.** Branches that are not `main`, not exactly `scratch`, and do not start with `spec/` or `fix/` still cause **UserPromptSubmit** to exit non-zero with existing Invariant 1 guidance (unchanged intent).
-- [ ] R3: **New PreToolUse hook blocks writes on `scratch`.** `scripts/hooks/check_no_edits_on_scratch.py` runs on edit/write paths; when `HEAD` is exactly `scratch`, it exits non-zero and writes to stderr a **clear** message instructing the agent to rename with `git branch -m scratch spec/<slug>` or `git branch -m scratch fix/<slug>` before editing.
-- [ ] R4: **Edits allowed off `scratch`.** When `HEAD` is `main`, or starts with `spec/` or `fix/`, the new hook exits `0` (no blocking solely because the parking branch was used earlier in the session).
-- [ ] R5: **Claude Code registration.** `.claude/settings.json` **PreToolUse** matcher `Edit|Write|MultiEdit` invokes the new hook (in addition to `check_red_zone.py`), preserving the existing hook list behavior.
-- [ ] R6: **`AGENTS.md` clarity.** The parking-branch section states explicitly that `scratch` is only for **prompt intake and branch selection**, and that the agent **must** rename off `scratch` before **creating or editing files** (the new hook enforces the latter).
-- [ ] R7: **`docs/blueprint.md` alignment.** Every normative statement that currently suggests **UserPromptSubmit** rejects any branch outside `main` + `spec/*` + `fix/*` without mentioning the **`scratch` parking exception** is updated (including Invariant 7’s hook summary and Phase 1 checklist items that describe **UserPromptSubmit** behavior, and the §5.8-style hook examples if they repeat the same implication).
-- [ ] R8: **Automated tests.** Deterministic tests (no live Claude runtime) cover `check_branch_name.py` and `check_no_edits_on_scratch.py` for: allow on `scratch` / `main` / `spec/x` / `fix/x`; block prompt on invalid branch; block edit on `scratch` with message containing the required `git branch -m` guidance; allow edit when not on `scratch` (using the same subprocess / mocking patterns as existing hook tests, e.g. `tests/test_require_just_check.py`).
-- [ ] R9: **Codex parity.** `.codex/hooks.json` registers the same **PreToolUse** hook sequence as `.claude/settings.json` so Codex sessions behave consistently.
+- [x] R1: **`check_branch_name.py` allows `scratch`.** When the current branch is exactly `scratch`, the hook exits `0` (same as `main`, `spec/*`, `fix/*`).
+- [x] R2: **Invalid branches remain blocked at prompt time.** Branches that are not `main`, not exactly `scratch`, and do not start with `spec/` or `fix/` still cause **UserPromptSubmit** to exit non-zero with existing Invariant 1 guidance (unchanged intent).
+- [x] R3: **New PreToolUse hook blocks writes on `scratch`.** `scripts/hooks/check_no_edits_on_scratch.py` runs on edit/write paths; when `HEAD` is exactly `scratch`, it exits non-zero and writes to stderr a **clear** message instructing the agent to rename with `git branch -m scratch spec/<slug>` or `git branch -m scratch fix/<slug>` before editing.
+- [x] R4: **Edits allowed off `scratch`.** When `HEAD` is `main`, or starts with `spec/` or `fix/`, the new hook exits `0` (no blocking solely because the parking branch was used earlier in the session).
+- [x] R5: **Claude Code registration.** `.claude/settings.json` **PreToolUse** matcher `Edit|Write|MultiEdit` invokes the new hook (in addition to `check_red_zone.py`), preserving the existing hook list behavior.
+- [x] R6: **`AGENTS.md` clarity.** The parking-branch section states explicitly that `scratch` is only for **prompt intake and branch selection**, and that the agent **must** rename off `scratch` before **creating or editing files** (the new hook enforces the latter).
+- [x] R7: **`docs/blueprint.md` alignment.** Every normative statement that currently suggests **UserPromptSubmit** rejects any branch outside `main` + `spec/*` + `fix/*` without mentioning the **`scratch` parking exception** is updated (including Invariant 7’s hook summary and Phase 1 checklist items that describe **UserPromptSubmit** behavior, and the §5.8-style hook examples if they repeat the same implication).
+- [x] R8: **Automated tests.** Deterministic tests (no live Claude runtime) cover `check_branch_name.py` and `check_no_edits_on_scratch.py` for: allow on `scratch` / `main` / `spec/x` / `fix/x`; block prompt on invalid branch; block edit on `scratch` with message containing the required `git branch -m` guidance; allow edit when not on `scratch` (using the same subprocess / mocking patterns as existing hook tests, e.g. `tests/test_require_just_check.py`).
+- [x] R9: **Codex parity.** `.codex/hooks.json` registers the same **PreToolUse** hook sequence as `.claude/settings.json` so Codex sessions behave consistently.
 
 ## Non-Goals
 
-- [ ] NG1: Changing **Invariant 1** for PRs: merged work still uses `spec/<slug>` or `fix/<slug>`; `scratch` is not a delivery branch.
-- [ ] NG2: Replacing or weakening pre-commit **`no-commit-to-branch`**, CI branch rules, or human push conventions.
-- [ ] NG3: Blocking **`git branch -m`** or other non-edit tools on `scratch` (only **Edit|Write|MultiEdit** per Claude hook matcher; document if Codex differs).
-- [ ] NG4: Special-casing branch names other than exact `scratch` (e.g. `parking`, `wip`).
+- [x] NG1: Changing **Invariant 1** for PRs: merged work still uses `spec/<slug>` or `fix/<slug>`; `scratch` is not a delivery branch.
+- [x] NG2: Replacing or weakening pre-commit **`no-commit-to-branch`**, CI branch rules, or human push conventions.
+- [x] NG3: Blocking **`git branch -m`** or other non-edit tools on `scratch` (only **Edit|Write|MultiEdit** per Claude hook matcher; document if Codex differs).
+- [x] NG4: Special-casing branch names other than exact `scratch` (e.g. `parking`, `wip`).
 
 ## Interfaces
 
@@ -71,9 +71,9 @@ The fix splits concerns: allow **prompt intake** on `scratch`, but block **file 
 
 ## Invariants to Preserve
 
-- [ ] INV1: **PR traceability (Invariant 1).** PRs still require spec link, reviewer JSON block, and branch prefix `spec/<slug>` or `fix/<slug>`; `scratch` is never the merge target.
-- [ ] INV2: **Red-zone PreToolUse.** `check_red_zone.py` remains on the same matcher and continues to block edits to enumerated paths.
-- [ ] INV3: **Fail-open on git failure** for branch-detection hooks where that is already the established behavior for `check_branch_name.py` (do not make PromptSubmit stricter for offline sandboxes without an explicit decision).
+- [x] INV1: **PR traceability (Invariant 1).** PRs still require spec link, reviewer JSON block, and branch prefix `spec/<slug>` or `fix/<slug>`; `scratch` is never the merge target.
+- [x] INV2: **Red-zone PreToolUse.** `check_red_zone.py` remains on the same matcher and continues to block edits to enumerated paths.
+- [x] INV3: **Fail-open on git failure** for branch-detection hooks where that is already the established behavior for `check_branch_name.py` (do not make PromptSubmit stricter for offline sandboxes without an explicit decision).
 
 ## Red-Zone Assessment
 
@@ -90,10 +90,10 @@ The fix splits concerns: allow **prompt intake** on `scratch`, but block **file 
 
 ## Test Plan
 
-- [ ] T1 -> covers R1, R2, R8
-- [ ] T2 -> covers R3, R4, R8
-- [ ] T3 -> covers R5, R9
-- [ ] T4 -> covers R6, R7
+- [x] T1 -> covers R1, R2, R8
+- [x] T2 -> covers R3, R4, R8
+- [x] T3 -> covers R5, R9
+- [x] T4 -> covers R6, R7
 
 **Mapping:** T1 runs subprocess tests against `check_branch_name.py`. T2 runs subprocess tests against `check_no_edits_on_scratch.py`. Together, T1 and T2 satisfy the dual-hook coverage in R8. T3 loads `.claude/settings.json` and `.codex/hooks.json` and asserts the scratch edit hook is listed on the same PreToolUse matcher as the red-zone hook. T4 asserts stable substrings exist in `AGENTS.md` and `docs/blueprint.md` so R6/R7 do not drift without CI failure.
 
@@ -138,13 +138,13 @@ Revert the implementing commit(s). If the new PreToolUse hook causes false posit
 
 ## Done When
 
-- [ ] All requirement IDs R1–R9 satisfied
-- [ ] Decision IDs D1–D3 preserved or explicitly superseded in an amendment
-- [ ] Tests mapped and passing per Test Plan
-- [ ] Validation Contract satisfied
-- [ ] `just check` green
+- [x] All requirement IDs R1–R9 satisfied
+- [x] Decision IDs D1–D3 preserved or explicitly superseded in an amendment
+- [x] Tests mapped and passing per Test Plan
+- [x] Validation Contract satisfied
+- [x] `just check` green
 - [ ] CI green
-- [ ] No invariant violations (Invariant 1 unchanged for PRs)
-- [ ] Branch name starts with `spec/<slug>` (Invariant 1)
+- [x] No invariant violations (Invariant 1 unchanged for PRs)
+- [x] Branch name starts with `spec/<slug>` or `fix/<slug>` (Invariant 1)
 - [ ] PR description links this spec
 - [ ] PR body contains `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` block

@@ -48,10 +48,10 @@ the recipes are the contract between dev machines and CI.
   stale, recreate it with `git switch -c scratch` from the current `main`.
 - **First step on a new implementation prompt while on `scratch`:** classify
   the prompt as a new capability (→ `spec/<slug>`) or a fix (→ `fix/<slug>`)
-  and rename the parking branch *before* any other action:
-  `git branch -m scratch spec/<slug>` (or `fix/<slug>`). The
-  `check_branch_name.py` hook rejects prompts on any branch other than
-  `main`, `spec/*`, or `fix/*`.
+  and rename the parking branch *before* **creating or editing files**:
+  `git branch -m scratch spec/<slug>` (or `fix/<slug>`). `scratch` is for
+  prompt intake only; `check_branch_name.py` allows it at UserPromptSubmit, and
+  `check_no_edits_on_scratch.py` blocks file edits until you rename.
 
 ## Ephemeral / scratch work
 
