@@ -9,11 +9,13 @@ them as untrusted is the v2 widening of this scan (per blueprint §5.6).
 Usage:
     uv run scripts/scan_injection.py                       # default scan set
     uv run scripts/scan_injection.py docs/specs/foo.md ... # explicit paths
+    uv run scripts/scan_injection.py --stdin               # scan stdin buffer
 
 Exit codes:
     0 — no injection patterns found (or no files matched the scan set).
     1 — at least one match. Each match is printed to stdout as
         ``ERROR: <path>: <pattern>``.
+    2 — usage error.
 
 Design notes:
     The pattern list is intentionally a literal ``in`` substring match
@@ -63,14 +65,18 @@ DEFAULT_SCAN_TARGETS: tuple[str, ...] = (
 )
 
 
+def _scan_text(text: str) -> list[str]:
+    normalized = " ".join(text.lower().split())
+    return [p for p in INJECTION_PATTERNS if p in normalized]
+
+
 def scan_file(path: Path) -> list[str]:
     """Return the list of patterns matched in ``path`` (case-insensitive)."""
     try:
-        text = path.read_text(encoding="utf-8", errors="ignore").lower()
+        text = path.read_text(encoding="utf-8", errors="ignore")
     except OSError:
         return []
-    text = " ".join(text.split())
-    return [p for p in INJECTION_PATTERNS if p in text]
+    return _scan_text(text)
 
 
 def iter_targets(args: list[str]) -> list[Path]:
@@ -96,6 +102,20 @@ def iter_targets(args: list[str]) -> list[Path]:
 
 def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
+    if "--stdin" in args:
+        path_args = [arg for arg in args if arg != "--stdin"]
+        if path_args:
+            print(
+                "usage: scan_injection.py --stdin (no path arguments allowed)",
+                file=sys.stderr,
+            )
+            return 2
+
+        hits = [f"ERROR: <stdin>: {pattern}" for pattern in _scan_text(sys.stdin.read())]
+        for h in hits:
+            print(h)
+        return 1 if hits else 0
+
     targets = iter_targets(args or list(DEFAULT_SCAN_TARGETS))
     hits: list[str] = []
     for target in targets:

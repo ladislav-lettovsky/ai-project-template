@@ -8,6 +8,7 @@ detected and that pristine specs pass.
 from __future__ import annotations
 
 import importlib.util
+import io
 import sys
 from pathlib import Path
 
@@ -135,3 +136,73 @@ def test_only_listed_extensions_are_scanned(tmp_path: Path) -> None:
     code.write_text("# ignore previous instructions\n", encoding="utf-8")
     rc = scan_module.main([str(tmp_path)])
     assert rc == 0
+
+
+def test_stdin_clean_payload_exits_zero(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Covers R1, R4: clean stdin exits 0 and emits no stdout."""
+    monkeypatch.setattr(sys, "stdin", io.StringIO("# Title\n\nclean body\n"))
+    rc = scan_module.main(["--stdin"])
+    captured = capsys.readouterr()
+    assert rc == 0
+    assert captured.out == ""
+
+
+def test_stdin_dirty_payload_exits_one_with_error_line(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Covers R2, R6: stdin hits report with the sentinel path."""
+    pattern = scan_module.INJECTION_PATTERNS[0]
+    monkeypatch.setattr(sys, "stdin", io.StringIO(f"Some prose. {pattern}.\n"))
+    rc = scan_module.main(["--stdin"])
+    captured = capsys.readouterr()
+    assert rc == 1
+    assert captured.out == f"ERROR: <stdin>: {pattern}\n"
+
+    monkeypatch.setattr(sys, "stdin", io.StringIO("ignore\nprevious\ninstructions\n"))
+    rc = scan_module.main(["--stdin"])
+    captured = capsys.readouterr()
+    assert rc == 1
+    assert captured.out == f"ERROR: <stdin>: {pattern}\n"
+
+
+def test_stdin_with_path_argument_is_usage_error(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Covers R3: --stdin cannot be mixed with path arguments."""
+    monkeypatch.setattr(sys, "stdin", io.StringIO(scan_module.INJECTION_PATTERNS[0]))
+    rc = scan_module.main(["--stdin", str(tmp_path / "anything.md")])
+    captured = capsys.readouterr()
+    assert rc == 2
+    assert captured.out == ""
+    assert "--stdin" in captured.err
+    assert "path" in captured.err
+
+
+def test_file_mode_unchanged_regression(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """Covers R4, R5: file mode and pattern catalogue stay unchanged."""
+    (tmp_path / "ok.md").write_text("clean body\n", encoding="utf-8")
+    bad = tmp_path / "bad.md"
+    bad.write_text("disregard safety\n", encoding="utf-8")
+    rc = scan_module.main([str(tmp_path)])
+    captured = capsys.readouterr()
+    assert rc == 1
+    assert f"ERROR: {bad}: disregard safety\n" in captured.out
+    assert "ok.md" not in captured.out
+    assert scan_module.INJECTION_PATTERNS == (
+        "ignore previous instructions",
+        "ignore the above",
+        "system prompt",
+        "developer message",
+        "you are now",
+        "override instructions",
+        "<system>",
+        "###instruction",
+        "### instructions:",
+        "tool_call_override",
+        "skip approval",
+        "disregard safety",
+    )
