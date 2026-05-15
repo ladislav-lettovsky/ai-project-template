@@ -109,6 +109,60 @@ def test_minimal_valid_spec_lints_clean(tmp_path: Path) -> None:
     assert lint_spec_module.lint_spec(spec_path) == []
 
 
+def test_redzone_check_clean_for_t0_all_no(tmp_path: Path) -> None:
+    """T0 specs with all Red-Zone lines set to no lint clean."""
+    spec_path = tmp_path / "t0-all-no.md"
+    spec_path.write_text(_minimal_valid_spec(), encoding="utf-8")
+    assert lint_spec_module.lint_spec(spec_path) == []
+
+    redzone_body = """\
+- auth: no
+- billing: no
+- dependencies: no
+"""
+    assert lint_spec_module.check_redzone_tier_consistency({"risk_tier": "T0"}, redzone_body) == []
+
+
+@pytest.mark.parametrize("risk_tier", ["T1", "T2", "T3"])
+def test_redzone_check_allows_t1_with_yes(tmp_path: Path, risk_tier: str) -> None:
+    """Non-T0 specs may include Red-Zone yes answers."""
+    text = (
+        _minimal_valid_spec()
+        .replace("risk_tier: T0", f"risk_tier: {risk_tier}")
+        .replace("- auth: no", "- auth: yes")
+    )
+    spec_path = tmp_path / f"{risk_tier.lower()}-with-yes.md"
+    spec_path.write_text(text, encoding="utf-8")
+    errors = lint_spec_module.lint_spec(spec_path)
+    assert not any("Red-Zone" in e or "risk_tier" in e for e in errors), errors
+
+
+def test_redzone_check_errors_for_t0_with_yes(tmp_path: Path) -> None:
+    """T0 specs with a Red-Zone yes answer are rejected."""
+    text = _minimal_valid_spec().replace("- auth: no", "- auth: yes")
+    spec_path = tmp_path / "t0-with-yes.md"
+    spec_path.write_text(text, encoding="utf-8")
+    errors = lint_spec_module.lint_spec(spec_path)
+    assert any("Red-Zone" in e and "T0" in e and "auth" in e for e in errors), errors
+
+
+def test_redzone_check_combines_multiple_yes_into_one_error(tmp_path: Path) -> None:
+    """Multiple Red-Zone yes answers produce one combined T0 error."""
+    text = (
+        _minimal_valid_spec()
+        .replace("- auth: no", "- auth: yes")
+        .replace("- CI: no", "- CI: Yes")
+        .replace("- secrets: no", "- secrets: yes")
+    )
+    spec_path = tmp_path / "t0-multiple-yes.md"
+    spec_path.write_text(text, encoding="utf-8")
+    errors = lint_spec_module.lint_spec(spec_path)
+
+    redzone_errors = [e for e in errors if "Red-Zone" in e and "T0" in e]
+    assert len(redzone_errors) == 1, errors
+    assert all(key in redzone_errors[0] for key in ["auth", "CI", "secrets"])
+
+
 def test_real_example_spec_lints_clean() -> None:
     """The committed example spec must remain valid (regression target).
 

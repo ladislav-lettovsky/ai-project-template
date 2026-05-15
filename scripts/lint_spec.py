@@ -75,6 +75,9 @@ HEADING_RE = re.compile(r"^##\s+(.+?)\s*$")
 # ``- key: value`` (Metadata block).
 META_LINE_RE = re.compile(r"^-\s+(?P<key>[a-z_]+)\s*:\s*(?P<value>.+?)\s*$")
 
+# ``- key: yes|no`` (Red-Zone Assessment block).
+REDZONE_LINE_RE = re.compile(r"^\s*-\s*(?P<key>.+?)\s*:\s*(?P<value>yes|no)\s*$", re.IGNORECASE)
+
 # Test Plan mapping line. We accept both checked and unchecked checkboxes
 # and bullet-prefixed lines: ``- [ ] T1 -> covers R1, R2`` or
 # ``- **T1** → covers REQ-GREET-01``. Both ASCII ``->`` and the Unicode
@@ -192,6 +195,26 @@ def check_metadata(metadata: dict[str, str]) -> list[str]:
     return errors
 
 
+def check_redzone_tier_consistency(metadata: dict[str, str], redzone_body: str) -> list[str]:
+    """T0 specs cannot mark any Red-Zone Assessment item as ``yes``."""
+    if metadata.get("risk_tier") != "T0":
+        return []
+
+    yes_keys: list[str] = []
+    for line in redzone_body.splitlines():
+        match = REDZONE_LINE_RE.match(line)
+        if match and match.group("value").lower() == "yes":
+            yes_keys.append(match.group("key"))
+
+    if not yes_keys:
+        return []
+
+    return [
+        "Red-Zone Assessment marks yes for "
+        f"{', '.join(yes_keys)}; spec cannot ship as risk_tier: T0"
+    ]
+
+
 def collect_requirements(body: str) -> list[str]:
     """Extract requirement IDs from the body of the Requirements section.
 
@@ -277,6 +300,7 @@ def lint_spec(path: Path) -> list[str]:
 
     metadata = parse_metadata(sections.get("Metadata", ""))
     errors += check_metadata(metadata)
+    errors += check_redzone_tier_consistency(metadata, sections.get("Red-Zone Assessment", ""))
 
     requirements = collect_requirements(sections.get("Requirements (STRICT)", ""))
     if not requirements:
