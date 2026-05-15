@@ -8,7 +8,7 @@
 - complexity: low
 - risk_tier: T0
 - repo: ai-project-template
-- branch: docs/reviewer-calibration-workflow
+- branch: spec/reviewer-calibration-workflow
 
 ## Context
 
@@ -354,7 +354,7 @@ on this spec; rollback is a no-op for the running system.
 
 1. **Slice 1 (default, single commit, T0):** Add
    `docs/specs/reviewer-calibration-workflow.md` on branch
-   `docs/reviewer-calibration-workflow`. Run
+   `spec/reviewer-calibration-workflow`. Run
    `just lint-spec docs/specs/reviewer-calibration-workflow.md` and
    `just check` locally. Open PR; PR body links this spec; PR body
    carries the `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->`
@@ -385,9 +385,8 @@ on this spec; rollback is a no-op for the running system.
 - [ ] `just check` green locally.
 - [ ] CI green on the PR branch.
 - [ ] Invariants INV1–INV6 hold.
-- [ ] Branch name is `docs/reviewer-calibration-workflow` (allowed by
-  `check_branch_name.py`'s `docs/` prefix per Invariant 1's
-  branch-name rule).
+- [ ] Branch name is `spec/reviewer-calibration-workflow` (Invariant 1:
+  merge-bound PR branches use `spec/<slug>` or `fix/<slug>`).
 - [ ] PR description links this spec.
 - [ ] PR body contains a `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->`
   block.
