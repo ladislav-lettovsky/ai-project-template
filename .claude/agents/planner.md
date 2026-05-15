@@ -93,6 +93,8 @@ before renaming.
    mitigation if non-low. Persisted spec content is also scanned by
    `scripts/scan_injection.py` as part of `just check`.
 
+6. **Markdown (not only `lint_spec`).** Planned spec prose that will be committed at `docs/specs/<slug>.md` must pass **markdownlint-cli2** on that path (`uv run pre-commit run markdownlint-cli2 --files docs/specs/<slug>.md`), **not only** `just lint-spec`; `lint_spec.py` does not substitute for Markdown lint.
+
 ## Where to find things
 
 - The blueprint: `docs/blueprint.md` (full v2 design, including spec
