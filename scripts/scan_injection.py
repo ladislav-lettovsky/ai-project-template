@@ -69,6 +69,7 @@ def scan_file(path: Path) -> list[str]:
         text = path.read_text(encoding="utf-8", errors="ignore").lower()
     except OSError:
         return []
+    text = " ".join(text.split())
     return [p for p in INJECTION_PATTERNS if p in text]
 
 
