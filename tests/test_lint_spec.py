@@ -110,7 +110,10 @@ def test_minimal_valid_spec_lints_clean(tmp_path: Path) -> None:
 
 
 def test_redzone_check_clean_for_t0_all_no(tmp_path: Path) -> None:
-    """T0 specs with all Red-Zone lines set to no lint clean."""
+    """T0 specs with all Red-Zone lines set to no lint clean.
+
+    Covers R1, R4 (Test Plan T1).
+    """
     spec_path = tmp_path / "t0-all-no.md"
     spec_path.write_text(_minimal_valid_spec(), encoding="utf-8")
     assert lint_spec_module.lint_spec(spec_path) == []
@@ -125,7 +128,10 @@ def test_redzone_check_clean_for_t0_all_no(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("risk_tier", ["T1", "T2", "T3"])
 def test_redzone_check_allows_t1_with_yes(tmp_path: Path, risk_tier: str) -> None:
-    """Non-T0 specs may include Red-Zone yes answers."""
+    """Non-T0 specs may include Red-Zone yes answers.
+
+    Covers R3 (Test Plan T2).
+    """
     text = (
         _minimal_valid_spec()
         .replace("risk_tier: T0", f"risk_tier: {risk_tier}")
@@ -138,7 +144,10 @@ def test_redzone_check_allows_t1_with_yes(tmp_path: Path, risk_tier: str) -> Non
 
 
 def test_redzone_check_errors_for_t0_with_yes(tmp_path: Path) -> None:
-    """T0 specs with a Red-Zone yes answer are rejected."""
+    """T0 specs with a Red-Zone yes answer are rejected.
+
+    Covers R2, R5 (Test Plan T3).
+    """
     text = _minimal_valid_spec().replace("- auth: no", "- auth: yes")
     spec_path = tmp_path / "t0-with-yes.md"
     spec_path.write_text(text, encoding="utf-8")
@@ -147,7 +156,10 @@ def test_redzone_check_errors_for_t0_with_yes(tmp_path: Path) -> None:
 
 
 def test_redzone_check_combines_multiple_yes_into_one_error(tmp_path: Path) -> None:
-    """Multiple Red-Zone yes answers produce one combined T0 error."""
+    """Multiple Red-Zone yes answers produce one combined T0 error.
+
+    Covers R2 (Test Plan T4).
+    """
     text = (
         _minimal_valid_spec()
         .replace("- auth: no", "- auth: yes")
