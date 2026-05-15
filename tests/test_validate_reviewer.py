@@ -156,6 +156,73 @@ def test_extra_field_is_accepted(tmp_path: Path) -> None:
     assert rc == 0
 
 
+def test_coverage_requirements_covered_exceeds_total_fails(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Covers R2 and R6: impossible requirements coverage fails through main."""
+    obj = json.loads(json.dumps(VALID_REVIEWER_JSON))
+    obj["coverage"]["requirements_total"] = 3
+    obj["coverage"]["requirements_covered"] = 5
+
+    rc = validator_module.main([str(_write(tmp_path, _wrap(obj)))])
+
+    assert rc == 1
+    assert "requirements_covered (5) exceeds requirements_total (3)" in capsys.readouterr().err
+
+
+def test_coverage_tests_present_exceeds_expected_fails(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Covers R3 and R6: impossible test coverage fails through main."""
+    obj = json.loads(json.dumps(VALID_REVIEWER_JSON))
+    obj["coverage"]["tests_expected"] = 2
+    obj["coverage"]["tests_present"] = 4
+
+    rc = validator_module.main([str(_write(tmp_path, _wrap(obj)))])
+
+    assert rc == 1
+    assert "tests_present (4) exceeds tests_expected (2)" in capsys.readouterr().err
+
+
+def test_coverage_equal_pairs_pass(tmp_path: Path) -> None:
+    """Covers R1 and R5: equal coverage pairs are valid."""
+    obj = json.loads(json.dumps(VALID_REVIEWER_JSON))
+    obj["coverage"] = {
+        "requirements_total": 2,
+        "requirements_covered": 2,
+        "tests_expected": 3,
+        "tests_present": 3,
+    }
+
+    rc = validator_module.main([str(_write(tmp_path, _wrap(obj)))])
+
+    assert rc == 0
+    assert validator_module.check_coverage_consistency(obj) == []
+
+
+def test_coverage_both_orderings_inverted_reports_both(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Covers R4: both impossible coverage pairs are reported in fixed order."""
+    obj = json.loads(json.dumps(VALID_REVIEWER_JSON))
+    obj["coverage"] = {
+        "requirements_total": 1,
+        "requirements_covered": 2,
+        "tests_expected": 1,
+        "tests_present": 2,
+    }
+
+    rc = validator_module.main([str(_write(tmp_path, _wrap(obj)))])
+    stderr = capsys.readouterr().err
+    requirements_error = "requirements_covered (2) exceeds requirements_total (1)"
+    tests_error = "tests_present (2) exceeds tests_expected (1)"
+
+    assert rc == 1
+    assert requirements_error in stderr
+    assert tests_error in stderr
+    assert stderr.index(requirements_error) < stderr.index(tests_error)
+
+
 def test_no_args_returns_two(capsys: pytest.CaptureFixture[str]) -> None:
     rc = validator_module.main([])
     assert rc == 2
