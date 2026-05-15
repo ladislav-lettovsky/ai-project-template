@@ -61,7 +61,8 @@ git branch -m scratch spec/<slug>   # or fix/<slug>
 ```
 
 The **UserPromptSubmit** hook (`check_branch_name.py`) allows `main`, `scratch`,
-`spec/*`, and `fix/*`. Branch `scratch` is for prompt intake only; the
+and branch names starting with `chore/`, `docs/`, `feat/`, `fix/`, `refactor/`,
+`spec/`, or `test/`. Branch `scratch` is for prompt intake only; the
 **PreToolUse** hook (`check_no_edits_on_scratch.py`) blocks file edits until you
 rename off `scratch`. Recreate `scratch` from `main` only after the work merges.
 

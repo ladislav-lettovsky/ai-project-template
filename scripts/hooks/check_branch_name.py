@@ -2,11 +2,12 @@
 
 Invoked by Claude Code when the user submits a prompt. Reads the current
 git branch; permits ``main``, the parking branch ``scratch`` (prompt intake
-only; see ``check_no_edits_on_scratch.py``), branches starting with
-``spec/``, and branches starting with ``fix/`` (Invariant 1). Rejects
-anything else with guidance.
+only; see ``check_no_edits_on_scratch.py``), and branches starting with
+``chore/``, ``docs/``, ``feat/``, ``fix/``, ``refactor/``, ``spec/``, or
+``test/``. Rejects anything else with guidance. (Mergeable PRs still follow
+Invariant 1: ``spec/<slug>`` or ``fix/<slug>``.)
 
-Spec: SPEC-20260514-scratch-branch-edit-guard
+Spec: SPEC-20260514-branch-name-hook-allowlist
 
 Exit codes:
 
@@ -19,6 +20,19 @@ from __future__ import annotations
 
 import subprocess
 import sys
+
+# Conventional work prefixes (see ``.cursor/rules/00-always.mdc``). Prompt-time
+# acceptance is wider than Invariant 1: PRs still require spec/<slug> or
+# fix/<slug> when merging traceable work.
+_ALLOWED_PREFIXES: tuple[str, ...] = (
+    "chore/",
+    "docs/",
+    "feat/",
+    "fix/",
+    "refactor/",
+    "spec/",
+    "test/",
+)
 
 
 def current_branch() -> str | None:
@@ -51,15 +65,20 @@ def main() -> int:
     if branch == "scratch":
         return 0
 
-    if branch.startswith("spec/") or branch.startswith("fix/"):
+    if any(branch.startswith(p) for p in _ALLOWED_PREFIXES):
         return 0
 
+    human_prefixes = ", ".join(repr(p.rstrip("/")) for p in _ALLOWED_PREFIXES)
     print(
         f"BLOCKED by branch-name hook: current branch is '{branch}'.\n"
         f"\n"
-        f"Invariant 1 requires work branches to start with 'spec/<slug>' or\n"
-        f"'fix/<slug>'. Either:\n"
-        f"  - rename:  git branch -m {branch} spec/<slug>\n"
+        f"Permitted names: 'main', 'scratch', or a prefix in {human_prefixes}.\n"
+        f"Open PRs that must satisfy Invariant 1 still use 'spec/<slug>' or "
+        f"'fix/<slug>'.\n"
+        f"\n"
+        f"Either:\n"
+        f"  - rename:  git branch -m {branch} spec/<slug>  "
+        f"(or fix/<slug>, feat/<name>, …)\n"
         f"  - or check out an appropriate branch before continuing.\n",
         file=sys.stderr,
     )

@@ -62,8 +62,10 @@ Tripwires fire at the earliest layer they can. Hook scripts live under
 
 - `check_red_zone.py` — PreToolUse hook; blocks edits to invariant-protected
   files (AGENTS.md, justfile, agent configs, etc.)
-- `check_branch_name.py` — UserPromptSubmit hook; rejects work on
-  branches not starting with `spec/<slug>` or `fix/<slug>`
+- `check_branch_name.py` — UserPromptSubmit hook; rejects prompts unless
+  `HEAD` is `main`, `scratch`, or starts with `chore/`, `docs/`, `feat/`,
+  `fix/`, `refactor/`, `spec/`, or `test/` (traceable PRs still use
+  `spec/<slug>` or `fix/<slug>` per Invariant 1)
 - `require_just_check.py` — Stop hook; refuses session completion if a
   touched spec fails `lint_spec.py`
 
