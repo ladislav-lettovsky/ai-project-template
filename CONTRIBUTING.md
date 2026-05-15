@@ -226,6 +226,14 @@ A short pre-PR checklist that mirrors the one in `AGENTS.md`:
 8. PR body contains an empty `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->`
    block (the Reviewer fills it in Phase 3+).
 
+Saving a PR description locally for `just validate-reviewer <file>` often lands in
+`.scratch/`. That directory is gitignored throwaway content; PR-body stubs usually
+start with `<!-- REVIEWER_JSON -->`, which triggers MD041 if linted as a normal doc.
+To avoid repeating that noise: VS Code / Cursor respects `.vscode/settings.json`
+(`markdownlint.ignore` includes `.scratch/**`), and `just lint-md-fix` excludes
+`.scratch/` via negated globs. Tracked Markdown (including specs under `docs/specs/`)
+still follows markdownlint normally.
+
 ## See also
 
 - [`AGENTS.md`](./AGENTS.md) — agent-facing rules and invariants.

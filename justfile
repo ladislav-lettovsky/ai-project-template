@@ -30,7 +30,7 @@ lint-md:
 # Auto-fix Markdown lint violations. Version inline-pinned to match
 # .pre-commit-config.yaml -- bump both together.
 lint-md-fix:
-    npx --yes markdownlint-cli2@0.22.1 --fix "**/*.md" "**/*.mdc"
+    npx --yes markdownlint-cli2@0.22.1 --fix "**/*.md" "**/*.mdc" "!.scratch/**"
 
 type:
     uv run ty check
