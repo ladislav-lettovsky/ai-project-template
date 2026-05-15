@@ -70,6 +70,27 @@ def extract_json_text(pr_body: str) -> str:
     return inner
 
 
+def check_coverage_consistency(instance: dict) -> list[str]:
+    """Return coverage cross-field validation errors. Empty list = valid."""
+    coverage = instance["coverage"]
+    errors: list[str] = []
+
+    requirements_total = coverage["requirements_total"]
+    requirements_covered = coverage["requirements_covered"]
+    if requirements_covered > requirements_total:
+        errors.append(
+            f"requirements_covered ({requirements_covered}) "
+            f"exceeds requirements_total ({requirements_total})"
+        )
+
+    tests_expected = coverage["tests_expected"]
+    tests_present = coverage["tests_present"]
+    if tests_present > tests_expected:
+        errors.append(f"tests_present ({tests_present}) exceeds tests_expected ({tests_expected})")
+
+    return errors
+
+
 def validate(pr_body: str, schema: dict) -> list[str]:
     """Return a list of validation error messages. Empty list = valid."""
     try:
@@ -82,10 +103,13 @@ def validate(pr_body: str, schema: dict) -> list[str]:
         return [f"JSON parse error: {e}"]
     validator = Draft202012Validator(schema)
     errors = sorted(validator.iter_errors(instance), key=lambda e: list(e.absolute_path))
-    return [
+    schema_errors = [
         f"schema violation at {'/'.join(str(p) for p in e.absolute_path) or '<root>'}: {e.message}"
         for e in errors
     ]
+    if schema_errors:
+        return schema_errors
+    return check_coverage_consistency(instance)
 
 
 def main(argv: list[str] | None = None) -> int:
