@@ -4,7 +4,7 @@
 
 - spec_id: SPEC-20260514-scratch-branch-edit-guard
 - owner: TBD
-- status: implemented
+- status: complete
 - complexity: low
 - risk_tier: T1
 - repo: ai-project-template

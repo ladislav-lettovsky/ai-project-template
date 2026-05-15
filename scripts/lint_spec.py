@@ -55,6 +55,7 @@ REQUIRED_SECTIONS: tuple[str, ...] = (
 
 ALLOWED_RISK_TIERS: frozenset[str] = frozenset({"T0", "T1", "T2", "T3"})
 ALLOWED_COMPLEXITY: frozenset[str] = frozenset({"low", "medium", "high"})
+ALLOWED_STATUS: frozenset[str] = frozenset({"drafted", "in-progress", "complete", "archived"})
 
 # Requirement-ID alternation. Single source of truth for every regex
 # below that matches a requirement ID. Add new ID conventions (e.g.
@@ -74,6 +75,7 @@ HEADING_RE = re.compile(r"^##\s+(.+?)\s*$")
 
 # ``- key: value`` (Metadata block).
 META_LINE_RE = re.compile(r"^-\s+(?P<key>[a-z_]+)\s*:\s*(?P<value>.+?)\s*$")
+SPEC_ID_RE = re.compile(r"^SPEC-\d{8}-[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 # ``- key: yes|no`` (Red-Zone Assessment block).
 REDZONE_LINE_RE = re.compile(r"^\s*-\s*(?P<key>.+?)\s*:\s*(?P<value>yes|no)\s*$", re.IGNORECASE)
@@ -178,8 +180,20 @@ def parse_metadata(body: str) -> dict[str, str]:
 
 
 def check_metadata(metadata: dict[str, str]) -> list[str]:
-    """Metadata must include valid ``risk_tier`` and ``complexity``."""
+    """Metadata must include valid required fields."""
     errors: list[str] = []
+    status = metadata.get("status")
+    if status is None:
+        errors.append("Metadata is missing 'status'")
+    elif status not in ALLOWED_STATUS:
+        errors.append(f"Metadata 'status: {status}' is not one of {sorted(ALLOWED_STATUS)}")
+    spec_id = metadata.get("spec_id")
+    if spec_id is None:
+        errors.append("Metadata is missing 'spec_id'")
+    elif not SPEC_ID_RE.match(spec_id):
+        errors.append(
+            f"Metadata 'spec_id: {spec_id}' does not match pattern 'SPEC-YYYYMMDD-<slug>'"
+        )
     risk = metadata.get("risk_tier")
     if risk is None:
         errors.append("Metadata is missing 'risk_tier'")
