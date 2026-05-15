@@ -48,7 +48,20 @@ def _run_hook(cwd: Path) -> subprocess.CompletedProcess[str]:
     )
 
 
-@pytest.mark.parametrize("branch", ["main", "scratch", "spec/foo", "fix/bar"])
+@pytest.mark.parametrize(
+    "branch",
+    [
+        "main",
+        "scratch",
+        "spec/foo",
+        "fix/bar",
+        "feat/x",
+        "chore/deps",
+        "docs/readme",
+        "refactor/core",
+        "test/hook",
+    ],
+)
 def test_allowed_branches(tmp_path: Path, branch: str) -> None:
     repo = _bootstrap_repo(tmp_path, branch)
     result = _run_hook(repo)
@@ -60,6 +73,15 @@ def test_invalid_branch_blocks(tmp_path: Path) -> None:
     result = _run_hook(repo)
     assert result.returncode == 2
     assert "BLOCKED by branch-name hook" in result.stderr
+    assert "Permitted names" in result.stderr
+    assert "spec/<slug>" in result.stderr
+    assert "fix/<slug>" in result.stderr
+
+
+def test_prefix_without_slash_is_blocked(tmp_path: Path) -> None:
+    repo = _bootstrap_repo(tmp_path, "feat")
+    result = _run_hook(repo)
+    assert result.returncode == 2
 
 
 def test_not_a_repo_fails_open(tmp_path: Path) -> None:
