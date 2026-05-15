@@ -65,6 +65,10 @@ REQ_ID_ALT = r"R\d+|REQ-[A-Z0-9][A-Z0-9-]*"
 # mid-word. Used to scan Requirements bullets and Test Plan ID lists.
 REQ_ID_RE = re.compile(rf"\b({REQ_ID_ALT})\b")
 
+# Requirement declaration line under ``## Requirements (STRICT)``. Only the
+# leading ID after the bullet/optional checkbox is the declaring ID.
+REQ_DECL_RE = re.compile(rf"^\s*[-*]\s*(?:\[[ xX]\]\s*)?(?P<id>{REQ_ID_ALT})\b")
+
 # ``## Section Name`` at column 0.
 HEADING_RE = re.compile(r"^##\s+(.+?)\s*$")
 
@@ -195,17 +199,23 @@ def collect_requirements(body: str) -> list[str]:
     referenced inside prose under Requirements are intentionally ignored.
     """
     ids: list[str] = []
-    seen: set[str] = set()
     for line in body.splitlines():
-        stripped = line.lstrip()
-        if not stripped.startswith(("-", "*")):
-            continue
-        for match in REQ_ID_RE.finditer(line):
-            ident = match.group(1)
-            if ident not in seen:
-                seen.add(ident)
-                ids.append(ident)
+        if match := REQ_DECL_RE.match(line):
+            ids.append(match.group("id"))
     return ids
+
+
+def duplicate_requirement_errors(requirements: Iterable[str]) -> list[str]:
+    """Return one duplicate-ID error per duplicated requirement, in order."""
+    seen: set[str] = set()
+    reported: set[str] = set()
+    errors: list[str] = []
+    for req in requirements:
+        if req in seen and req not in reported:
+            errors.append(f"requirement '{req}' is declared more than once")
+            reported.add(req)
+        seen.add(req)
+    return errors
 
 
 def collect_test_coverage(body: str) -> set[str]:
@@ -271,10 +281,12 @@ def lint_spec(path: Path) -> list[str]:
     requirements = collect_requirements(sections.get("Requirements (STRICT)", ""))
     if not requirements:
         errors.append("no requirements found under '## Requirements (STRICT)'")
+    errors += duplicate_requirement_errors(requirements)
+    mapped_requirements = list(dict.fromkeys(requirements))
 
     test_covered = collect_test_coverage(sections.get("Test Plan", ""))
     validated = collect_validation_ids(sections.get("Validation Contract", ""))
-    errors += check_requirement_mapping(requirements, test_covered, validated)
+    errors += check_requirement_mapping(mapped_requirements, test_covered, validated)
 
     return errors
 

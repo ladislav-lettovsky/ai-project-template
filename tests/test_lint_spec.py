@@ -196,6 +196,67 @@ def test_req_dash_form_is_recognized(tmp_path: Path) -> None:
     assert lint_spec_module.lint_spec(spec_path) == []
 
 
+def test_duplicate_short_form_id_is_reported(tmp_path: Path) -> None:
+    """Covers R1: duplicate short-form requirement IDs are reported."""
+    text = _minimal_valid_spec().replace(
+        "- [ ] R1: do the thing.",
+        "- [ ] R1: do the thing.\n- [ ] R1: do the other thing.",
+    )
+    spec_path = tmp_path / "duplicate-short-form.md"
+    spec_path.write_text(text, encoding="utf-8")
+    errors = lint_spec_module.lint_spec(spec_path)
+    assert "requirement 'R1' is declared more than once" in errors
+
+
+def test_duplicate_long_form_id_is_reported(tmp_path: Path) -> None:
+    """Covers R2: duplicate long-form requirement IDs are reported."""
+    text = (
+        _minimal_valid_spec()
+        .replace(
+            "- [ ] R1: do the thing.",
+            "- [ ] REQ-FOO-01: do the thing.\n- [ ] REQ-FOO-01: do the other thing.",
+        )
+        .replace("- [ ] T1 -> covers R1", "- [ ] T1 -> covers REQ-FOO-01")
+        .replace("- R1 -> `just check`", "- REQ-FOO-01 -> `just check`")
+    )
+    spec_path = tmp_path / "duplicate-long-form.md"
+    spec_path.write_text(text, encoding="utf-8")
+    errors = lint_spec_module.lint_spec(spec_path)
+    assert "requirement 'REQ-FOO-01' is declared more than once" in errors
+
+
+def test_triple_duplicate_emits_single_error(tmp_path: Path) -> None:
+    """Covers R3: three declarations of the same ID produce one duplicate error."""
+    text = _minimal_valid_spec().replace(
+        "- [ ] R1: do the thing.",
+        "- [ ] R1: do the thing.\n- [ ] R1: do the other thing.\n- [ ] R1: do a third thing.",
+    )
+    spec_path = tmp_path / "triple-duplicate.md"
+    spec_path.write_text(text, encoding="utf-8")
+    errors = lint_spec_module.lint_spec(spec_path)
+    assert errors.count("requirement 'R1' is declared more than once") == 1
+
+
+def test_duplicate_does_not_amplify_mapping_errors(tmp_path: Path) -> None:
+    """Covers R4: duplicate declarations do not amplify downstream mapping errors."""
+    text = (
+        _minimal_valid_spec()
+        .replace(
+            "- [ ] R1: do the thing.",
+            "- [ ] R1: do the thing.\n- [ ] R1: do the other thing.",
+        )
+        .replace("- [ ] T1 -> covers R1\n", "")
+    )
+    spec_path = tmp_path / "duplicate-missing-test.md"
+    spec_path.write_text(text, encoding="utf-8")
+    errors = lint_spec_module.lint_spec(spec_path)
+
+    duplicate_error = "requirement 'R1' is declared more than once"
+    mapping_error = "requirement 'R1' has no matching 'T<n> -> covers R1' entry in Test Plan"
+    assert duplicate_error in errors
+    assert errors.count(mapping_error) == 1
+
+
 def test_main_returns_zero_for_valid(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     """``main`` returns 0 when every input file lints clean."""
     spec_path = tmp_path / "ok.md"
