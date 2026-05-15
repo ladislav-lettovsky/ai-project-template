@@ -53,7 +53,7 @@ repos:
 
   # ---------- Markdown lint (Node-managed, isolated from uv toolchain) ----------
   # Same engine and config we run via `npx markdownlint-cli2` locally.
-  # The repo-root `.markdownlint.json` and `.markdownlintignore` are auto-loaded.
+  # Repo-root `.markdownlint-cli2.jsonc`, `.markdownlint.json`, and `.markdownlintignore` are auto-loaded.
   # `files:` restricts the hook to Markdown + Cursor rule sources so things like
   # `LICENSE` (no extension) are skipped without needing entries in the ignore.
   - repo: https://github.com/DavidAnson/markdownlint-cli2
