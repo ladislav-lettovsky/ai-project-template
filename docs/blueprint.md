@@ -233,7 +233,7 @@ A wall-clock time threshold (the v1 "more than 30 minutes" wording) was an unrel
 
 **Subject:** Lifecycle hooks installed in `.claude/settings.json` and Codex's command-rules / `[shell_environment_policy]`.
 
-**Rule:** Every tripwire that can be enforced at edit-time MUST be implemented as a hook, not only as a prompt instruction in AGENTS.md. Specifically: PreToolUse hooks reject edits to red-zone paths and reject Edit/Write/MultiEdit on the parking branch `scratch` (exact name; rename to `spec/<slug>` or `fix/<slug>` before mutating files); UserPromptSubmit hooks reject branch names that are not `main`, not exactly `scratch`, and do not start with `spec/` or `fix/`; Stop hooks refuse to declare a session done if `just check` has not run green; SessionStart hooks inject the active spec (if any). The hook scripts live under `scripts/hooks/` and are checked into the repo.
+**Rule:** Every tripwire that can be enforced at edit-time MUST be implemented as a hook, not only as a prompt instruction in AGENTS.md. Specifically: PreToolUse hooks reject edits to red-zone paths and reject Edit/Write/MultiEdit on the parking branch `scratch` (exact name; rename to `spec/<slug>` or `fix/<slug>` before mutating files); UserPromptSubmit hooks reject branch names that are not `main`, not exactly `scratch`, and whose names do not start with one of `chore/`, `docs/`, `feat/`, `fix/`, `refactor/`, `spec/`, or `test/`; Stop hooks refuse to declare a session done if `just check` has not run green; SessionStart hooks inject the active spec (if any). The hook scripts live under `scripts/hooks/` and are checked into the repo.
 
 **Why (picturable):** A prompt that says "do not edit AGENTS.md" relies on the model interpreting and obeying. A PreToolUse hook that exits non-zero on `Edit AGENTS.md` is enforced by the Claude Code runtime itself — the model never gets the chance to disobey. Hooks turn the strongest tripwires from social contracts into mechanical ones, and they fail earlier (edit-time) than CI ever can (post-push). They also work for Codex via the equivalent layer: command rules + `[shell_environment_policy]` + protected paths.
 
@@ -315,7 +315,7 @@ Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and
 4. Create `.codex/config.toml` with `[agents.executor]`: `sandbox_mode = "workspace-write"`, `approval_policy = "on-request"`, `developer_instructions` referencing the Executor discipline (see §5.2). Reviewer agent is added in Phase 3.
 5. Add `.claude/settings.json` hooks (Phase-1 minimum set, full template in §5.8):
    - **PreToolUse on Edit|Write|MultiEdit** — block changes to red-zone paths (AGENTS.md, justfile, .pre-commit-config.yaml, etc.).
-   - **UserPromptSubmit** — allow `main` and parking branch `scratch`; block prompts on other branches that do not match `spec/<slug>|fix/<slug>`.
+   - **UserPromptSubmit** — allow `main`, parking branch `scratch`, and branches whose names start with `chore/`, `docs/`, `feat/`, `fix/`, `refactor/`, `spec/`, or `test/`; block prompts on other branches.
    - **PreToolUse (second hook, same matcher)** — block Edit/Write/MultiEdit on `scratch` until renamed (`check_no_edits_on_scratch.py`).
 6. Add `scripts/hooks/check_red_zone.py`, `scripts/hooks/check_branch_name.py`, and `scripts/hooks/check_no_edits_on_scratch.py`.
 7. Add red-zone file list to AGENTS.md (canonical set from §5.5).
@@ -521,7 +521,7 @@ Hard rules (tripwires):
 3. Never add features the spec did not request. If you find yourself writing helpful extras, STOP.
 4. Run `just check` before declaring the task complete. If it fails, you are not done.
 5. The PR description MUST include: (a) spec filepath link, (b) reviewer JSON block fenced by `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` (may be empty at Executor stage; Reviewer fills it).
-6. Branch name MUST start with `spec/<slug>` or `fix/<slug>`.
+6. Traceable PRs (Invariant 1): branch MUST start with `spec/<slug>` or `fix/<slug>`. UserPromptSubmit also allows `main`, `scratch`, and branches starting with `chore/`, `docs/`, `feat/`, `fix/`, `refactor/`, or `test/` — use `spec/` or `fix/` before opening a PR that must satisfy Invariant 1.
 
 Discipline:
 - Minimal diffs. No drive-by refactors.

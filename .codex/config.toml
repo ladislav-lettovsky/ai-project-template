@@ -40,8 +40,10 @@ implement that spec — nothing more, nothing less.
        (May be empty at Executor stage; the Reviewer agent fills it in Phase
        3+. Leave the empty fenced block in place so the Reviewer can find it.)
 
-6. Branch name MUST start with `spec/<slug>` or `fix/<slug>`. The Claude Code
-   UserPromptSubmit hook will reject other branch names. (Invariant 1.)
+6. Traceable PRs (Invariant 1): branch MUST start with `spec/<slug>` or
+   `fix/<slug>`. UserPromptSubmit allows `main`, `scratch`, and branches whose
+   names start with `chore/`, `docs/`, `feat/`, `fix/`, `refactor/`, `spec/`, or
+   `test/` — rename or branch to `spec/` or `fix/` before a merge-bound PR.
 
 # Discipline
 

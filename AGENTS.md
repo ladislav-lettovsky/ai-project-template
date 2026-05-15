@@ -72,8 +72,9 @@ prompt does not.
   or editing files**:
   `git branch -m scratch spec/<slug>` (or `fix/<slug>`). Branch `scratch` is
   only for **prompt intake and branch selection**: the **UserPromptSubmit**
-  hook (`check_branch_name.py`) allows `main`, `scratch`, `spec/*`, and
-  `fix/*`; the **PreToolUse** hook (`check_no_edits_on_scratch.py`) blocks
+  hook (`check_branch_name.py`) allows `main`, `scratch`, and any branch whose
+  name starts with `chore/`, `docs/`, `feat/`, `fix/`, `refactor/`, `spec/`, or
+  `test/`; the **PreToolUse** hook (`check_no_edits_on_scratch.py`) blocks
   Edit/Write/MultiEdit on `scratch` until you rename. If `scratch` is missing,
   branch directly from `main` with `git switch -c spec/<slug>` (or
   `fix/<slug>`) instead. Recreate `scratch` only after the work merges (see the
