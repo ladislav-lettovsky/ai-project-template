@@ -40,6 +40,51 @@ def test_obvious_injection_is_detected(tmp_path: Path) -> None:
     assert any("ignore previous instructions" in h for h in hits)
 
 
+def test_injection_split_by_newlines_is_detected(tmp_path: Path) -> None:
+    """Covers R1, R5: newline-split words still produce the original pattern hit."""
+    p = tmp_path / "bad.md"
+    pattern = scan_module.INJECTION_PATTERNS[0]
+    p.write_text("ignore\nprevious\ninstructions\n", encoding="utf-8")
+    hits = scan_module.scan_file(p)
+    assert pattern in hits
+
+
+def test_injection_split_by_tabs_is_detected(tmp_path: Path) -> None:
+    """Covers R2, R5: tab-split words still produce the original pattern hit."""
+    p = tmp_path / "bad.md"
+    pattern = scan_module.INJECTION_PATTERNS[0]
+    p.write_text("ignore\tprevious\tinstructions\n", encoding="utf-8")
+    hits = scan_module.scan_file(p)
+    assert pattern in hits
+
+
+def test_injection_inline_single_space_still_detected(tmp_path: Path) -> None:
+    """Covers R3, R5: single-space inline matching keeps today's behavior."""
+    p = tmp_path / "bad.md"
+    pattern = scan_module.INJECTION_PATTERNS[0]
+    p.write_text(f"{pattern}\n", encoding="utf-8")
+    hits = scan_module.scan_file(p)
+    assert pattern in hits
+
+
+def test_injection_patterns_tuple_is_unchanged() -> None:
+    """Covers R4: the injection pattern catalogue remains byte-identical."""
+    assert scan_module.INJECTION_PATTERNS == (
+        "ignore previous instructions",
+        "ignore the above",
+        "system prompt",
+        "developer message",
+        "you are now",
+        "override instructions",
+        "<system>",
+        "###instruction",
+        "### instructions:",
+        "tool_call_override",
+        "skip approval",
+        "disregard safety",
+    )
+
+
 def test_pattern_match_is_case_insensitive(tmp_path: Path) -> None:
     """Patterns are matched after lower-casing the file body."""
     p = tmp_path / "loud.md"
