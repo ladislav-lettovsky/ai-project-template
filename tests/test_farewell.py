@@ -28,7 +28,10 @@ def test_farewell_raises_value_error_on_empty_string() -> None:
         farewell("")
 
 
-@pytest.mark.parametrize("name", [None, 42, 3.14, ["x"], {"a": 1}, b"bytes"])
+@pytest.mark.parametrize(
+    "name",
+    [None, 42, 3.14, ["x"], {"a": 1}, b"bytes", True, False],
+)
 def test_farewell_raises_type_error_on_non_string(name: object) -> None:
     """Covers REQ-FAREWELL-03."""
     with pytest.raises(TypeError, match="name.*str.*got"):
