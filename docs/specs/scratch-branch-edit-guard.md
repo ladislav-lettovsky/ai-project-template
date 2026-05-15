@@ -58,10 +58,10 @@ The fix splits concerns: allow **prompt intake** on `scratch`, but block **file 
 ## Interfaces
 
 | Surface | Change |
-|--------|--------|
+| --- | --- |
 | `scripts/hooks/check_branch_name.py` | Allow `scratch` in `main()`. |
 | `scripts/hooks/check_no_edits_on_scratch.py` | **New** — exit `2` on `scratch` + stderr message; exit `0` otherwise; fail-open if git branch unknown (consistent with `check_branch_name.py`). |
-| `.claude/settings.json` | Add second command under **PreToolUse** for `Edit|Write|MultiEdit`. |
+| `.claude/settings.json` | Add second command under **PreToolUse** for the same `Edit` / `Write` / `MultiEdit` matcher as the red-zone hook. |
 | `.codex/hooks.json` | Same PreToolUse addition as Claude. |
 | `AGENTS.md` | Clarify `scratch` lifecycle vs edits. |
 | `docs/blueprint.md` | Update hook / UserPromptSubmit descriptions per R7. |
