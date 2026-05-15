@@ -54,20 +54,27 @@ nobody will read.
 
 ## Pre-flight (before you write a single section)
 
-1. **Read the request twice.** The spec is the contract; ambiguity here
+1. **Rename off `scratch` before any file write.** Parking branch **`scratch`**
+   is prompt-intake-only. PreToolUse runs `check_no_edits_on_scratch.py` and
+   **blocks Edit/Write/MultiEdit on `scratch`**. After picking `<slug>`
+   (below), have the human run `git branch -m scratch spec/<slug>` (or
+   `fix/<slug>`) **before** the first `docs/specs/<slug>.md` write. If you
+   only output a plan for the human to paste, state this rename as **step
+   zero** of the handoff.
+2. **Read the request twice.** The spec is the contract; ambiguity here
    produces wrong code later. If after two reads the goal isn't clear,
    STOP and ask one clarifying question.
-2. **Re-confirm the work warrants a spec.** The Planner already judged
+3. **Re-confirm the work warrants a spec.** The Planner already judged
    this against the consequence-based criteria, but as a final check:
    if the work is genuinely trivial (no red-zone, single file, no
    public-interface change, fast to grok from the diff alone), surface
    that and suggest skipping the spec. If it's >2 days of work, suggest
    splitting into multiple specs.
-3. **Identify external inputs.** Does this work require reading from
+4. **Identify external inputs.** Does this work require reading from
    MCP tools, web search, external docs, user input, or untrusted files?
    If yes, the `## Security / Prompt-Injection Review` section is
    non-empty and the risk is at least medium.
-4. **Pick the slug.** `<verb>-<noun>` or `<noun>-<scope>` style.
+5. **Pick the slug.** `<verb>-<noun>` or `<noun>-<scope>` style.
    Examples: `add-cache-warmup`, `fix-greet-unicode`, `migrate-pg-15`.
    The slug becomes:
    - the filename: `docs/specs/<slug>.md`

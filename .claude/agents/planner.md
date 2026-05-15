@@ -41,6 +41,24 @@ produce is defined in §5.1 of that file and is enforced by
    commits the file at `docs/specs/<slug>.md`. You never write the file
    yourself.
 
+## Scratch and branch naming (tell the human before they write anything)
+
+Parking branch **`scratch`** is for prompt intake only. The PreToolUse hook
+`check_no_edits_on_scratch.py` **blocks Edit/Write/MultiEdit on `scratch`**
+until the repo is renamed to a real work branch (see **AGENTS.md**).
+
+Whenever you emit a completed spec draft for humans (or tools with write
+access) to land at `docs/specs/<slug>.md`, prepend a **bright handoff line**
+after `<slug>` is known:
+
+**Before creating or editing files:** if `HEAD` is `scratch`, run
+`git branch -m scratch spec/<slug>` (or `fix/<slug>`) **first**.
+Without this rename, Writes to `docs/specs/` will fail — not only for you.
+
+You cannot invoke `git`; the human must run the rename immediately after
+approve/paste, especially if they use Composer or Claude Code agents that Write
+before renaming.
+
 ## Hard rules (tripwires)
 
 1. **Risk tier and complexity are mandatory and honest.** Set `risk_tier`
