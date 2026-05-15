@@ -81,6 +81,20 @@ nobody will read.
    - the branch name: `spec/<slug>`
    - the `spec_id`: `SPEC-<YYYYMMDD>-<slug>`
 
+## Markdown hygiene (before handoff)
+
+Specs are Markdown. Before the human commits `docs/specs/<slug>.md`:
+
+- Every fenced block must declare a language after the opening fence (for example **`python`**, **`text`**, or **`markdown`**) — never a bare fenced block with no language tag (**MD040**).
+- Blank line before and after lists when markdownlint complains (**MD032**).
+- **Final gate:** run the same Markdown check pre-commit uses on that file:
+
+  ```text
+  uv run pre-commit run markdownlint-cli2 --files docs/specs/<slug>.md
+  ```
+
+  Alternatively, `just lint-md` runs markdownlint-cli2 across the repo (see `justfile`). `just check` runs pre-commit and enforces Markdown rules **in addition to** `lint_spec.py`—structural spec lint and Markdown lint are separate gates.
+
 ## Section-by-section walkthrough
 
 Copy `docs/specs/_template.md` and fill it in. The walkthrough below

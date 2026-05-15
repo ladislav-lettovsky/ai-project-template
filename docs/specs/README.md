@@ -74,6 +74,14 @@ omits — these sections, in this order:
 - The spec contains a known prompt-injection pattern (delegated to
   `scripts/scan_injection.py`).
 
+Separately from `lint_spec.py`, **Markdown formatting** on spec files is
+enforced by **markdownlint-cli2** (the same engine as repo pre-commit,
+including under `just check`): fenced blocks need an info string (MD040),
+lists need spacing where required (**MD032**), etc. Run
+`uv run pre-commit run markdownlint-cli2 --files docs/specs/<slug>.md` or use
+`just lint-md`. This gate complements — it does **not** replace —
+`just lint-spec` / §5.1 structure checks.
+
 The linter is intentionally strict. A spec that "looks fine but the linter
 says no" is not a successful spec — fix the spec.
 
