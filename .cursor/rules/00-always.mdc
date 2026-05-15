@@ -50,8 +50,10 @@ the recipes are the contract between dev machines and CI.
   the prompt as a new capability (→ `spec/<slug>`) or a fix (→ `fix/<slug>`)
   and rename the parking branch *before* **creating or editing files**:
   `git branch -m scratch spec/<slug>` (or `fix/<slug>`). `scratch` is for
-  prompt intake only; `check_branch_name.py` allows it at UserPromptSubmit, and
-  `check_no_edits_on_scratch.py` blocks file edits until you rename.
+  prompt intake only; `check_branch_name.py` allows `main`, `scratch`, and
+  branches whose names start with `chore/`, `docs/`, `feat/`, `fix/`,
+  `refactor/`, `spec/`, or `test/` at UserPromptSubmit; `check_no_edits_on_scratch.py`
+  blocks file edits on `scratch` until you rename off `scratch`.
 
 ## Ephemeral / scratch work
 
