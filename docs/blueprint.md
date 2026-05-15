@@ -233,7 +233,7 @@ A wall-clock time threshold (the v1 "more than 30 minutes" wording) was an unrel
 
 **Subject:** Lifecycle hooks installed in `.claude/settings.json` and Codex's command-rules / `[shell_environment_policy]`.
 
-**Rule:** Every tripwire that can be enforced at edit-time MUST be implemented as a hook, not only as a prompt instruction in AGENTS.md. Specifically: PreToolUse hooks reject edits to red-zone paths; UserPromptSubmit hooks reject branch names that don't start with `spec/<slug>` or `fix/<slug>`; Stop hooks refuse to declare a session done if `just check` has not run green; SessionStart hooks inject the active spec (if any). The hook scripts live under `scripts/hooks/` and are checked into the repo.
+**Rule:** Every tripwire that can be enforced at edit-time MUST be implemented as a hook, not only as a prompt instruction in AGENTS.md. Specifically: PreToolUse hooks reject edits to red-zone paths and reject Edit/Write/MultiEdit on the parking branch `scratch` (exact name; rename to `spec/<slug>` or `fix/<slug>` before mutating files); UserPromptSubmit hooks reject branch names that are not `main`, not exactly `scratch`, and do not start with `spec/` or `fix/`; Stop hooks refuse to declare a session done if `just check` has not run green; SessionStart hooks inject the active spec (if any). The hook scripts live under `scripts/hooks/` and are checked into the repo.
 
 **Why (picturable):** A prompt that says "do not edit AGENTS.md" relies on the model interpreting and obeying. A PreToolUse hook that exits non-zero on `Edit AGENTS.md` is enforced by the Claude Code runtime itself — the model never gets the chance to disobey. Hooks turn the strongest tripwires from social contracts into mechanical ones, and they fail earlier (edit-time) than CI ever can (post-push). They also work for Codex via the equivalent layer: command rules + `[shell_environment_policy]` + protected paths.
 
@@ -315,8 +315,9 @@ Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and
 4. Create `.codex/config.toml` with `[agents.executor]`: `sandbox_mode = "workspace-write"`, `approval_policy = "on-request"`, `developer_instructions` referencing the Executor discipline (see §5.2). Reviewer agent is added in Phase 3.
 5. Add `.claude/settings.json` hooks (Phase-1 minimum set, full template in §5.8):
    - **PreToolUse on Edit|Write|MultiEdit** — block changes to red-zone paths (AGENTS.md, justfile, .pre-commit-config.yaml, etc.).
-   - **UserPromptSubmit** — block prompts that would create a branch not matching `spec/<slug>|fix/<slug>`.
-6. Add `scripts/hooks/check_red_zone.py` and `scripts/hooks/check_branch_name.py`.
+   - **UserPromptSubmit** — allow `main` and parking branch `scratch`; block prompts on other branches that do not match `spec/<slug>|fix/<slug>`.
+   - **PreToolUse (second hook, same matcher)** — block Edit/Write/MultiEdit on `scratch` until renamed (`check_no_edits_on_scratch.py`).
+6. Add `scripts/hooks/check_red_zone.py`, `scripts/hooks/check_branch_name.py`, and `scripts/hooks/check_no_edits_on_scratch.py`.
 7. Add red-zone file list to AGENTS.md (canonical set from §5.5).
 8. Add one new AGENTS.md invariant: *"The Executor never modifies files enumerated as red-zone without explicit human instruction."* (already enforced by hook in step 5.)
 9. Document the worktree workflow: every non-trivial spec is implemented in `claude -w spec-<slug>` (Claude) or `codex --cd ../<repo>-<slug>` (Codex). One spec, one worktree, one branch.
@@ -860,7 +861,8 @@ The hooks configuration in `.claude/settings.json`:
       {
         "matcher": "Edit|Write|MultiEdit",
         "hooks": [
-          { "type": "command", "command": "uv run scripts/hooks/check_red_zone.py" }
+          { "type": "command", "command": "uv run scripts/hooks/check_red_zone.py" },
+          { "type": "command", "command": "uv run scripts/hooks/check_no_edits_on_scratch.py" }
         ]
       }
     ],
@@ -1177,6 +1179,7 @@ Key properties:
 │   └── hooks/                       (Phase 1+)
 │       ├── check_red_zone.py
 │       ├── check_branch_name.py
+│       ├── check_no_edits_on_scratch.py
 │       ├── require_just_check.py
 │       └── inject_active_spec.py
 └── [existing repo contents]
@@ -1233,7 +1236,7 @@ Notice what is NOT here:
 - [ ] Add `.codex/config.toml` with `[agents.executor]` (full version from §5.10/5.2).
 - [ ] Add red-zone file list to AGENTS.md (canonical set from §5.5).
 - [ ] Add `.claude/settings.json` with PreToolUse + UserPromptSubmit hooks (from §5.8).
-- [ ] Add `scripts/hooks/check_red_zone.py` and `scripts/hooks/check_branch_name.py`.
+- [ ] Add `scripts/hooks/check_red_zone.py`, `scripts/hooks/check_branch_name.py`, and `scripts/hooks/check_no_edits_on_scratch.py`.
 - [ ] Document the `claude -w <slug>` worktree workflow in AGENTS.md.
 - [ ] Add Invariants 1, 4, 7, 8 to AGENTS.md.
 - [ ] Pick a small real task. Run it through Planner (Plan Mode) → Executor (in worktree) loop. Verify the PR has spec link + branch name + clean `just check`.

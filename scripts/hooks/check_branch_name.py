@@ -1,8 +1,12 @@
 """UserPromptSubmit hook: reject prompts on improperly-named branches.
 
 Invoked by Claude Code when the user submits a prompt. Reads the current
-git branch; permits 'main', branches starting with 'spec/', and branches
-starting with 'fix/' (Invariant 1). Rejects anything else with guidance.
+git branch; permits ``main``, the parking branch ``scratch`` (prompt intake
+only; see ``check_no_edits_on_scratch.py``), branches starting with
+``spec/``, and branches starting with ``fix/`` (Invariant 1). Rejects
+anything else with guidance.
+
+Spec: SPEC-20260514-scratch-branch-edit-guard
 
 Exit codes:
 
@@ -41,6 +45,10 @@ def main() -> int:
     # 'main' is permitted: read-only conversation is fine; any actual commit
     # is caught by the no-commit-to-branch pre-commit hook anyway.
     if branch == "main":
+        return 0
+
+    # Parking branch: prompts allowed so the agent can run ``git branch -m``.
+    if branch == "scratch":
         return 0
 
     if branch.startswith("spec/") or branch.startswith("fix/"):
