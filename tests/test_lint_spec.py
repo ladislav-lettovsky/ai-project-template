@@ -216,6 +216,101 @@ def test_unknown_complexity_is_reported(tmp_path: Path) -> None:
     assert any("complexity" in e and "extreme" in e for e in errors), errors
 
 
+def test_missing_status_is_reported(tmp_path: Path) -> None:
+    """Specs must declare a status in Metadata."""
+    text = _minimal_valid_spec().replace("- status: drafted\n", "")
+    spec_path = tmp_path / "missing-status.md"
+    spec_path.write_text(text, encoding="utf-8")
+    errors = lint_spec_module.lint_spec(spec_path)
+    assert any("status" in e for e in errors), errors
+
+
+@pytest.mark.parametrize("status", ["implemented", "wip", "DRAFTED", "", "done"])
+def test_unknown_status_is_reported(tmp_path: Path, status: str) -> None:
+    """Unknown status values are reported with the offending value."""
+    text = _minimal_valid_spec().replace("status: drafted", f"status: {status}")
+    spec_path = tmp_path / "bad-status.md"
+    spec_path.write_text(text, encoding="utf-8")
+    errors = lint_spec_module.lint_spec(spec_path)
+    assert any("status" in e and status in e for e in errors), errors
+
+
+@pytest.mark.parametrize("status", ["drafted", "in-progress", "complete", "archived"])
+def test_allowed_status_lints_clean(tmp_path: Path, status: str) -> None:
+    """Every documented status enum value is accepted."""
+    text = _minimal_valid_spec().replace("status: drafted", f"status: {status}")
+    spec_path = tmp_path / "allowed-status.md"
+    spec_path.write_text(text, encoding="utf-8")
+    errors = lint_spec_module.lint_spec(spec_path)
+    assert not any("status" in e for e in errors), errors
+
+
+def test_missing_spec_id_is_reported(tmp_path: Path) -> None:
+    """Specs must declare a spec_id in Metadata."""
+    text = _minimal_valid_spec().replace("- spec_id: SPEC-20260507-test\n", "")
+    spec_path = tmp_path / "missing-spec-id.md"
+    spec_path.write_text(text, encoding="utf-8")
+    errors = lint_spec_module.lint_spec(spec_path)
+    assert any("spec_id" in e for e in errors), errors
+
+
+@pytest.mark.parametrize(
+    "spec_id",
+    [
+        "spec-20260515-foo",
+        "SPEC-2026515-foo",
+        "SPEC-20260515-Foo",
+        "SPEC-20260515-foo_bar",
+        "SPEC-20260515-",
+        "SPEC-20260515--foo",
+        "SPEC-20260515",
+        "FOO-20260515-bar",
+    ],
+)
+def test_malformed_spec_id_is_reported(tmp_path: Path, spec_id: str) -> None:
+    """Malformed spec_id values are reported with the offending value."""
+    text = _minimal_valid_spec().replace("SPEC-20260507-test", spec_id)
+    spec_path = tmp_path / "bad-spec-id.md"
+    spec_path.write_text(text, encoding="utf-8")
+    errors = lint_spec_module.lint_spec(spec_path)
+    assert any("spec_id" in e and spec_id in e for e in errors), errors
+
+
+@pytest.mark.parametrize(
+    "spec_id",
+    [
+        "SPEC-20260515-foo",
+        "SPEC-20260515-foo-bar",
+        "SPEC-20260101-a",
+        "SPEC-20991231-z9-z9-z9",
+    ],
+)
+def test_valid_spec_id_lints_clean(tmp_path: Path, spec_id: str) -> None:
+    """Every documented spec_id shape is accepted."""
+    text = _minimal_valid_spec().replace("SPEC-20260507-test", spec_id)
+    spec_path = tmp_path / "valid-spec-id.md"
+    spec_path.write_text(text, encoding="utf-8")
+    errors = lint_spec_module.lint_spec(spec_path)
+    assert not any("spec_id" in e for e in errors), errors
+
+
+def test_all_committed_specs_lint_clean() -> None:
+    """Every committed spec should satisfy the current linter contract."""
+    spec_dir = REPO_ROOT / "docs" / "specs"
+    spec_paths = sorted(
+        path
+        for path in spec_dir.glob("*.md")
+        if path.name not in {"_template.md", "_postmortem.md", "README.md"}
+    )
+
+    failures = {
+        path.relative_to(REPO_ROOT).as_posix(): lint_spec_module.lint_spec(path)
+        for path in spec_paths
+        if lint_spec_module.lint_spec(path)
+    }
+    assert failures == {}
+
+
 def test_requirement_without_test_is_reported(tmp_path: Path) -> None:
     """A requirement R2 with no T -> covers R2 line is rejected."""
     text = _minimal_valid_spec().replace(
