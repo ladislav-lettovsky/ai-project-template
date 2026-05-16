@@ -75,3 +75,15 @@ validate-reviewer pr_body:
 # This is the same command CI runs.
 check: pre-commit
     uv run ty check && uv run pytest && just lint-changed-specs && just scan-injection
+
+# Regenerate docs/telemetry/dashboard.md from events.jsonl.
+telemetry-dashboard:
+    uv run scripts/telemetry_dashboard.py
+
+# Dry-run adaptive routing policy updates from telemetry (stdout JSON).
+adapt-thresholds:
+    uv run scripts/adapt_thresholds.py
+
+# Apply bounded policy updates to .routing-policy.json.
+adapt-thresholds-write:
+    uv run scripts/adapt_thresholds.py --write

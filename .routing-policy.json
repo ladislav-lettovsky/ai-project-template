@@ -1,10 +1,14 @@
 {
   "version": 1,
   "max_changed_files": 3,
-  "max_diff_lines": 150,
-  "min_reviewer_confidence": 60,
-  "auto_review_allowed_risk_tiers": ["T0"],
-  "auto_review_allowed_complexity": ["low"],
+  "max_diff_lines": 125,
+  "min_reviewer_confidence": 65,
+  "auto_review_allowed_risk_tiers": [
+    "T0"
+  ],
+  "auto_review_allowed_complexity": [
+    "low"
+  ],
   "adaptive": {
     "enabled": false,
     "floor_max_changed_files": 1,

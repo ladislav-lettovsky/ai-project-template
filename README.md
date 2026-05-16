@@ -163,13 +163,21 @@ mean, what gets enforced at edit-time vs commit-time vs CI-time — read
   can merge other PRs once satisfied — routing is informational, not a merge
   block by default.
 
+## Telemetry (Phase 5)
+
+- **`docs/telemetry/events.jsonl`** — one JSON line per merged PR (route, spec
+  metadata, reviewer confidence, findings by severity).
+- **`just telemetry-dashboard`** — regenerate `docs/telemetry/dashboard.md`.
+- **`just adapt-thresholds`** / **`just adapt-thresholds-write`** — bounded
+  updates to `.routing-policy.json` from telemetry (see `scripts/adapt_thresholds.py`).
+- **`.github/workflows/record-telemetry.yml`** — appends an event when a PR
+  merges to `main`.
+
+MCP on Planner/Reviewer and OTel remain optional (red-zone config); see
+`docs/blueprint.md` Phase 5 exit criteria.
+
 ## What's planned (not yet shipped)
 
-The blueprint defines additional phases beyond the Router:
-
-- **Telemetry + adaptive thresholds** (Phase 5) — `events.jsonl` per
-  PR, dashboard, MCP integration for Reviewer context, bounded
-  threshold tuning from real data.
 - **Scheduled executor** (Phase 6) — semi-autonomous endgame: a spec
   in `docs/specs/` without a corresponding PR is dispatched to Codex
   on a schedule.
