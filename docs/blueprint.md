@@ -273,21 +273,21 @@ These are the rules that stay true across all phases. If a proposed change viola
 
 Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and a **one-sentence why**. Do not advance to phase N+1 until phase N's exit criterion is met.
 
-### Phase 0 — Current state (complete)
+### Phase 0 — Baseline (implemented)
 
 **Deliverable:** Cursor + Claude Code across the portfolio + `ai-project-template` with AGENTS.md invariants, CLAUDE.md pointer (to be converted to symlink in Phase 1), `.cursor/rules/`, and `.claude/settings.json`.
 **Exit criterion:** `ai-project-template` shows `just check` green on every push; AGENTS.md contains tripwire-shaped invariants.
 
 **Why:** Phase 0 is documented so later phases can reference "the Phase 0 baseline."
 
-### Phase 1 — Roles as native subagents + worktrees + first hooks
+### Phase 1 (implemented) — Roles as native subagents + worktrees + first hooks
 
 **Deliverable, applied to `ai-project-template`:**
 
 1. Convert `CLAUDE.md` to a symlink targeting `AGENTS.md`. Move any Claude-only content into `.claude/agents/planner.md`. (Invariant 8.)
-2. Extend `AGENTS.md` with a new **Agent Roles** section that names Planner (Claude Code subagent), Executor (Codex subagent), and Reviewer (Codex subagent — see Phase 3 for full enablement). Each role gets a responsibility boundary and a pointer to its definition file.
+2. Extend `AGENTS.md` with a new **Agent Roles** section that names Planner (Claude Code subagent), Executor (Codex subagent), and Reviewer. Each role gets a responsibility boundary and a pointer to its definition file.
 3. Create `.claude/agents/planner.md` — Planner subagent (full template in §5.10): `permissionMode: plan`, `tools: [Read, Grep, Glob]`, `model: opus`. Read-only by construction.
-4. Create `.codex/config.toml` with `[agents.executor]`: `sandbox_mode = "workspace-write"`, `approval_policy = "on-request"`, `developer_instructions` referencing the Executor discipline (see §5.2). Reviewer agent is added in Phase 3.
+4. Create `.codex/config.toml` with `[agents.executor]`: `sandbox_mode = "workspace-write"`, `approval_policy = "on-request"`, `developer_instructions` referencing the Executor discipline (see §5.2).
 5. Add `.claude/settings.json` hooks (Phase-1 minimum set, full template in §5.8):
    - **PreToolUse on Edit|Write|MultiEdit** — block changes to red-zone paths (AGENTS.md, justfile, .pre-commit-config.yaml, etc.).
    - **UserPromptSubmit** — allow `main`, parking branch `scratch`, and branches whose names start with `chore/`, `docs/`, `feat/`, `fix/`, `refactor/`, `spec/`, or `test/`; block prompts on other branches.
@@ -301,15 +301,7 @@ Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and
 
 **Why (picturable):** Today, asking an AI to "add a test" means one agent doing planning and execution in one shot, with no artifact documenting what it was supposed to do. Phase 1 separates *deciding what* from *writing the code*, encodes that split into native subagent definitions (so it's enforced by the runtime, not by hope), and isolates each task in its own worktree so parallel work cannot collide. The hooks layer makes the single most important tripwires mechanical rather than rhetorical. That separation + isolation + enforcement is what makes every later phase possible.
 
-**What doesn't exist yet at end of Phase 1:**
-
-- No spec linting. Specs are informal Markdown.
-- No Reviewer subagent enabled. Human reviews every PR.
-- No Router. No CI labeling. No observability.
-- No skills layer.
-- No MCP integration.
-
-### Phase 2 — Spec-driven flow + spec-writing skill
+### Phase 2 (implemented) — Spec-driven flow + spec-writing skill
 
 **Deliverable:**
 
@@ -328,7 +320,7 @@ Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and
 
 **Why (picturable):** Specs-as-files turn "what was this Codex session about?" into a link you can click. Enforcing structure via lint turns the spec from a vibe into an artifact with guarantees — every spec has a Test Plan, every requirement maps to a test, every requirement has a validation contract. The injection scan recognizes that specs are an attack surface: they are user input that flows to an LLM, so they deserve input validation. The skill lets the Planner load detailed spec-writing guidance only when needed, keeping AGENTS.md tight.
 
-### Phase 3 — Add the Reviewer subagent (structured-JSON output, read-only sandbox)
+### Phase 3 (implemented) — Add the Reviewer subagent (structured-JSON output, read-only sandbox)
 
 **Deliverable:**
 
@@ -342,9 +334,9 @@ Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and
 
 **Exit criterion:** On 10 consecutive PRs, the Codex Reviewer's JSON has been evaluated by human with scoring: *"useful / noise / missed a real issue I caught."* At least 6 of 10 PRs should produce at least one useful finding. If not, the prompt needs revision before Phase 4. In parallel, 10/10 reviewer outputs must pass schema validation — if any fail, fix the prompt template before proceeding. Confirm via `codex` session logs that the Reviewer agent ran with `sandbox_mode = read-only` (the sandbox is the guarantee, not the prompt).
 
-**Why (picturable):** Phase 3 adds the reviewer but deliberately keeps the human as the real gate. The purpose is to *calibrate* the Codex Reviewer before trusting it. The structured JSON format is what makes Phase 4's automation possible. The read-only sandbox means even a misprompted Reviewer cannot accidentally edit code — the worst it can do is emit a bad finding, which fails schema validation and routes to human anyway.
+**Why (picturable):** We have added the reviewer but deliberately keep the human as the real gate. The purpose is to *calibrate* the Codex Reviewer before trusting it. The structured JSON format is what makes Phase 4's automation possible. The read-only sandbox means even a misprompted Reviewer cannot accidentally edit code — the worst it can do is emit a bad finding, which fails schema validation and routes to human anyway.
 
-### Phase 4 — The Router (deterministic PR labeling with three outcomes)
+### Phase 4 (roadmap) — The Router (deterministic PR labeling with three outcomes)
 
 **Deliverable:**
 
@@ -358,7 +350,7 @@ Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and
 
 **Why (picturable):** Phase 4 is the moment the development environment becomes **asynchronous**. Before Phase 4, Codex opens a PR and waits for human. After Phase 4, Codex opens a PR, the Router labels it, and if the label is `review:codex` the system continues. Human is no longer in the loop for routine work. Human is, importantly, still in the loop for everything the Router decided human should be in the loop for.
 
-### Phase 5 — Observability (events.jsonl + optional OTel), MCP integration, adaptive thresholds
+### Phase 5 (roadmap) — Observability (events.jsonl + optional OTel), MCP integration, adaptive thresholds
 
 **Deliverable:**
 
