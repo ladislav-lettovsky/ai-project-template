@@ -701,7 +701,7 @@ object. The contract is "reject malformed output, tolerate unknown
 fields." A future Reviewer iteration may want to emit an extra hint
 field (e.g., `cited_issue_ids`, `mcp_provenance`) before the schema
 is updated; a strict schema would reject that PR and the Reviewer's
-extra signal would be lost. Lesson from Phase 3 calibration: schema
+extra signal would be lost. Lesson from reviewer calibration: schema
 strictness is a one-way door — easy to tighten later, painful to
 loosen once tools downstream depend on a strict contract. Bias toward
 forward-compatibility, validate the required fields exhaustively.
@@ -1204,11 +1204,9 @@ Notice what is NOT here:
 
 3. **Routing rule calibration loop.** The `max_changed_files: 3` and `max_diff_lines: 150` thresholds in §5.3 are gut-feel. The first 20 PRs through the Router will probably produce several "the Router routed this wrong" events. The adaptive mechanism in §5.13 handles *mechanical* tightening; big directional changes (e.g., "we need a `max_diff_lines` of 500 for this repo") are human calls made by editing the policy file directly.
 
-4. **Reviewer-prompt calibration is the hardest prompt engineering in the system.** The Reviewer must be adversarial without being noisy, must produce schema-valid JSON reliably, and must cite evidence from the diff. Expect 3–5 iterations of `developer_instructions` before the 6-of-10 useful-finding bar in Phase 3's exit criterion is met. The `calibrate-reviewer` skill (Phase 3 addition) codifies the iteration procedure.
+4. **Reviewer-prompt calibration is the hardest prompt engineering in the system.** The Reviewer must be adversarial without being noisy, must produce schema-valid JSON reliably, and must cite evidence from the diff. Expect 3–5 iterations of `developer_instructions` before the 6-of-10 useful-finding bar in reviewer calibration exit criterion is met. The `calibrate-reviewer` skill codifies the iteration procedure.
 
    **Goodhart-aware framing.** The 6-of-10 bar is a heuristic, not an SLA. The right response to a borderline calibration window (say 5 of 10) is to read the noise and the misses, then revise the Reviewer's `developer_instructions` accordingly — *not* to torque the threshold up or down. Treating the metric as a target rather than a signal is exactly the failure mode Goodhart's Law warns about: the moment "useful finding rate" becomes the optimization target, the Reviewer learns to produce verbose, technically-true findings that score well and inform little. Use the metric to find Reviewer drift; use human judgment to fix it.
-
-   A Phase 2 corollary: the same caution applies to the spec-trigger criteria. A "30 minutes of effort" threshold is a Goodhart target waiting to happen ("this will only take 28 minutes"). The consequence-based criteria in Invariant 3 / §5.10 / §5.11 are deliberately harder to game because they reference the actual signals that drive review burden.
 
 5. **Fenced-block parsing is fragile.** Extracting JSON between `<!-- REVIEWER_JSON -->` markers assumes the Reviewer puts exactly one such block in the PR body. The fallback "emit minimum-confidence JSON on error" pattern in the Reviewer's `developer_instructions` is the mitigation. Expect at least one post-mortem about a malformed output.
 
