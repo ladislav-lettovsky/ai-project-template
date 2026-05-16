@@ -2,7 +2,7 @@
 
 ## Metadata
 
-- spec_id: SPEC-20260516-phase4-router-exit-drills
+- spec_id: SPEC-20260516-phase4-exit-drills
 - owner: template
 - status: complete
 - complexity: low
@@ -54,7 +54,7 @@ red-zone `review:human` on GitHub.
 ## Interfaces
 
 - `docs/phase4-exit-drills/**` (new)
-- `docs/specs/phase4-router-exit-drills.md` (this file)
+- `docs/specs/phase4-exit-drills.md` (this file)
 - `docs/blueprint.md`, `CONTRIBUTING.md` (docs only)
 
 ## Invariants to Preserve

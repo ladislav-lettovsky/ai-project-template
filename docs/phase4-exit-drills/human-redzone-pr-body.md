@@ -2,7 +2,7 @@
 
 This PR intentionally touches `AGENTS.md`. Router should route to human review.
 
-Spec: [docs/specs/phase4-router-exit-drills.md](../specs/phase4-router-exit-drills.md)
+Spec: [docs/specs/phase4-exit-drills.md](../specs/phase4-exit-drills.md)
 
 <!-- REVIEWER_JSON -->
 ```json

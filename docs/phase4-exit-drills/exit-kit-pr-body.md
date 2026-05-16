@@ -46,4 +46,4 @@ Drill PRs #41 and #42 are observation-only; close without merge.
 - [x] `just check` on this branch
 - [x] Drills B/C observed on #42 / #41
 
-Spec: [docs/specs/phase4-router-exit-drills.md](docs/specs/phase4-router-exit-drills.md)
+Spec: [docs/specs/phase4-exit-drills.md](docs/specs/phase4-exit-drills.md)
