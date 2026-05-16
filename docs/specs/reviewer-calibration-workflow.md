@@ -399,3 +399,9 @@ on this spec; rollback is a no-op for the running system.
   log for at least one Reviewer invocation and confirmed
   `sandbox_mode = "read-only"` was applied at runtime (per
   blueprint §4 Phase 3 exit criterion).
+- [ ] **Sandbox verification procedure:** the read-only-sandbox
+  confirmation step above is documented in detail (artifact paths
+  under `CODEX_HOME`, search commands, strong vs weak evidence, and
+  capture-to-`.scratch/` discipline) in
+  `docs/specs/codex-reviewer-readonly-sandbox-verification.md`;
+  consult that spec before checking this box.
