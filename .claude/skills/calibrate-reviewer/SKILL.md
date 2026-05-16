@@ -2,7 +2,7 @@
 name: calibrate-reviewer
 description: |
   Loaded by the human when scoring a Codex Reviewer's JSON output during
-  the Phase 3 calibration window. Walks through the useful/noise/missed
+  the calibration. Walks through the useful/noise/missed
   three-bucket scoring procedure, tracks progress against the 6-of-10
   exit-criterion bar, and prescribes when to iterate the Reviewer's
   developer_instructions vs. continue collecting data. NOT for general
@@ -11,7 +11,7 @@ description: |
 
 # Calibrating the Codex Reviewer
 
-The Phase 3 exit criterion (per `docs/blueprint.md` §4) is behavioral:
+The calibration criterion (per `docs/blueprint.md` §4) is behavioral:
 
 > *"On 10 consecutive PRs, the Codex Reviewer's JSON has been evaluated by
 > human with scoring: useful / noise / missed real issue I caught. At
@@ -123,9 +123,9 @@ Do NOT iterate for:
 4. Restart the rolling-10 calibration tally — vN+1 measurements are
    not comparable to vN measurements.
 
-## Exit-criterion checklist (Phase 3)
+## Exit-criterion reviewer-calibration checklist
 
-You can declare Phase 3 done when ALL of:
+You can declare reviewer calibration done when ALL of:
 
 - [ ] 10 consecutive PRs scored.
 - [ ] All 10 produced schema-valid Reviewer JSON.

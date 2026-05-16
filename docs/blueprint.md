@@ -1,34 +1,11 @@
-# AI-Native Development Environment Blueprint — v2
+# AI-Native Development Environment Blueprint
 
-**Author:** Repo's owner
+**Author:** Ladislav Lettovsky
 **Target:** Semi-autonomous software factory where specs in → reviewed PRs out, with human judgment reserved for irreversible or architectural decisions
-**Revision:** v2 (supersedes v1). Key changes summarized in §0.
 
 ---
 
-## 0. Changelog from v1
-
-This revision keeps every invariant and exit criterion from v1. It adds the native primitives Claude Code and Codex have hardened in 2026 — primitives that turn several of v1's "the agent should know not to do this" tripwires into "the system mechanically prevents it."
-
-Material additions:
-
-- **AGENTS.md is canonical, CLAUDE.md is a symlink to it.** Cross-tool portability (Codex, Cursor, Copilot, Gemini all read AGENTS.md natively).
-- **Roles are encoded as native subagents.** Claude Code subagents under `.claude/agents/`; Codex subagents under `[agents.*]` in `.codex/config.toml`. Per-role sandbox and permission isolation.
-- **A hooks layer.** Claude Code lifecycle hooks (PreToolUse, PostToolUse, Stop, SessionStart, SubagentStop, UserPromptSubmit) enforce tripwires at edit-time, not just at CI-time.
-- **Plan Mode is the Planner's required working mode.** Read-only-with-planning before any spec edit lands.
-- **Git worktrees are Phase 1 hygiene.** Per-task isolation via `claude -w <name>` and `isolation: "worktree"` on code-writing subagents.
-- **A SKILL.md layer for reusable playbooks** (spec-writing, postmortems, reviewer calibration). Progressive disclosure keeps AGENTS.md tight.
-- **MCP servers are introduced in Phase 5** for external context (GitHub PR data, issue trackers, runtime errors).
-- **OTel is offered as a complement to `events.jsonl`** for tool-call traces and per-PR cost.
-- **Prompt-injection scan extended** to MCP outputs and web-search results — the new dominant injection vector.
-- **Defense-in-depth ordering is documented explicitly:** hooks → pre-commit → `just check` → CI → Router/branch-protection.
-- **Two new invariants** (7: hooks are tripwires, not vibes; 8: AGENTS.md is canonical).
-
-What did NOT change: the deterministic Router, the structured-JSON Reviewer schema, the risk-tier-driven routing eligibility, the bounded adaptive thresholds, the spec-as-document discipline, the red-zone enumeration, the phased-execution exit criteria, and the anti-patterns. v2 layers; it does not rewrite.
-
-### Document hygiene (added during Phase 2/3 implementation)
-
-Two editorial conventions emerged from shipping Phases 2 and 3 against the live repo. They are not invariants — they are how this document and `AGENTS.md` stay readable as the system grows.
+## Document hygiene
 
 **AGENTS.md describes the present; this blueprint describes the trajectory.** When a phase ships, the corresponding capability gets promoted in `AGENTS.md` from a forward-looking marker (`*(Phase N)*`) to live full text, and the marker is deleted. Backward markers like "added in Phase N" are noise — by the time someone reads `AGENTS.md`, they care what's true today, not what shipped when. The blueprint, by contrast, *does* keep historical markers (Phase numbers, "added in v2") because its purpose is to explain how the system arrived at its present state. Two documents, two audiences, one source of truth per claim.
 
@@ -197,8 +174,6 @@ These are the rules that stay true across all phases. If a proposed change viola
 - The change alters a public interface or behavior contract.
 - A future reader will need context the PR diff cannot provide on its own.
 
-A wall-clock time threshold (the v1 "more than 30 minutes" wording) was an unreliable proxy: an agent's wall-clock is far shorter than a human's, some 5-minute changes are radioactive, and arbitrary time numbers invite gaming ("this will only take 28 minutes"). The signals above are what actually drive review burden, and they are first-class fields in the spec format itself. (Lesson learned during the Phase 2 demo; see also §5.10 Planner template and §5.11 write-spec skill, which mirror these criteria.)
-
 ### Invariant 4 — No regression of the existing gold-standard
 
 **Subject:** The tooling contract established by `ai-project-template`.
@@ -298,21 +273,21 @@ A wall-clock time threshold (the v1 "more than 30 minutes" wording) was an unrel
 
 Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and a **one-sentence why**. Do not advance to phase N+1 until phase N's exit criterion is met.
 
-### Phase 0 — Current state (complete)
+### Phase 0 — Baseline (implemented)
 
 **Deliverable:** Cursor + Claude Code across the portfolio + `ai-project-template` with AGENTS.md invariants, CLAUDE.md pointer (to be converted to symlink in Phase 1), `.cursor/rules/`, and `.claude/settings.json`.
 **Exit criterion:** `ai-project-template` shows `just check` green on every push; AGENTS.md contains tripwire-shaped invariants.
 
 **Why:** Phase 0 is documented so later phases can reference "the Phase 0 baseline."
 
-### Phase 1 — Roles as native subagents + worktrees + first hooks
+### Phase 1 (implemented) — Roles as native subagents + worktrees + first hooks
 
 **Deliverable, applied to `ai-project-template`:**
 
 1. Convert `CLAUDE.md` to a symlink targeting `AGENTS.md`. Move any Claude-only content into `.claude/agents/planner.md`. (Invariant 8.)
-2. Extend `AGENTS.md` with a new **Agent Roles** section that names Planner (Claude Code subagent), Executor (Codex subagent), and Reviewer (Codex subagent — see Phase 3 for full enablement). Each role gets a responsibility boundary and a pointer to its definition file.
+2. Extend `AGENTS.md` with a new **Agent Roles** section that names Planner (Claude Code subagent), Executor (Codex subagent), and Reviewer. Each role gets a responsibility boundary and a pointer to its definition file.
 3. Create `.claude/agents/planner.md` — Planner subagent (full template in §5.10): `permissionMode: plan`, `tools: [Read, Grep, Glob]`, `model: opus`. Read-only by construction.
-4. Create `.codex/config.toml` with `[agents.executor]`: `sandbox_mode = "workspace-write"`, `approval_policy = "on-request"`, `developer_instructions` referencing the Executor discipline (see §5.2). Reviewer agent is added in Phase 3.
+4. Create `.codex/config.toml` with `[agents.executor]`: `sandbox_mode = "workspace-write"`, `approval_policy = "on-request"`, `developer_instructions` referencing the Executor discipline (see §5.2).
 5. Add `.claude/settings.json` hooks (Phase-1 minimum set, full template in §5.8):
    - **PreToolUse on Edit|Write|MultiEdit** — block changes to red-zone paths (AGENTS.md, justfile, .pre-commit-config.yaml, etc.).
    - **UserPromptSubmit** — allow `main`, parking branch `scratch`, and branches whose names start with `chore/`, `docs/`, `feat/`, `fix/`, `refactor/`, `spec/`, or `test/`; block prompts on other branches.
@@ -326,15 +301,7 @@ Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and
 
 **Why (picturable):** Today, asking an AI to "add a test" means one agent doing planning and execution in one shot, with no artifact documenting what it was supposed to do. Phase 1 separates *deciding what* from *writing the code*, encodes that split into native subagent definitions (so it's enforced by the runtime, not by hope), and isolates each task in its own worktree so parallel work cannot collide. The hooks layer makes the single most important tripwires mechanical rather than rhetorical. That separation + isolation + enforcement is what makes every later phase possible.
 
-**What doesn't exist yet at end of Phase 1:**
-
-- No spec linting. Specs are informal Markdown.
-- No Reviewer subagent enabled. Human reviews every PR.
-- No Router. No CI labeling. No observability.
-- No skills layer.
-- No MCP integration.
-
-### Phase 2 — Spec-driven flow + spec-writing skill
+### Phase 2 (implemented) — Spec-driven flow + spec-writing skill
 
 **Deliverable:**
 
@@ -353,7 +320,7 @@ Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and
 
 **Why (picturable):** Specs-as-files turn "what was this Codex session about?" into a link you can click. Enforcing structure via lint turns the spec from a vibe into an artifact with guarantees — every spec has a Test Plan, every requirement maps to a test, every requirement has a validation contract. The injection scan recognizes that specs are an attack surface: they are user input that flows to an LLM, so they deserve input validation. The skill lets the Planner load detailed spec-writing guidance only when needed, keeping AGENTS.md tight.
 
-### Phase 3 — Add the Reviewer subagent (structured-JSON output, read-only sandbox)
+### Phase 3 (implemented) — Add the Reviewer subagent (structured-JSON output, read-only sandbox)
 
 **Deliverable:**
 
@@ -367,9 +334,9 @@ Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and
 
 **Exit criterion:** On 10 consecutive PRs, the Codex Reviewer's JSON has been evaluated by human with scoring: *"useful / noise / missed a real issue I caught."* At least 6 of 10 PRs should produce at least one useful finding. If not, the prompt needs revision before Phase 4. In parallel, 10/10 reviewer outputs must pass schema validation — if any fail, fix the prompt template before proceeding. Confirm via `codex` session logs that the Reviewer agent ran with `sandbox_mode = read-only` (the sandbox is the guarantee, not the prompt).
 
-**Why (picturable):** Phase 3 adds the reviewer but deliberately keeps the human as the real gate. The purpose is to *calibrate* the Codex Reviewer before trusting it. The structured JSON format is what makes Phase 4's automation possible. The read-only sandbox means even a misprompted Reviewer cannot accidentally edit code — the worst it can do is emit a bad finding, which fails schema validation and routes to human anyway.
+**Why (picturable):** We have added the reviewer but deliberately keep the human as the real gate. The purpose is to *calibrate* the Codex Reviewer before trusting it. The structured JSON format is what makes Phase 4's automation possible. The read-only sandbox means even a misprompted Reviewer cannot accidentally edit code — the worst it can do is emit a bad finding, which fails schema validation and routes to human anyway.
 
-### Phase 4 — The Router (deterministic PR labeling with three outcomes)
+### Phase 4 (roadmap) — The Router (deterministic PR labeling with three outcomes)
 
 **Deliverable:**
 
@@ -383,7 +350,7 @@ Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and
 
 **Why (picturable):** Phase 4 is the moment the development environment becomes **asynchronous**. Before Phase 4, Codex opens a PR and waits for human. After Phase 4, Codex opens a PR, the Router labels it, and if the label is `review:codex` the system continues. Human is no longer in the loop for routine work. Human is, importantly, still in the loop for everything the Router decided human should be in the loop for.
 
-### Phase 5 — Observability (events.jsonl + optional OTel), MCP integration, adaptive thresholds
+### Phase 5 (roadmap) — Observability (events.jsonl + optional OTel), MCP integration, adaptive thresholds
 
 **Deliverable:**
 
@@ -701,7 +668,7 @@ object. The contract is "reject malformed output, tolerate unknown
 fields." A future Reviewer iteration may want to emit an extra hint
 field (e.g., `cited_issue_ids`, `mcp_provenance`) before the schema
 is updated; a strict schema would reject that PR and the Reviewer's
-extra signal would be lost. Lesson from Phase 3 calibration: schema
+extra signal would be lost. Lesson from reviewer calibration: schema
 strictness is a one-way door — easy to tighten later, painful to
 loosen once tools downstream depend on a strict contract. Bias toward
 forward-compatibility, validate the required fields exhaustively.
@@ -1204,11 +1171,9 @@ Notice what is NOT here:
 
 3. **Routing rule calibration loop.** The `max_changed_files: 3` and `max_diff_lines: 150` thresholds in §5.3 are gut-feel. The first 20 PRs through the Router will probably produce several "the Router routed this wrong" events. The adaptive mechanism in §5.13 handles *mechanical* tightening; big directional changes (e.g., "we need a `max_diff_lines` of 500 for this repo") are human calls made by editing the policy file directly.
 
-4. **Reviewer-prompt calibration is the hardest prompt engineering in the system.** The Reviewer must be adversarial without being noisy, must produce schema-valid JSON reliably, and must cite evidence from the diff. Expect 3–5 iterations of `developer_instructions` before the 6-of-10 useful-finding bar in Phase 3's exit criterion is met. The `calibrate-reviewer` skill (Phase 3 addition) codifies the iteration procedure.
+4. **Reviewer-prompt calibration is the hardest prompt engineering in the system.** The Reviewer must be adversarial without being noisy, must produce schema-valid JSON reliably, and must cite evidence from the diff. Expect 3–5 iterations of `developer_instructions` before the 6-of-10 useful-finding bar in reviewer calibration exit criterion is met. The `calibrate-reviewer` skill codifies the iteration procedure.
 
    **Goodhart-aware framing.** The 6-of-10 bar is a heuristic, not an SLA. The right response to a borderline calibration window (say 5 of 10) is to read the noise and the misses, then revise the Reviewer's `developer_instructions` accordingly — *not* to torque the threshold up or down. Treating the metric as a target rather than a signal is exactly the failure mode Goodhart's Law warns about: the moment "useful finding rate" becomes the optimization target, the Reviewer learns to produce verbose, technically-true findings that score well and inform little. Use the metric to find Reviewer drift; use human judgment to fix it.
-
-   A Phase 2 corollary: the same caution applies to the spec-trigger criteria. A "30 minutes of effort" threshold is a Goodhart target waiting to happen ("this will only take 28 minutes"). The consequence-based criteria in Invariant 3 / §5.10 / §5.11 are deliberately harder to game because they reference the actual signals that drive review burden.
 
 5. **Fenced-block parsing is fragile.** Extracting JSON between `<!-- REVIEWER_JSON -->` markers assumes the Reviewer puts exactly one such block in the PR body. The fallback "emit minimum-confidence JSON on error" pattern in the Reviewer's `developer_instructions` is the mitigation. Expect at least one post-mortem about a malformed output.
 
@@ -1223,32 +1188,7 @@ Notice what is NOT here:
 1. **This is design, not implementation.** Every phase has ways to go wrong that cannot be fully anticipated. Exit criteria define whether a phase is completed.
 2. **The multi-agent orchestration patterns are industry-young.** Much of this will be obsolete in 18 months. The blueprint's durable value is in the *decomposition* and *discipline*, not in any specific tool choice.
 3. **Personal calibration matters more than this document.** This blueprint is scaffolding for *human* judgment, not a replacement for it.
-4. **`ai-project-template` is a living repo.** Every phase changes it. What counts as "gold-standard" today is Phase 0 + Phase 1 readiness; what counts as gold-standard in six months will be Phase 3 complete. The three frozen product repos will drift below the current gold-standard and that is correct — they fulfilled their purpose.
-5. **Native primitives churn.** Hooks, subagents, skills, plan mode, and MCP all matured visibly between v1 and v2 of this blueprint. Expect another wave of primitive evolution before Phase 6 lands. Track the official docs (Claude Code docs map, Codex developer docs) before each phase advance.
+4. **`ai-project-template` is a living repo.** Every phase changes it. What counts as "gold-standard" today is the completed Phase 3.
+5. **Native primitives churn.** Hooks, subagents, skills, plan mode, and MCP all matured visibly between phases of this blueprint. Expect another wave of primitive evolution before Phase 6 lands. Track the official docs (Claude Code docs map, Codex developer docs) before each phase advance.
 
 ---
-
-## 8. Execution checklist
-
-### Phase 1 (start here)
-
-- [ ] Convert `CLAUDE.md` to a symlink targeting `AGENTS.md`. Verify both Claude Code and Codex (via AGENTS.md fallback or symlink follow) read the same file.
-- [ ] Add Agent Roles section to `ai-project-template`'s AGENTS.md (Planner / Executor / Reviewer with pointers to subagent files).
-- [ ] Add `.claude/agents/planner.md` (full version from §5.10).
-- [ ] Add `.codex/config.toml` with `[agents.executor]` (full version from §5.10/5.2).
-- [ ] Add red-zone file list to AGENTS.md (canonical set from §5.5).
-- [ ] Add `.claude/settings.json` with PreToolUse + UserPromptSubmit hooks (from §5.8).
-- [ ] Add `scripts/hooks/check_red_zone.py`, `scripts/hooks/check_branch_name.py`, and `scripts/hooks/check_no_edits_on_scratch.py`.
-- [ ] Document the `claude -w <slug>` worktree workflow in AGENTS.md.
-- [ ] Add Invariants 1, 4, 7, 8 to AGENTS.md.
-- [ ] Pick a small real task. Run it through Planner (Plan Mode) → Executor (in worktree) loop. Verify the PR has spec link + branch name + clean `just check`.
-- [ ] Deliberately try to edit AGENTS.md from Claude Code. The PreToolUse hook MUST reject it.
-- [ ] Phase 1 exit criterion met? If yes, commit. Phase 2 begins next session.
-
-### Phases 2+ — deferred
-
-Do not start Phase 2 until Phase 1 is battle-tested on a real task. The phased gating from v1 carries over unchanged: each phase's exit criterion is a hard prerequisite for the next.
-
----
-
-*End of blueprint v2. Next action: Phase 1 step 1 (CLAUDE.md → AGENTS.md symlink) on `ai-project-template`.*

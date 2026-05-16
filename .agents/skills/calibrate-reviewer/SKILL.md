@@ -122,9 +122,9 @@ Do NOT iterate for:
 4. Restart the rolling-10 calibration tally — vN+1 measurements are
    not comparable to vN measurements.
 
-## Exit-criterion checklist (Phase 3)
+## Exit-criterion reviewer-calibration checklist
 
-You can declare Phase 3 done when ALL of:
+You can declare calibrariont done when ALL of:
 
 - [ ] 10 consecutive PRs scored.
 - [ ] All 10 produced schema-valid Reviewer JSON.

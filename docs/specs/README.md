@@ -3,7 +3,7 @@
 This directory holds the **authorizing specs** for non-trivial work in this
 repo. Every PR for work that took more than ~30 minutes of effort cites a
 spec here; the spec is the contract the Executor (Codex) implements
-literally and the Reviewer (Codex, Phase 3) checks against.
+literally and the Reviewer (Codex) checks against.
 
 > Read first: `docs/blueprint.md` §5.1 (spec structure) and §2 (invariants).
 > The Planner subagent definition at `.claude/agents/planner.md` and the

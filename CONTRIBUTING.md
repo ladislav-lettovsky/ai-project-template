@@ -224,7 +224,7 @@ A short pre-PR checklist that mirrors the one in `AGENTS.md`:
 6. PR description links the authorizing spec (Invariant 1).
 7. PR description notes any red-zone touch and which authoring path was taken.
 8. PR body contains an empty `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->`
-   block (the Reviewer fills it in Phase 3+).
+   block (the Reviewer fills it).
 
 Saving a PR description locally for `just validate-reviewer <file>` often lands in
 `.scratch/`. That directory is gitignored throwaway content; PR-body stubs usually

@@ -13,8 +13,7 @@ Design notes:
   vs. the last commit). Already-committed specs are out of scope — they
   were presumably valid when committed; revalidating them would surface
   retroactive lint-rule changes that the agent did not cause (see Quiz
-  #1 / Q5: specs are append-only history). Phase 2 deliverable #9 in
-  the blueprint specifies "uncommitted spec changes," and we honor that.
+  #1 / Q5: specs are append-only history).
 * Scaffolding files (``_template.md``, ``README.md``, ``_postmortem.md``)
   are skipped — they exist to be intentionally non-conforming.
 * Fail-open semantics: any infrastructure problem (git missing,
