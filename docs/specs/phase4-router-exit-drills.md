@@ -4,7 +4,7 @@
 
 - spec_id: SPEC-20260516-phase4-router-exit-drills
 - owner: template
-- status: in-progress
+- status: complete
 - complexity: low
 - risk_tier: T0
 - repo: ai-project-template
