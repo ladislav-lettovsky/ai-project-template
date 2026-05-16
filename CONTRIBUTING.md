@@ -231,10 +231,24 @@ X" without additional rules or bots.
 Fork-head PRs receive a comment with the router’s recommendation; automated
 label application applies to same-repo head branches (see workflow `if:`).
 
-**Phase 4 exit drills** (observability): at least once each in real usage —
-`review:codex` on a routine PR, `review:human` when touching a red-zone path
-or policy threshold, `blocked` when the Reviewer reports a `critical`
-finding.
+**Phase 4 exit drills:** See [`docs/phase4-exit-drills/README.md`](./docs/phase4-exit-drills/README.md)
+and the observation log [`STATUS.md`](./docs/phase4-exit-drills/STATUS.md).
+Minimum three outcomes on real PRs: `review:codex`, `review:human` (red-zone
+touch such as `AGENTS.md`), `blocked` (critical finding in valid Reviewer JSON).
+
+### Branch protection (Phase 4 deliverable #4)
+
+Configure in GitHub **Settings → Branches → Branch protection rules** for
+`main` (not in-repo YAML):
+
+1. **Require status checks:** `CI — Quality Checks` (or your `just check` job)
+   and **`Router — Label PR`** / `route` job from `route-pr.yml`.
+2. **Do not** fail the `route-pr` check when the label is `review:human` — the
+   workflow succeeds after labeling; humans merge when review is complete.
+3. **Automerge / bots:** If you use GitHub auto-merge, Mergify, or Codex merge
+   automation, add a rule so only PRs labeled **`review:codex`** may auto-merge
+   (and still require green CI). PRs labeled **`blocked`** or **`review:human`**
+   must not auto-merge.
 
 ## Before saying "done"
 
