@@ -33,7 +33,7 @@ RED_ZONE_PATHS: frozenset[str] = frozenset(
         ".pre-commit-config.yaml",
         "justfile",
         ".routing-policy.json",  # Phase 4
-        ".reviewer-schema.json",  # Phase 3
+        ".reviewer-schema.json",
     }
 )
 
