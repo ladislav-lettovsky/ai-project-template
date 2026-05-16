@@ -91,25 +91,45 @@ def check_coverage_consistency(instance: dict) -> list[str]:
     return errors
 
 
-def validate(pr_body: str, schema: dict) -> list[str]:
-    """Return a list of validation error messages. Empty list = valid."""
+def parse_validated_review_or_errors(pr_body: str, schema: dict) -> tuple[dict | None, list[str]]:
+    """Parse + schema-validate reviewer JSON embedded in PR body.
+
+    Returns ``(parsed_instance, errors)``. On any failure ``instance`` is
+    ``None`` and ``errors`` is non-empty. Used by CLI and Phase 4
+    ``build_pr_context`` so extraction rules stay unified.
+    """
     try:
         json_text = extract_json_text(pr_body)
     except ValueError as e:
-        return [str(e)]
+        return None, [str(e)]
     try:
         instance = json.loads(json_text)
     except json.JSONDecodeError as e:
-        return [f"JSON parse error: {e}"]
+        return None, [f"JSON parse error: {e}"]
     validator = Draft202012Validator(schema)
-    errors = sorted(validator.iter_errors(instance), key=lambda e: list(e.absolute_path))
+    errors_sorted = sorted(validator.iter_errors(instance), key=lambda e: list(e.absolute_path))
     schema_errors = [
         f"schema violation at {'/'.join(str(p) for p in e.absolute_path) or '<root>'}: {e.message}"
-        for e in errors
+        for e in errors_sorted
     ]
     if schema_errors:
-        return schema_errors
-    return check_coverage_consistency(instance)
+        return None, schema_errors
+    cov_errors = check_coverage_consistency(instance)
+    if cov_errors:
+        return None, cov_errors
+    return instance, []
+
+
+def validate(pr_body: str, schema: dict) -> list[str]:
+    """Return validation error strings. Empty list means valid reviewer JSON."""
+    _, errors = parse_validated_review_or_errors(pr_body, schema)
+    return errors
+
+
+def load_reviewer_schema(*, schema_path: Path | None = None) -> dict:
+    """Load ``.reviewer-schema.json`` (or explicitly provided path) as dict."""
+    chosen = schema_path if schema_path is not None else SCHEMA_PATH
+    return json.loads(chosen.read_text(encoding="utf-8"))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -135,7 +155,7 @@ def main(argv: list[str] | None = None) -> int:
     if not SCHEMA_PATH.is_file():
         print(f"ERROR: schema not found at {SCHEMA_PATH}", file=sys.stderr)
         return 2
-    schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    schema = load_reviewer_schema()
 
     errors = validate(pr_body, schema)
     if errors:

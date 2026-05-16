@@ -1,0 +1,110 @@
+# Phase 4 — deterministic PR labeling (docs/blueprint.md §5.7).
+#
+# Routing outcome does not fail this job — humans may merge even when routed
+# to review:human. Automerge tooling should consult the label separately.
+name: Router — Label PR
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, edited]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: route-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  route:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: python -m pip install uv
+
+      - name: Sync dependencies
+        run: uv sync --extra dev
+
+      - name: Create routing labels (idempotent)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "review:codex" --repo "${{ github.repository }}" --color "0E8A16" \
+            --description "Phase 4 router — automated lane eligible" || true
+          gh label create "review:human" --repo "${{ github.repository }}" --color "B60205" \
+            --description "Phase 4 router — requires human judgement" || true
+          gh label create "blocked" --repo "${{ github.repository }}" --color "5319E7" \
+            --description "Phase 4 router — critical finding, do not merge" || true
+
+      - name: Build PR context
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          uv run scripts/build_pr_context.py
+          --repo "${{ github.repository }}"
+          --pr ${{ github.event.pull_request.number }}
+          --fork-mode auto
+          --out pr.json
+
+      - name: Route
+        run: uv run scripts/route_pr.py pr.json --policy .routing-policy.json | tee route.json
+
+      - name: Upload router artifacts
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: router-${{ github.event.pull_request.number }}
+          path: |
+            pr.json
+            route.json
+
+      - name: Apply label + explain (same-repo branches)
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PRN="${{ github.event.pull_request.number }}"
+          LABEL=$(jq -r '.route' route.json)
+          REASONS=$(jq -r '.reasons[] | "- \(.)"' route.json)
+          {
+            echo "Router decision: \`${LABEL}\`";
+            echo "";
+            echo "Reasons:";
+            echo "${REASONS}";
+          } > comment.md
+          for L in review:codex review:human blocked; do
+            gh pr edit "${PRN}" --repo "${{ github.repository }}" --remove-label "$L" \
+              >/dev/null 2>&1 || true
+          done
+          gh pr edit "${PRN}" --repo "${{ github.repository }}" --add-label "${LABEL}"
+          gh pr comment "${PRN}" --repo "${{ github.repository }}" --body-file comment.md
+
+      - name: Fork-head note (label mutation skipped)
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PRN="${{ github.event.pull_request.number }}"
+          LABEL=$(jq -r '.route' route.json)
+          REASONS=$(jq -r '.reasons[] | "- \(.)"' route.json)
+          {
+            echo "Fork-head PR: router recommends \`${LABEL}\` — apply labels manually if your org requires it.";
+            echo "";
+            echo "Reasons:";
+            echo "${REASONS}";
+          } > fork-comment.md
+          gh pr comment "${PRN}" --repo "${{ github.repository }}" --body-file fork-comment.md
