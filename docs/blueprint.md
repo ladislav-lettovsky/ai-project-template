@@ -336,17 +336,17 @@ Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and
 
 **Why (picturable):** We have added the reviewer but deliberately keep the human as the real gate. The purpose is to *calibrate* the Codex Reviewer before trusting it. The structured JSON format is what makes Phase 4's automation possible. The read-only sandbox means even a misprompted Reviewer cannot accidentally edit code — the worst it can do is emit a bad finding, which fails schema validation and routes to human anyway.
 
-### Phase 4 (roadmap) — The Router (deterministic PR labeling with three outcomes)
+### Phase 4 (implemented) — The Router (deterministic PR labeling with three outcomes)
 
 **Deliverable:**
 
 1. `.routing-policy.json` — declarative thresholds (see §5.3).
 2. `scripts/route_pr.py` — takes a PR context JSON, returns one of `review:codex` / `review:human` / `blocked` plus human-readable reasons.
 3. `.github/workflows/route-pr.yml` — runs on every PR, builds the context, calls the router, applies a label, writes a comment explaining the routing decision (illustrative skeleton in §5.7).
-4. Branch protection on `main`: PRs labeled `review:human` or `blocked` cannot auto-merge. PRs labeled `review:codex` can auto-merge when CI is green AND reviewer JSON validates AND no critical findings.
-5. Update AGENTS.md with Invariants 2 and 6 (already drafted).
+4. Branch protection on `main`: required status checks include CI and `route-pr`; **automerge bots** (if any) must gate on label `review:codex` — see `CONTRIBUTING.md` (GitHub settings cannot express label-only automerge by themselves).
+5. Update AGENTS.md with Invariants 2 and 6 (shipped).
 
-**Exit criterion:** All three routing outcomes observed in real usage — at least one `review:codex` PR auto-merged, at least one `review:human` PR correctly blocked from auto-merge because it touched AGENTS.md, and at least one `blocked` PR held because of a critical reviewer finding. Every routing decision is accompanied by a PR comment explaining *why* it was routed that way.
+**Exit criterion:** All three routing outcomes observed in real usage — at least one `review:codex` PR, at least one `review:human` PR because it touched a red-zone file (e.g. `AGENTS.md`), and at least one `blocked` PR because of a critical reviewer finding. Every routing decision is accompanied by a PR comment explaining *why* it was routed that way. Observation log: [`docs/phase4-exit-drills/STATUS.md`](phase4-exit-drills/STATUS.md); drill kit: [`docs/phase4-exit-drills/README.md`](phase4-exit-drills/README.md).
 
 **Why (picturable):** Phase 4 is the moment the development environment becomes **asynchronous**. Before Phase 4, Codex opens a PR and waits for human. After Phase 4, Codex opens a PR, the Router labels it, and if the label is `review:codex` the system continues. Human is no longer in the loop for routine work. Human is, importantly, still in the loop for everything the Router decided human should be in the loop for.
 
