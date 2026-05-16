@@ -153,13 +153,20 @@ mean, what gets enforced at edit-time vs commit-time vs CI-time — read
 
 ---
 
+## What ships in this template
+
+- **Router (Phase 4)** — `.github/workflows/route-pr.yml` runs
+  `scripts/build_pr_context.py` and `scripts/route_pr.py` using
+  `.routing-policy.json` to label each PR `review:codex`, `review:human`, or
+  `blocked`, with an explanatory comment. Wire your **automerge or bot merge**
+  policy to require `review:codex` if you want the low-friction lane; humans
+  can merge other PRs once satisfied — routing is informational, not a merge
+  block by default.
+
 ## What's planned (not yet shipped)
 
-The blueprint defines additional phases beyond what currently ships:
+The blueprint defines additional phases beyond the Router:
 
-- **Router** (Phase 4) — deterministic Python script labels each PR as
-  `review:codex` / `review:human` / `blocked`; auto-merge on the first
-  outcome when CI is green and the Reviewer's JSON validates.
 - **Telemetry + adaptive thresholds** (Phase 5) — `events.jsonl` per
   PR, dashboard, MCP integration for Reviewer context, bounded
   threshold tuning from real data.

@@ -3,7 +3,7 @@
 > **AI-native development governance.** This repo follows the blueprint at
 > [`docs/blueprint.md`](docs/blueprint.md) — a multi-agent system with a Planner
 > (Claude Code), Executor (Codex), Reviewer (Codex),
-> and a deterministic Router (Phase 4).
+> and a deterministic Router (Phase 4 — `.github/workflows/route-pr.yml`).
 > Defense-in-depth via hooks → pre-commit → `just check` → CI → branch protection.
 
 ## What this is
@@ -97,7 +97,8 @@ sufficient for day-to-day work.
    `fix/<slug>`. PR description links the spec. PR body contains a
    `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` block. *Why:* every PR
    is a verifiable trace.
-2. *(Phase 4)* Router is deterministic Python, not an LLM.
+2. **Router is deterministic Python, not an LLM.** Routing reads `.routing-policy.json`
+   plus PR context (`scripts/build_pr_context.py` → `scripts/route_pr.py`).
 3. **Specs are documentation in `docs/specs/`, lint-enforced.** `scripts/lint_spec.py`
    gates `just check`; the `Stop` hook refuses session completion if a touched
    spec fails the linter.
@@ -108,10 +109,11 @@ sufficient for day-to-day work.
    produces a JSON document conforming to `.reviewer-schema.json`, fenced
    inside `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` markers in
    the PR body. `scripts/validate_reviewer.py` (run via `just
-   validate-reviewer <pr-body-file>`, and in the Phase 4 route-pr CI
+   validate-reviewer <pr-body-file>`, and in the **`route-pr`** CI
    workflow) rejects unparseable or non-conforming output. Any review that
    fails schema validation routes the PR to `review:human` automatically.
-6. *(Phase 4)* Risk tier is a first-class routing input.
+6. **Risk tier is a first-class routing input.** Declared on every spec (`risk_tier`,
+   `complexity`); `.routing-policy.json` constrains which tiers may receive `review:codex`.
 7. **Hooks are tripwires, not vibes.** Every tripwire enforceable at edit-time
    MUST be a hook in `.claude/settings.json` (or Codex command rules), not
    only a prompt instruction. Hook scripts live under `scripts/hooks/`.
@@ -129,7 +131,7 @@ replace them.
 ## Red-zone files
 
 Paths blocked at edit-time by `scripts/hooks/check_red_zone.py` (see Invariant 7)
-and routed to `review:human` once Phase 4's Router lands.
+and routed to `review:human` by `scripts/route_pr.py`.
 
 ```text
 AGENTS.md
@@ -145,7 +147,7 @@ pyproject.toml                  (dependency sections)
 uv.lock
 .pre-commit-config.yaml
 justfile
-.routing-policy.json            (Phase 4)
+.routing-policy.json
 .reviewer-schema.json
 ```
 

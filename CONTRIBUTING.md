@@ -212,6 +212,30 @@ GitHub Actions runs `just check` on every push to `main` and on every
 pull request. The workflow is intentionally a thin wrapper — same
 command as local, no rule duplication. See `.github/workflows/ci.yml`.
 
+### `route-pr` workflow (Phase 4 Router)
+
+`.github/workflows/route-pr.yml` runs on pull requests to `main`. It:
+
+1. Runs `uv run scripts/build_pr_context.py` to assemble `pr.json` (changed
+   files, diff size, authorizing-spec lint, Reviewer JSON validation).
+2. Runs `uv run scripts/route_pr.py` against `.routing-policy.json` to assign
+   one of `review:codex`, `review:human`, or `blocked`, then posts a PR
+   comment with machine-readable reasons.
+
+The job **succeeds** when those steps complete — a `review:human` label is not a
+failed check. Humans merge once review is done. If you use Codex or another
+bot to auto-merge, gate that path on `review:codex` plus green `CI`; branch
+protection required checks alone cannot express "only automerge when label
+X" without additional rules or bots.
+
+Fork-head PRs receive a comment with the router’s recommendation; automated
+label application applies to same-repo head branches (see workflow `if:`).
+
+**Phase 4 exit drills** (observability): at least once each in real usage —
+`review:codex` on a routine PR, `review:human` when touching a red-zone path
+or policy threshold, `blocked` when the Reviewer reports a `critical`
+finding.
+
 ## Before saying "done"
 
 A short pre-PR checklist that mirrors the one in `AGENTS.md`:
