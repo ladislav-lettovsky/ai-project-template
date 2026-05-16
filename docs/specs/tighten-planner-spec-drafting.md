@@ -115,9 +115,6 @@ addressed in one PR because they share the same surface.
 - [ ] NG2: No changes to `lint_spec.py` or `scan_injection.py`.
   The linter contract is unchanged.
 - [ ] NG3: No measurement / telemetry to prove the routing fix worked.
-  Verification is by behavioral observation in the next real
-  spec-drafting request (out of scope; will be confirmed when Phase 3
-  begins or the next non-trivial work requires a spec).
 - [ ] NG4: No new skill or subagent files are created.
 - [ ] NG5: No model-side or Claude-Code-side configuration changes.
   The fix is purely in description text.
