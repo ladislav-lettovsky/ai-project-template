@@ -89,6 +89,8 @@ prompt does not.
 
 ## Architectural invariants
 
+- **Phase 4 exit observation log (drill B):** see `docs/phase4-exit-drills/STATUS.md` on branches that include the exit kit; this line is for red-zone routing drill only.
+
 Numbered invariants below; full text (Subject / Rule / Why / Tripwire) lives in
 [`docs/blueprint.md` §2](docs/blueprint.md). The compressed form here is
 sufficient for day-to-day work.
