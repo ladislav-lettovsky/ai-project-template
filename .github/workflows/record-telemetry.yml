@@ -1,0 +1,89 @@
+# Phase 5 — append routing telemetry when a PR merges to main.
+name: Telemetry — Record merged PR
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  record:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: python -m pip install uv
+
+      - name: Sync dependencies
+        run: uv sync --extra dev
+
+      - name: Build PR context and route
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PRN="${{ github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
+          uv run scripts/build_pr_context.py \
+            --repo "${REPO}" \
+            --pr "${PRN}" \
+            --fork-mode no \
+            --out pr.json
+          uv run scripts/route_pr.py pr.json --policy .routing-policy.json | tee route.json
+
+      - name: Resolve CI outcome
+        id: ci
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PRN="${{ github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
+          CONCLUSION=$(gh pr checks "${PRN}" --repo "${REPO}" \
+            --json name,conclusion \
+            --jq '[.[] | select(.name=="Lint, type-check, unit tests")][0].conclusion // "unknown"')
+          case "${CONCLUSION}" in
+            SUCCESS) OUTCOME=success ;;
+            FAILURE) OUTCOME=failure ;;
+            *) OUTCOME=unknown ;;
+          esac
+          echo "outcome=${OUTCOME}" >> "${GITHUB_OUTPUT}"
+
+      - name: Append telemetry event
+        run: |
+          uv run scripts/append_event.py \
+            --pr pr.json \
+            --route route.json \
+            --pr-number "${{ github.event.pull_request.number }}" \
+            --head-sha "${{ github.event.pull_request.merge_commit_sha }}" \
+            --ci-outcome "${{ steps.ci.outputs.outcome }}" \
+            --merge-outcome merged
+
+      - name: Regenerate dashboard
+        run: uv run scripts/telemetry_dashboard.py
+
+      - name: Commit telemetry to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/telemetry/events.jsonl docs/telemetry/dashboard.md
+          if git diff --staged --quiet; then
+            echo "No telemetry changes to commit."
+            exit 0
+          fi
+          git commit -m "chore(telemetry): record PR #${{ github.event.pull_request.number }} routing event"
+          git push
