@@ -2,7 +2,7 @@
 
 > **AI-native development governance.** This repo follows the blueprint at
 > [`docs/blueprint.md`](docs/blueprint.md) — a multi-agent system with a Planner
-> (Claude Code), Executor (Codex), Reviewer (Codex, evidence-only in Phase 3),
+> (Claude Code), Executor (Codex), Reviewer (Codex),
 > and a deterministic Router (Phase 4).
 > Defense-in-depth via hooks → pre-commit → `just check` → CI → branch protection.
 

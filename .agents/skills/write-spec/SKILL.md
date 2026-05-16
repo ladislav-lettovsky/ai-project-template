@@ -138,7 +138,7 @@ repo uses git").
 
 Architectural choices with rationale. Each `D*` is a sentence-or-two
 "we chose X over Y because Z." Decisions are referenced from PR
-descriptions and from the Reviewer JSON in Phase 3.
+descriptions and from the Reviewer JSON.
 
 ### Problem Statement
 
