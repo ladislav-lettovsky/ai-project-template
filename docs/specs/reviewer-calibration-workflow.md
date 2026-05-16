@@ -12,7 +12,7 @@
 
 ## Context
 
-Phase 3 of `docs/blueprint.md` introduces the Codex Reviewer subagent and
+Phase 3 of `docs/blueprint.md` introduced the Codex Reviewer subagent and
 its structured-JSON output. The phase's exit criterion is *behavioral*
 rather than mechanical: a human scores 10 consecutive PRs against a
 three-bucket rubric (useful / noise / missed), confirms 10/10 schema
@@ -163,27 +163,27 @@ artifacts that enforce the workflow's outputs (durable, machine-checked).
 
 ## Non-Goals
 
-- [ ] NG1: No code change. No new scripts. No edits to existing
+- [x] NG1: No code change. No new scripts. No edits to existing
   scripts under `scripts/` or `scripts/hooks/`.
-- [ ] NG2: No edit to `.claude/skills/calibrate-reviewer/SKILL.md` or
+- [x] NG2: No edit to `.claude/skills/calibrate-reviewer/SKILL.md` or
   any other file under `.claude/skills/`. The skill is canonical for
   the per-PR procedure; this spec only points at it.
-- [ ] NG3: No edit to `.reviewer-schema.json`,
+- [x] NG3: No edit to `.reviewer-schema.json`,
   `scripts/validate_reviewer.py`, or `.codex/config.toml`. The
   Reviewer's runtime configuration and output contract are unchanged.
-- [ ] NG4: No new file under `docs/telemetry/`. The calibration
+- [x] NG4: No new file under `docs/telemetry/`. The calibration
   worksheet is ephemeral (`.scratch/`); telemetry is a Phase 5+
   concern with a separate, machine-readable shape.
-- [ ] NG5: No change to the Phase 3 exit criterion itself. The
+- [x] NG5: No change to Reviewer calibration exit criterion itself. The
   6-of-10 useful-findings bar, the 10/10 schema-valid bar, and the
   read-only sandbox confirmation are all defined by
   `docs/blueprint.md` §4 and are quoted by reference, not redefined.
-- [ ] NG6: No CI workflow that asserts the existence or shape of any
+- [x] NG6: No CI workflow that asserts the existence or shape of any
   calibration worksheet. The worksheet is not part of the merge gate
   by design.
-- [ ] NG7: No automation of the three-bucket scoring (useful / noise /
+- [x] NG7: No automation of the three-bucket scoring (useful / noise /
   missed). Human judgment is the input that calibrates the system;
-  automating it would defeat the purpose of Phase 3.
+  automating it would defeat the purpose of Reviewer calibration.
 
 ## Interfaces
 
@@ -198,9 +198,9 @@ artifacts that enforce the workflow's outputs (durable, machine-checked).
   modified, this is a red-zone edit (per the "Red-zone files" list in
   AGENTS.md) and must be made via the documented red-zone edit
   process.
-- `docs/blueprint.md` — at most one line at the end of the Phase 3
-  paragraph in §4 cross-referencing this spec. The blueprint is not
-  on the red-zone list, but it is invariant-protected reading.
+- `docs/blueprint.md` — at most one line paragraph in §4 cross-referencing
+  this spec. The blueprint is not on the red-zone list,
+  but it is invariant-protected reading.
 
 **Files NOT modified (per Non-Goals):**
 
@@ -373,33 +373,32 @@ on this spec; rollback is a no-op for the running system.
 
 ## Done When
 
-- [ ] R1–R6 all satisfied.
-- [ ] D1–D5 preserved or any deviation noted in the PR.
-- [ ] T1–T5 executed with the documented expected outcomes.
-- [ ] Validation Contract satisfied: every R\* maps to a passing
+- [x] R1–R6 all satisfied.
+- [x] D1–D5 preserved or any deviation noted in the PR.
+- [x] T1–T5 executed with the documented expected outcomes.
+- [x] Validation Contract satisfied: every R\* maps to a passing
   validator.
-- [ ] `just lint-spec docs/specs/reviewer-calibration-workflow.md`
+- [x] `just lint-spec docs/specs/reviewer-calibration-workflow.md`
   exits 0.
-- [ ] `uv run pre-commit run markdownlint-cli2 --files docs/specs/reviewer-calibration-workflow.md`
+- [x] `uv run pre-commit run markdownlint-cli2 --files docs/specs/reviewer-calibration-workflow.md`
   exits 0.
-- [ ] `just check` green locally.
-- [ ] CI green on the PR branch.
-- [ ] Invariants INV1–INV6 hold.
-- [ ] Branch name is `spec/reviewer-calibration-workflow` (Invariant 1:
+- [x] `just check` green locally.
+- [x] CI green on the PR branch.
+- [x] Invariants INV1–INV6 hold.
+- [x] Branch name is `spec/reviewer-calibration-workflow` (Invariant 1:
   merge-bound PR branches use `spec/<slug>` or `fix/<slug>`).
-- [ ] PR description links this spec.
-- [ ] PR body contains a `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->`
+- [x] PR description links this spec.
+- [x] PR body contains a `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->`
   block.
-- [ ] **Phase 3 sign-off prerequisites (schema validation):** before
+- [x] **Phase 3 sign-off prerequisites (schema validation):** before
   declaring Phase 3 complete, the human has run
   `just validate-reviewer <pr-body-file>` against each of the 10
   scored PR bodies and confirmed all 10 exit 0.
-- [ ] **Phase 3 sign-off prerequisites (sandbox confirmation):** before
+- [x] **Phase 3 sign-off prerequisites (sandbox confirmation):** before
   declaring Phase 3 complete, the human has read the Codex session
   log for at least one Reviewer invocation and confirmed
-  `sandbox_mode = "read-only"` was applied at runtime (per
-  blueprint §4 Phase 3 exit criterion).
-- [ ] **Sandbox verification procedure:** the read-only-sandbox
+  `sandbox_mode = "read-only"` was applied at runtime.
+- [x] **Sandbox verification procedure:** the read-only-sandbox
   confirmation step above is documented in detail (artifact paths
   under `CODEX_HOME`, search commands, strong vs weak evidence, and
   capture-to-`.scratch/` discipline) in

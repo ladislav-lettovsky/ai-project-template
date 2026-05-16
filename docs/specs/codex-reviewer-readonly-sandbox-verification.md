@@ -12,15 +12,15 @@
 
 ## Context
 
-Phase 3 of `docs/blueprint.md` mandates two human-verifiable sign-off
-prerequisites before declaring the Reviewer subagent calibrated: (1)
-10/10 Reviewer JSON outputs validate against `.reviewer-schema.json`,
-and (2) a human confirms from Codex session logs that the Reviewer
+Phase 3 of `docs/blueprint.md` concluded with two human-verifiable sign-off
+prerequisites at the end of Reviewer subagent calibration: (1)
+10/10 Reviewer JSON outputs validated against `.reviewer-schema.json`,
+and (2) a human confirmed from Codex session logs that the Reviewer
 actually ran with `sandbox_mode = "read-only"`. The first is mechanical
 (`just validate-reviewer <pr-body-file>` exits 0). The second is not:
 there is no command in this repo today that reads from
 `CODEX_HOME` and asserts "this Reviewer run was sandboxed". The
-maintainer has to look.
+maintainer had to look it up from logs.
 
 This spec is documentation-only. It writes down, in one place, *where*
 to look under `CODEX_HOME` (default `~/.codex`), *what* to look for,
