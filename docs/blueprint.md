@@ -1,34 +1,11 @@
-# AI-Native Development Environment Blueprint — v2
+# AI-Native Development Environment Blueprint
 
-**Author:** Repo's owner
+**Author:** Ladislav Lettovsky
 **Target:** Semi-autonomous software factory where specs in → reviewed PRs out, with human judgment reserved for irreversible or architectural decisions
-**Revision:** v2 (supersedes v1). Key changes summarized in §0.
 
 ---
 
-## 0. Changelog from v1
-
-This revision keeps every invariant and exit criterion from v1. It adds the native primitives Claude Code and Codex have hardened in 2026 — primitives that turn several of v1's "the agent should know not to do this" tripwires into "the system mechanically prevents it."
-
-Material additions:
-
-- **AGENTS.md is canonical, CLAUDE.md is a symlink to it.** Cross-tool portability (Codex, Cursor, Copilot, Gemini all read AGENTS.md natively).
-- **Roles are encoded as native subagents.** Claude Code subagents under `.claude/agents/`; Codex subagents under `[agents.*]` in `.codex/config.toml`. Per-role sandbox and permission isolation.
-- **A hooks layer.** Claude Code lifecycle hooks (PreToolUse, PostToolUse, Stop, SessionStart, SubagentStop, UserPromptSubmit) enforce tripwires at edit-time, not just at CI-time.
-- **Plan Mode is the Planner's required working mode.** Read-only-with-planning before any spec edit lands.
-- **Git worktrees are Phase 1 hygiene.** Per-task isolation via `claude -w <name>` and `isolation: "worktree"` on code-writing subagents.
-- **A SKILL.md layer for reusable playbooks** (spec-writing, postmortems, reviewer calibration). Progressive disclosure keeps AGENTS.md tight.
-- **MCP servers are introduced in Phase 5** for external context (GitHub PR data, issue trackers, runtime errors).
-- **OTel is offered as a complement to `events.jsonl`** for tool-call traces and per-PR cost.
-- **Prompt-injection scan extended** to MCP outputs and web-search results — the new dominant injection vector.
-- **Defense-in-depth ordering is documented explicitly:** hooks → pre-commit → `just check` → CI → Router/branch-protection.
-- **Two new invariants** (7: hooks are tripwires, not vibes; 8: AGENTS.md is canonical).
-
-What did NOT change: the deterministic Router, the structured-JSON Reviewer schema, the risk-tier-driven routing eligibility, the bounded adaptive thresholds, the spec-as-document discipline, the red-zone enumeration, the phased-execution exit criteria, and the anti-patterns. v2 layers; it does not rewrite.
-
-### Document hygiene (added during Phase 2/3 implementation)
-
-Two editorial conventions emerged from shipping Phases 2 and 3 against the live repo. They are not invariants — they are how this document and `AGENTS.md` stay readable as the system grows.
+## Document hygiene
 
 **AGENTS.md describes the present; this blueprint describes the trajectory.** When a phase ships, the corresponding capability gets promoted in `AGENTS.md` from a forward-looking marker (`*(Phase N)*`) to live full text, and the marker is deleted. Backward markers like "added in Phase N" are noise — by the time someone reads `AGENTS.md`, they care what's true today, not what shipped when. The blueprint, by contrast, *does* keep historical markers (Phase numbers, "added in v2") because its purpose is to explain how the system arrived at its present state. Two documents, two audiences, one source of truth per claim.
 
@@ -196,8 +173,6 @@ These are the rules that stay true across all phases. If a proposed change viola
 - The change touches multiple unrelated files (a file plus its co-located tests does not count as multi-file).
 - The change alters a public interface or behavior contract.
 - A future reader will need context the PR diff cannot provide on its own.
-
-A wall-clock time threshold (the v1 "more than 30 minutes" wording) was an unreliable proxy: an agent's wall-clock is far shorter than a human's, some 5-minute changes are radioactive, and arbitrary time numbers invite gaming ("this will only take 28 minutes"). The signals above are what actually drive review burden, and they are first-class fields in the spec format itself. (Lesson learned during the Phase 2 demo; see also §5.10 Planner template and §5.11 write-spec skill, which mirror these criteria.)
 
 ### Invariant 4 — No regression of the existing gold-standard
 
@@ -1221,32 +1196,7 @@ Notice what is NOT here:
 1. **This is design, not implementation.** Every phase has ways to go wrong that cannot be fully anticipated. Exit criteria define whether a phase is completed.
 2. **The multi-agent orchestration patterns are industry-young.** Much of this will be obsolete in 18 months. The blueprint's durable value is in the *decomposition* and *discipline*, not in any specific tool choice.
 3. **Personal calibration matters more than this document.** This blueprint is scaffolding for *human* judgment, not a replacement for it.
-4. **`ai-project-template` is a living repo.** Every phase changes it. What counts as "gold-standard" today is Phase 0 + Phase 1 readiness; what counts as gold-standard in six months will be Phase 3 complete. The three frozen product repos will drift below the current gold-standard and that is correct — they fulfilled their purpose.
-5. **Native primitives churn.** Hooks, subagents, skills, plan mode, and MCP all matured visibly between v1 and v2 of this blueprint. Expect another wave of primitive evolution before Phase 6 lands. Track the official docs (Claude Code docs map, Codex developer docs) before each phase advance.
+4. **`ai-project-template` is a living repo.** Every phase changes it. What counts as "gold-standard" today is the completed Phase 3.
+5. **Native primitives churn.** Hooks, subagents, skills, plan mode, and MCP all matured visibly between phases of this blueprint. Expect another wave of primitive evolution before Phase 6 lands. Track the official docs (Claude Code docs map, Codex developer docs) before each phase advance.
 
 ---
-
-## 8. Execution checklist
-
-### Phase 1 (start here)
-
-- [ ] Convert `CLAUDE.md` to a symlink targeting `AGENTS.md`. Verify both Claude Code and Codex (via AGENTS.md fallback or symlink follow) read the same file.
-- [ ] Add Agent Roles section to `ai-project-template`'s AGENTS.md (Planner / Executor / Reviewer with pointers to subagent files).
-- [ ] Add `.claude/agents/planner.md` (full version from §5.10).
-- [ ] Add `.codex/config.toml` with `[agents.executor]` (full version from §5.10/5.2).
-- [ ] Add red-zone file list to AGENTS.md (canonical set from §5.5).
-- [ ] Add `.claude/settings.json` with PreToolUse + UserPromptSubmit hooks (from §5.8).
-- [ ] Add `scripts/hooks/check_red_zone.py`, `scripts/hooks/check_branch_name.py`, and `scripts/hooks/check_no_edits_on_scratch.py`.
-- [ ] Document the `claude -w <slug>` worktree workflow in AGENTS.md.
-- [ ] Add Invariants 1, 4, 7, 8 to AGENTS.md.
-- [ ] Pick a small real task. Run it through Planner (Plan Mode) → Executor (in worktree) loop. Verify the PR has spec link + branch name + clean `just check`.
-- [ ] Deliberately try to edit AGENTS.md from Claude Code. The PreToolUse hook MUST reject it.
-- [ ] Phase 1 exit criterion met? If yes, commit. Phase 2 begins next session.
-
-### Phases 2+ — deferred
-
-Do not start Phase 2 until Phase 1 is battle-tested on a real task. The phased gating from v1 carries over unchanged: each phase's exit criterion is a hard prerequisite for the next.
-
----
-
-*End of blueprint v2. Next action: Phase 1 step 1 (CLAUDE.md → AGENTS.md symlink) on `ai-project-template`.*
