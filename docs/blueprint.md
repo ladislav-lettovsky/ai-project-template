@@ -7,31 +7,47 @@
 
 ## Document hygiene
 
-**AGENTS.md describes the present; this blueprint describes the trajectory.** When a phase ships, the corresponding capability gets promoted in `AGENTS.md` from a forward-looking marker (`*(Phase N)*`) to live full text, and the marker is deleted. Backward markers like "added in Phase N" are noise — by the time someone reads `AGENTS.md`, they care what's true today, not what shipped when. The blueprint, by contrast, *does* keep historical markers (Phase numbers, "added in v2") because its purpose is to explain how the system arrived at its present state. Two documents, two audiences, one source of truth per claim.
+**AGENTS.md describes the present; this blueprint describes the trajectory.** When a phase
+ships, the corresponding capability gets promoted in `AGENTS.md` from a forward-looking
+marker (`*(Phase N)*`) to live full text, and the marker is deleted. The blueprint *does*
+keep historical phase numbers because its purpose is to explain how the system arrived at
+its present state.
 
-**Bootstrap exception for phase-implementation PRs.** Invariant 1 requires every PR to link an authorizing spec, and §5.1 requires every spec to pass `lint_spec.py`. Phase-implementation PRs are recursive: the PR that *introduces* `lint_spec.py` cannot itself be linted by `lint_spec.py`, and the PR that introduces the Reviewer schema cannot itself produce a Reviewer JSON validating against that schema. Acknowledge the recursion explicitly in the PR body ("bootstrap PR — introduces the gate it would otherwise be subject to") rather than pretending the invariant was satisfied. Future-you will need this note when grepping the spec history for the first lint-clean spec.
+**Bootstrap exception for phase-implementation PRs.** Invariant 1 requires every PR to link
+an authorizing spec; §5.1 requires every spec to pass `lint_spec.py`. Phase-implementation
+PRs are recursive: the PR that *introduces* `lint_spec.py` cannot itself be linted by
+`lint_spec.py`, and the PR that introduces the Reviewer schema cannot itself produce
+Reviewer JSON validating against that schema. Acknowledge the recursion in the PR body
+("bootstrap PR — introduces the gate it would otherwise be subject to") rather than
+pretending the invariant was satisfied.
 
-**Optional session complements (non-normative).** Teams may adopt lightweight habits alongside specs: an ephemeral **lessons** log under `.scratch/` and an explicit **re-plan** rule when adhoc work goes sideways. These artifacts sit **outside** the merge gate—they reduce repeated mistakes and wasted trials but must **not** compete with `docs/specs/` as the authorizing plan for delivery work. Cursor may encode host-specific guidance under `.cursor/rules/` (agent-requested rules); other hosts rely on the portable subset in `AGENTS.md`.
+**Optional session complements (non-normative).** Teams may adopt lightweight habits
+alongside specs: an ephemeral **lessons** log under `.scratch/` and an explicit **re-plan**
+rule when ad-hoc work goes sideways. These artifacts sit **outside** the merge gate—they
+reduce repeated mistakes and wasted trials but must **not** compete with `docs/specs/` as
+the authorizing plan for delivery work. Cursor may encode host-specific guidance under
+`.cursor/rules/` (agent-requested rules); other hosts rely on the portable subset in
+`AGENTS.md`.
 
 ---
 
 ## Purpose of this document
 
-This blueprint defines the target state of a modern AI-native development environment and a phased path to reach it. It preserves the standards `ai-project-template` already ships — `uv`, `just`, `ty`, strict CI, and the invariants discipline from AGENTS.md — and extends them into a governed multi-agent system that exploits the native primitives of Claude Code and Codex (subagents, hooks, plan mode, worktrees, skills, MCP).
+This blueprint defines the target state of a modern AI-native development environment and a
+phased path to reach it. It preserves the standards `ai-project-template` already ships —
+`uv`, `just`, `ty`, strict CI, and the invariants discipline from AGENTS.md — and extends
+them into a governed multi-agent system that exploits native primitives of Claude Code and
+Codex (subagents, hooks, plan mode, worktrees, skills, MCP).
 
 **Scope of applicability:**
 
-- `ai-project-template` is the **living repo** — every phase of this blueprint evolves it first. All future projects forked from the template inherit whatever phase is live.
+- `ai-project-template` is the **living repo** — every phase of this blueprint evolves it first.
+All future projects forked from the template inherit whatever phase is live.
 
 **Phased implementation:**
 
 - Execute Phase 1 against `ai-project-template` first.
 - Each subsequent phase is gated by its predecessor's exit criterion.
-
-**What this document is not:**
-
-- A copy-paste setup guide. Every code sample is illustrative; the real implementation will earn its own review per your standards.
-- A timeline. Phases are ordered by dependency, not by calendar.
 
 ---
 
@@ -41,12 +57,12 @@ This blueprint defines the target state of a modern AI-native development enviro
                ┌──────────────────────────────────────────────┐
                │            Author (Human)                    │
                │     (product direction + irreversible gate)  │
-               └──────────────────┬───────────────────────────┘
-                                  │
-                    defines feature / fixes bug /
-                    sets architectural constraint
-                                  │
-                                  ▼
+               └────────────────────┬─────────────────────────┘
+                                    │
+                      defines feature / fixes bug /
+                      sets architectural constraint
+                                    │
+                                    ▼
                ┌──────────────────────────────────────────────┐
                │     Planner  (Claude Code subagent)          │
                │  permissionMode: plan  (read-only)           │
@@ -54,9 +70,9 @@ This blueprint defines the target state of a modern AI-native development enviro
                │  Assigns risk_tier (T0..T3) + complexity     │
                │  Names invariants + test plan                │
                │  Spec must pass `lint_spec.py` before merge  │
-               └──────────────────┬───────────────────────────┘
-                                  │  (worktree spawned)
-                                  ▼
+               └────────────────────┬─────────────────────────┘
+                                    │  (worktree spawned)
+                                    ▼
                ┌──────────────────────────────────────────────┐
                │     Executor  (Codex [agents.executor])      │
                │  sandbox_mode: workspace-write               │
@@ -64,66 +80,76 @@ This blueprint defines the target state of a modern AI-native development enviro
                │  Implements one spec per branch / worktree   │
                │  `just check` must pass locally              │
                │  Opens PR with spec link + reviewer payload  │
-               └──────────────────┬───────────────────────────┘
-                                  │
-                                  ▼
+               └────────────────────┬─────────────────────────┘
+                                    │
+                                    ▼
                ┌──────────────────────────────────────────────┐
-               │   Reviewer  (Codex [agents.reviewer])        │
+               │     Reviewer  (Codex [agents.reviewer])      │
                │  sandbox_mode: read-only                     │
                │  model_reasoning_effort: high                │
                │  Outputs schema-valid JSON, not prose        │
                │  Includes findings[], coverage, confidence   │
                │  Bias: false positives over false negatives  │
-               └──────────────────┬───────────────────────────┘
-                                  │
-                                  ▼
+               └─────────────────────┬────────────────────────┘
+                                     │
+                                     ▼
                ┌──────────────────────────────────────────────┐
                │     Router (GitHub Action, Python, no LLM)   │
-               │  Inspects PR context + reviewer JSON         │
-               │  Three outcomes: review:codex / human /      │
-               │                  blocked                     │
-               └────────┬────────────────┬────────────────────┘
-                        │                │
-             review:codex    review:human     blocked
-                        │                │         │
-                        ▼                ▼         ▼
-               ┌─────────────┐    ┌─────────┐  ┌───────────────┐
-               │ CI green    │    │ Author  │  │ Dead until    │
-               │ + auto-merge│    │ review  │  │ critical      │
-               └──────┬──────┘    └────┬────┘  │ finding fixed │
-                      │                │       └───────────────┘
-                      └────────┬───────┘
+               │      Inspects PR context + reviewer JSON     │
+               │              Three outcomes:                 │
+               │       review:codex / human / blocked         │
+               └────────┬─────────────┬────────────┬──────────┘
+                        │             │            │
+             review:codex  review:human      blocked
+                        │             │            │
+                        ▼             ▼            ▼
+               ┌──────────────┐  ┌─────────┐  ┌───────────────┐
+               │ CI green     │  │ Author  │  │ Dead until    │
+               │ + auto-merge │  │ review  │  │ critical      │
+               └────────┬─────┘  └────┬────┘  │ finding fixed │
+                        │             │       └───────────────┘
+                        └──────┬──────┘
                                ▼
-                  ┌─────────────────────────────────────────┐
-                  │    Telemetry + feedback                 │
-                  │  docs/telemetry/events.jsonl            │
-                  │  + optional OTel exporter (Codex)       │
-                  │  → adaptive thresholds                  │
-                  │  → prompt + skill improvements          │
-                  └─────────────────────────────────────────┘
+               ┌──────────────────────────────────────────────┐
+               │        Telemetry + feedback                  │
+               │      docs/telemetry/events.jsonl             │
+               │      + optional OTel exporter (Codex)        │
+               │      → adaptive thresholds                   │
+               │      → prompt + skill improvements           │
+               └──────────────────────────────────────────────┘
 ```
 
 ### Division of labor
 
-**Claude plans (in Plan Mode) with risk tiers. Codex executes bounded work in a workspace-write sandbox. A second Codex (read-only sandbox) reviews with structured JSON. A deterministic Router decides human vs. agent vs. blocked. Hooks enforce tripwires at edit-time before any of this matters.**
+**Claude plans (Plan Mode) with risk tiers. Codex executes in a workspace-write sandbox. A
+second Codex (read-only) reviews with structured JSON. A deterministic Router labels
+human vs. agent vs. blocked. Hooks enforce tripwires at edit-time.**
 
 ### Role of the Planner (Claude Code subagent)
 
-The Planner is a Claude Code subagent (`.claude/agents/planner.md`) with `permissionMode: plan` and `tools: [Read, Grep, Glob]` — read-only by construction. It owns both the *what* and the *how-it-will-be-tested* — the spec includes a Test Plan section with T1→R1 mappings. The Planner cannot write files; the spec is committed by the human after Plan Mode approval.
+The Planner is a Claude Code subagent (`.claude/agents/planner.md`) with `permissionMode: plan`
+and `tools: [Read, Grep, Glob]` — read-only by construction. It owns the *what* and the
+*how-it-will-be-tested* (Test Plan with T→R mappings). The Planner cannot write files; the
+human commits the spec after Plan Mode approval.
 
 ### Roles of the Executor and Reviewer (Codex subagents)
 
-Both are defined in `.codex/config.toml` under `[agents.executor]` and `[agents.reviewer]`. The Executor has `sandbox_mode = "workspace-write"`, `approval_policy = "on-request"`. The Reviewer has `sandbox_mode = "read-only"`, `model_reasoning_effort = "high"`. The split is enforced by Codex's sandbox layer, not by prompt discipline alone.
+Both are defined in `.codex/config.toml` under `[agents.executor]` and `[agents.reviewer]`.
+The Executor uses `sandbox_mode = "workspace-write"`, `approval_policy = "on-request"`.
+The Reviewer uses `sandbox_mode = "read-only"`, `model_reasoning_effort = "high"`. The split
+is enforced by Codex's sandbox layer, not prompt discipline alone.
 
 ### Deterministic Router
 
-The Router is a deterministic Python script that decides — before any LLM is involved — whether a diff is safe for agent review. **The gate must be mechanical where it matters most.**
+The Router is a deterministic Python script that decides whether a diff is safe for agent review.
 
-A PR with a **critical finding from the Reviewer** is not "a PR a human should look at" — it is **dead code until the finding is addressed**. A `blocked` outcome creates a distinct queue with different UX: the author must respond to the finding before the PR moves at all.
+A PR with a **critical Reviewer finding** is not merely "needs human review" — it is **dead
+until the finding is addressed**. A `blocked` label is a distinct queue: the author must
+respond before the PR moves.
 
 ### Defense-in-depth ordering
 
-Every tripwire in this system fires at the earliest possible layer. The layers, in firing order:
+Every tripwire fires at the earliest possible layer:
 
 1. **Claude Code hooks** — PreToolUse / UserPromptSubmit / Stop. Block disallowed actions *before they happen*. Edit-time.
 2. **pre-commit** — `no-commit-to-branch`, format, basic lint. Commit-time.
@@ -131,41 +157,56 @@ Every tripwire in this system fires at the earliest possible layer. The layers, 
 4. **CI** — re-runs `just check` on the runner, plus the Router. Post-push time.
 5. **Router + branch protection** — final gate; auto-merge only when all preceding layers passed and Router emits `review:codex`. Merge-time.
 
-Layer N is not redundant with layer N-1; layer N catches what layer N-1 cannot. Hooks specifically catch the agent's intent before any state changes — a PreToolUse hook rejecting an `Edit` on `AGENTS.md` is qualitatively different from CI failing on the same change after the diff has been pushed.
+Layer N is not redundant with layer N−1; each catches what the prior layer cannot. Hooks
+catch intent before state changes — a PreToolUse rejection on `AGENTS.md` is qualitatively
+different from CI failing after the diff is pushed.
 
 ---
 
 ## 2. Invariants of this system
 
-These are the rules that stay true across all phases. If a proposed change violates one, either the change is wrong or the invariant needs a deliberate version bump.
+These are the rules that stay true across all phases. If a proposed change violates one,
+either the change is wrong or the invariant needs a deliberate version bump.
 
 ### Invariant 1 — The role split is observable in every PR
 
 **Subject:** Any PR opened against a repo that has adopted this system.
 
-**Rule:** The PR description must link the spec that authorized the work, and the PR branch name must start with `spec/<slug>` or `fix/<slug>`. The PR body must include a reviewer-JSON block fenced with `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->`.
+**Rule:** The PR description must link the authorizing spec. The branch name must start with
+`spec/<slug>` or `fix/<slug>`. The PR body must include a reviewer-JSON block fenced with
+`<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->`.
 
-**Why (picturable):** Six months from now you'll review a PR and ask "why was this written?" The three artifacts — spec, branch name, reviewer JSON — turn every PR into a verifiable trace.
+**Why (picturable):** Six months later, "why was this written?" is answered by three artifacts:
+spec, branch name, reviewer JSON — a verifiable trace per PR.
 
-**Tripwire:** If you find yourself opening a PR that cannot cite a spec, stop. Either write the spec first, or acknowledge you're working outside the system (and that's fine sometimes — this blueprint is not a cage).
+**Tripwire:** Opening a PR that cannot cite a spec → stop. Write the spec first, or
+acknowledge you are outside the system (allowed sometimes; this blueprint is not a cage).
 
 ### Invariant 2 — The Router is code, not vibes
 
 **Subject:** The PR routing logic that decides Codex review vs. Author review vs. blocked.
 
-**Rule:** Routing is a GitHub Actions workflow that inspects diff + spec metadata + reviewer JSON and applies explicit rules (see §5.3). It emits one of three labels. It does not consult an LLM. The routing policy is a checked-in JSON file (`.routing-policy.json`), not a hard-coded constant.
+**Rule:** Routing is a GitHub Actions workflow over diff + spec metadata + reviewer JSON (§5.3).
+It emits one of three labels. No LLM. Policy lives in `.routing-policy.json`, not Python
+constants.
 
-**Why (picturable):** An LLM router is a gate that can be prompted around. A Python script checking `if "AGENTS.md" in changed_files: label = "review:human"` is a gate that can be audited by reading 20 lines of code. You want to sleep soundly when Codex is merging its own work — the Router is the reason you can. Putting the thresholds in a JSON file (not inline constants) means you can tune them without editing code, and the tuning history is a simple git log.
+**Why (picturable):** An LLM router can be prompted around. `if "AGENTS.md" in changed_files`
+is auditable in twenty lines of Python. Thresholds in JSON tune without code edits; history
+is a git log.
 
-**Tripwire:** If you find yourself writing "let Claude decide whether this needs human review", stop. Write the deterministic rule instead. If you find yourself changing a threshold by editing the Python source, stop. Change the JSON policy file.
+**Tripwire:** "Let Claude decide if this needs human review" → stop; write the rule. Changing
+a threshold in `route_pr.py` → stop; edit `.routing-policy.json`.
 
 ### Invariant 3 — Specs are documentation, not metadata
 
 **Subject:** Feature specifications that drive Codex execution.
 
-**Rule:** Specs live in `docs/specs/` as plain Markdown, readable by any human opening the repo. Each spec has a well-defined structure (see §5.1) including risk_tier, complexity, requirements with stable IDs, test plan with T→R mappings, and a done-when checklist. A spec that fails `scripts/lint_spec.py` is not valid and cannot be used to authorize a PR.
+**Rule:** Specs live in `docs/specs/` as plain Markdown. Each follows §5.1: `risk_tier`,
+`complexity`, stable requirement IDs, T→R test plan, done-when checklist. A spec that fails
+`lint_spec.py` cannot authorize a PR.
 
-**Why (picturable):** `README.md` describes what this repo does. `AGENTS.md` defines how agents work in it. `docs/specs/` captures *the history of what was built and why*. Specs-as-docs are reviewable, diffable, searchable. Lint-enforced structure means a spec can't silently degrade into a vague prompt — the CI rejects it.
+**Why (picturable):** `README.md` is what the repo does; `AGENTS.md` is how agents work;
+`docs/specs/` is *what was built and why*. Lint blocks silent degradation into vague prompts.
 
 **Tripwire — consequence-based, not time-based.** If any of the following is true, the work needs a spec before code lands:
 
@@ -178,51 +219,87 @@ These are the rules that stay true across all phases. If a proposed change viola
 
 **Subject:** The tooling contract established by `ai-project-template`.
 
-**Rule:** Every phase of this blueprint must preserve: `uv` as package manager, `ty` as type checker, `just` as task runner, `pytest` as test runner, pre-commit with `no-commit-to-branch`, and strict CI (no `|| true`, no swallowed failures). Codex may not "simplify" any of these away.
+**Rule:** Every phase of this blueprint must preserve: `uv` as package manager,
+`ty` as type checker, `just` as task runner, `pytest` as test runner,
+pre-commit with `no-commit-to-branch`, and strict CI (no `|| true`, no swallowed failures).
+Codex may not "simplify" any of these away.
 
 **Why (picturable):** Every tool in the current contract was chosen deliberately and must be adhered to.
 
-**Tripwire:** If you find yourself reviewing a PR that replaces `uv` with `pip`, `just` with `make`, or adds `|| true` to any CI step, reject it without negotiation. If an agent proposes "simplifying" by removing `ty` from `just check`, reject it. These tools are the contract; changes to the contract require a deliberate version bump and a corresponding invariant revision, not an in-PR argument.
+**Tripwire:** If you find yourself reviewing a PR that replaces `uv` with `pip`, `just` with `make`,
+or adds `|| true` to any CI step, reject it without negotiation. If an agent proposes "simplifying"
+by removing `ty` from `just check`, reject it. These tools are the contract; changes to the contract
+require a deliberate version bump and a corresponding invariant revision, not an in-PR argument.
 
 ### Invariant 5 — Reviewer output is structured data, not prose
 
 **Subject:** Output from the Reviewer role.
 
-**Rule:** The Reviewer produces a JSON document conforming to the schema in §5.4. The JSON includes `findings[]` (each with severity, type, requirement IDs, description, evidence, suggested action), `coverage`, `risk_assessment`, `summary`, and `confidence` (0–100). Any Reviewer output that fails schema validation routes the PR to `review:human` automatically.
+**Rule:** The Reviewer produces a JSON document conforming to the schema in §5.4.
+The JSON includes `findings[]` (each with severity, type, requirement IDs, description,
+evidence, suggested action), `coverage`, `risk_assessment`, `summary`, and `confidence` (0–100).
+Any Reviewer output that fails schema validation routes the PR to `review:human` automatically.
 
-**Why (picturable):** A free-form review comment like "looks good, maybe add a test" is unparseable. The Router cannot branch on it. You cannot measure reviewer quality over 50 PRs if each review is narrative. Structured JSON means `reviewer.confidence < 60` is a boolean the Router evaluates in microseconds. It also means reviewer *quality itself* becomes measurable — you can compute "how often does confidence ≥ 80 correlate with merges that later needed fixes?" That question doesn't exist in a prose-review world.
+**Why (picturable):** Prose reviews ("looks good, maybe add a test") are unparseable; the Router
+cannot branch. Structured JSON makes `confidence < 65` a microsecond gate and reviewer quality
+measurable over dozens of PRs.
 
-**Tripwire:** If the Reviewer emits prose instead of JSON (because the prompt failed or the model refused the format), the Router must route to `review:human` by default. Never attempt to LLM-extract structure from prose reviews — that's building an LLM gate in front of the LLM gate.
+**Tripwire:** Reviewer emits prose → route `review:human`. Never LLM-extract structure from
+prose — that adds an LLM gate in front of the LLM gate.
 
 ### Invariant 6 — Risk tier is a first-class routing input
 
 **Subject:** How the Router decides whether a PR is eligible for agent review.
 
-**Rule:** Every spec declares a `risk_tier` (T0/T1/T2/T3) and a `complexity` (low/medium/high). Only T0 + low-complexity specs are eligible for `review:codex` by default. The eligibility set can be expanded over time via adaptive thresholds but must always be a subset explicitly listed in the routing policy.
+**Rule:** Every spec declares a `risk_tier` (T0/T1/T2/T3) and a `complexity` (low/medium/high).
+Only T0 + low-complexity specs are eligible for `review:codex` by default.
+The eligibility set can be expanded over time via adaptive thresholds
+but must always be a subset explicitly listed in the routing policy.
 
-**Why (picturable):** Diff size is a proxy. A 1-file 10-line PR that changes an auth check is higher risk than a 5-file 200-line PR that renames a variable. Risk tier is the signal; diff size is a fallback. Declaring risk tier at the **spec** stage (not the PR stage) means the Planner — the role with the most context — sets it, not the Executor who just wants to land the change.
+**Why (picturable):** Diff size is a proxy. A 1-file 10-line PR that changes an auth check
+is higher risk than a 5-file 200-line PR that renames a variable. Risk tier is the signal;
+diff size is a fallback. Declaring risk tier at the **spec** stage (not the PR stage)
+means the Planner — the role with the most context — sets it,
+not the Executor who just wants to land the change.
 
-**Tripwire:** If you find yourself wanting to auto-merge a T1 or higher PR "because it's small", stop. The tier exists because someone with full context said this work is consequential. Expand the eligibility set with a policy-file change, not an in-PR override.
+**Tripwire:** If you find yourself wanting to auto-merge a T1 or higher PR "because it's small", stop.
+The tier exists because someone with full context said this work is consequential.
+Expand the eligibility set with a policy-file change, not an in-PR override.
 
-### Invariant 7 — Hooks are tripwires, not vibes (NEW in v2)
+### Invariant 7 — Hooks are tripwires, not vibes
 
 **Subject:** Lifecycle hooks installed in `.claude/settings.json` and Codex's command-rules / `[shell_environment_policy]`.
 
-**Rule:** Every tripwire that can be enforced at edit-time MUST be implemented as a hook, not only as a prompt instruction in AGENTS.md. Specifically: PreToolUse hooks reject edits to red-zone paths and reject Edit/Write/MultiEdit on the parking branch `scratch` (exact name; rename to `spec/<slug>` or `fix/<slug>` before mutating files); UserPromptSubmit hooks reject branch names that are not `main`, not exactly `scratch`, and whose names do not start with one of `chore/`, `docs/`, `feat/`, `fix/`, `refactor/`, `spec/`, or `test/`; Stop hooks refuse to declare a session done if `just check` has not run green; SessionStart hooks inject the active spec (if any). The hook scripts live under `scripts/hooks/` and are checked into the repo.
+**Rule:** Every edit-time tripwire MUST be a hook in `.claude/settings.json` (or Codex
+equivalent), not prompt-only in AGENTS.md: PreToolUse blocks red-zone paths and edits on
+`scratch` (rename to `spec/<slug>` or `fix/<slug>` first); UserPromptSubmit allows `main`,
+`scratch`, or prefixes `chore/`, `docs/`, `feat/`, `fix/`, `refactor/`, `spec/`, `test/`;
+Stop requires green `just check`; SessionStart injects the active spec. Scripts under
+`scripts/hooks/`.
 
-**Why (picturable):** A prompt that says "do not edit AGENTS.md" relies on the model interpreting and obeying. A PreToolUse hook that exits non-zero on `Edit AGENTS.md` is enforced by the Claude Code runtime itself — the model never gets the chance to disobey. Hooks turn the strongest tripwires from social contracts into mechanical ones, and they fail earlier (edit-time) than CI ever can (post-push). They also work for Codex via the equivalent layer: command rules + `[shell_environment_policy]` + protected paths.
+**Why (picturable):** "Do not edit AGENTS.md" in a prompt is a social contract. A PreToolUse
+hook is runtime-enforced. Hooks fail at edit-time; CI fails post-push.
 
-**Tripwire:** If you find yourself adding a "MUST NOT" rule to AGENTS.md that *could* be expressed as a hook, you've left a gap. Add the hook. Use AGENTS.md for the *rationale* that the hook enforces, not as the enforcement itself.
+**Tripwire:** A "MUST NOT" in AGENTS.md that could be a hook → add the hook; keep AGENTS.md
+for *why*, not for enforcement alone.
 
-### Invariant 8 — AGENTS.md is canonical; CLAUDE.md is a symlink (NEW in v2)
+### Invariant 8 — AGENTS.md is canonical; CLAUDE.md is a symlink
 
 **Subject:** The agent-instruction file at the repo root.
 
-**Rule:** The repo ships exactly one canonical instruction file: `AGENTS.md`. `CLAUDE.md` is a symbolic link to `AGENTS.md` (`ln -s AGENTS.md CLAUDE.md`). No content lives only in CLAUDE.md. Tool-specific guidance — Claude-only or Codex-only — lives in subagent definitions (`.claude/agents/*.md`, `.codex/config.toml [agents.*]`), NOT in the canonical instruction file.
+**Rule:** The repo ships exactly one canonical instruction file: `AGENTS.md`.
+`CLAUDE.md` is a symbolic link to `AGENTS.md` (`ln -s AGENTS.md CLAUDE.md`).
+No content lives only in CLAUDE.md. Tool-specific guidance — Claude-only or Codex-only —
+lives in subagent definitions (`.claude/agents/*.md`, `.codex/config.toml [agents.*]`),
+NOT in the canonical instruction file.
 
-**Why (picturable):** Codex CLI, Cursor, Copilot, Gemini, and Windsurf read AGENTS.md natively. Claude Code reads CLAUDE.md natively but follows the symlink to AGENTS.md transparently. With the symlink pattern, the two files cannot drift. With duplicated files, they always do — within three months you'll have two slightly different versions of "always run `just check`" and the agent will be reading whichever one happens to be loaded first. One file, no drift.
+**Why (picturable):** Codex CLI, Cursor, Copilot, Gemini, and Windsurf read AGENTS.md natively.
+Claude Code reads CLAUDE.md natively but follows the symlink to AGENTS.md transparently.
+With the symlink pattern, the two files cannot drift.
 
-**Tripwire:** If you find yourself adding content to CLAUDE.md that's not also in AGENTS.md, stop. Either you're using the wrong file (symlink should make this impossible) or the content belongs in a subagent definition, not in the canonical instructions.
+**Tripwire:** If you find yourself adding content to CLAUDE.md that's not also in AGENTS.md, stop.
+Either you're using the wrong file (symlink should make this impossible)
+or the content belongs in a subagent definition, not in the canonical instructions.
 
 ---
 
@@ -238,17 +315,17 @@ These are the rules that stay true across all phases. If a proposed change viola
 ### 3.2 Agent-config smells
 
 5. **Generic agent prompts** (*"You are a senior software architect. Design clean, scalable systems."*). AGENTS.md invariants must be specific, tripwire-shaped, picturable.
-2. **One-sentence subagent files.** A subagent definition like *"Read the spec, implement requirements, run just check"* is less useful than the full tripwire-shaped discipline in §5.2. Short is not the same as crisp.
-3. **Duplicated agent instructions across CLAUDE.md and AGENTS.md.** See Invariant 8 — symlink, don't copy.
-4. **Tool-specific instructions in the canonical AGENTS.md.** Anything that begins "if you are Claude Code…" or "if you are Codex…" belongs in the subagent definition, not in AGENTS.md.
+6. **One-sentence subagent files.** A subagent definition like *"Read the spec, implement requirements, run just check"* is less useful than the full tripwire-shaped discipline in §5.2. Short is not the same as crisp.
+7. **Duplicated agent instructions across CLAUDE.md and AGENTS.md.** See Invariant 8 — symlink, don't copy.
+8. **Tool-specific instructions in the canonical AGENTS.md.** Anything that begins "if you are Claude Code…" or "if you are Codex…" belongs in the subagent definition, not in AGENTS.md.
 
 ### 3.3 Ceremony that doesn't pay for itself
 
 9. **Role handoff files generated per-spec** (e.g., `docs/orchestration/<spec>/01-planner.md`, `02-test-designer.md`, ...). The spec *is* the handoff. The reviewer JSON *is* the evidence.
-2. **Orchestration YAML listing role names in order.** Roles are defined in AGENTS.md and concretized in subagent definitions. Repeating them in a YAML file is duplication with no single-source-of-truth.
-3. **Codebase-map scan scripts.** Generating a markdown list of top-level directories is trivial and doesn't need to be versioned. If you want one, run `ls -d */` — don't write a script for it.
-4. **Drift-hint scripts that overlap with routing rules.** If the Router already blocks PRs touching >3 files, a separate "warn when touching 3+ source directories" script is noise.
-5. **Decision-coverage checks parsing D1/D2 IDs from spec text.** The PR description will cite D1 whether or not the implementation actually honors it. Revisit only if telemetry shows decisions drifting in practice.
+10. **Orchestration YAML listing role names in order.** Roles are defined in AGENTS.md and concretized in subagent definitions. Repeating them in a YAML file is duplication with no single-source-of-truth.
+11. **Codebase-map scan scripts.** Generating a markdown list of top-level directories is trivial and doesn't need to be versioned. If you want one, run `ls -d */` — don't write a script for it.
+12. **Drift-hint scripts that overlap with routing rules.** If the Router already blocks PRs touching >3 files, a separate "warn when touching 3+ source directories" script is noise.
+13. **Decision-coverage checks parsing D1/D2 IDs from spec text.** The PR description will cite D1 whether or not the implementation actually honors it. Revisit only if telemetry shows decisions drifting in practice.
 
 ### 3.4 Metrics/claims without measurement
 
@@ -260,12 +337,15 @@ These are the rules that stay true across all phases. If a proposed change viola
 
 ### 3.6 Generous budgets that signal the wrong thing
 
-16. **Context budgets that are never tight** (e.g., "AGENTS.md ≤ 1600 lines"). A budget that never fires teaches agents that AGENTS.md can grow unbounded. If you set a budget, set it *tight* (≤ 200 lines for AGENTS.md per 2026 cross-tool consensus, ≤ 80 lines per subagent file, ≤ 60 lines per skill body before progressive-disclosure breakdown). A budget that bites 4 times a year is doing its job.
+16. **Context budgets that are never tight** (e.g. "AGENTS.md ≤ 1600 lines"). A budget that
+never fires teaches unbounded growth. If you set one, set it *tight* (≈200 lines AGENTS.md,
+≈80 per subagent, ≈60 per skill body before progressive disclosure). A budget that bites a few
+times a year is doing its job.
 
-### 3.7 Prompt-only enforcement of safety properties (NEW in v2)
+### 3.7 Prompt-only enforcement of safety properties
 
 17. **"Never edit AGENTS.md" as a prompt rule with no hook.** If you can express a tripwire as a hook (PreToolUse, UserPromptSubmit, Stop), you must. Prompt-only enforcement is the weakest layer.
-2. **Trusting MCP outputs and web-search results as if they were spec content.** Both are user-controlled and reach the agent's context window. They are an injection surface. Run `scan_injection.py` against MCP responses and web fetches that get persisted into specs (see §5.6).
+18. **Trusting MCP outputs and web-search results as if they were spec content.** Both are user-controlled and reach the agent's context window. They are an injection surface. Run `scan_injection.py` against MCP responses and web fetches that get persisted into specs (see §5.6).
 
 ---
 
@@ -273,9 +353,9 @@ These are the rules that stay true across all phases. If a proposed change viola
 
 Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and a **one-sentence why**. Do not advance to phase N+1 until phase N's exit criterion is met.
 
-### Phase 0 — Baseline (implemented)
+### Phase 0 (implemented) — Baseline
 
-**Deliverable:** Cursor + Claude Code across the portfolio + `ai-project-template` with AGENTS.md invariants, CLAUDE.md pointer (to be converted to symlink in Phase 1), `.cursor/rules/`, and `.claude/settings.json`.
+**Deliverable:** Cursor + Claude Code across the portfolio + `ai-project-template` with AGENTS.md invariants, CLAUDE.md pointer, `.cursor/rules/`, and `.claude/settings.json`.
 **Exit criterion:** `ai-project-template` shows `just check` green on every push; AGENTS.md contains tripwire-shaped invariants.
 
 **Why:** Phase 0 is documented so later phases can reference "the Phase 0 baseline."
@@ -346,25 +426,42 @@ Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and
 4. Branch protection on `main`: required status checks include CI and `route-pr`; **automerge bots** (if any) must gate on label `review:codex` — see `CONTRIBUTING.md` (GitHub settings cannot express label-only automerge by themselves).
 5. Update AGENTS.md with Invariants 2 and 6 (shipped).
 
-**Exit criterion:** All three routing outcomes observed in real usage — at least one `review:codex` PR, at least one `review:human` PR because it touched a red-zone file (e.g. `AGENTS.md`), and at least one `blocked` PR because of a critical reviewer finding. Every routing decision is accompanied by a PR comment explaining *why* it was routed that way. Observation log: [`docs/phase4-exit-drills/STATUS.md`](phase4-exit-drills/STATUS.md); drill kit: [`docs/phase4-exit-drills/README.md`](phase4-exit-drills/README.md).
+**Exit criterion:** All three routing outcomes observed — `review:codex`, `review:human`
+(red-zone touch, e.g. `AGENTS.md`), and `blocked` (critical finding). Every decision has a
+PR comment with reasons. Log:
+[`docs/phase4-exit-drills/STATUS.md`](docs/phase4-exit-drills/STATUS.md); kit:
+[`docs/phase4-exit-drills/README.md`](docs/phase4-exit-drills/README.md).
 
-**Why (picturable):** Phase 4 is the moment the development environment becomes **asynchronous**. Before Phase 4, Codex opens a PR and waits for human. After Phase 4, Codex opens a PR, the Router labels it, and if the label is `review:codex` the system continues. Human is no longer in the loop for routine work. Human is, importantly, still in the loop for everything the Router decided human should be in the loop for.
+**Why (picturable):** Phase 4 makes the environment **asynchronous**. Before: Codex opens a
+PR and waits. After: Codex opens a PR, the Router labels it, and `review:codex` can proceed
+without a human in the loop for routine work — while humans remain in the loop wherever the
+Router said so.
 
-### Phase 5 (roadmap) — Observability (events.jsonl + optional OTel), MCP integration, adaptive thresholds
+### Phase 5 (implemented — automation; human exit partial) — Observability, MCP, adaptive thresholds
 
 **Deliverable:**
 
-1. Telemetry file at `docs/telemetry/events.jsonl` — one JSON line per PR: spec_id, risk_tier, complexity, changed_files_count, diff_lines, reviewer_validation_status, reviewer_confidence, findings_count_by_severity, route_decision, ci_outcome, merge_outcome. (Kept under `docs/` — visible, not hidden per Invariant 3.)
-2. **OPTIONAL:** OTel exporter for Codex via `[otel] exporter = { otlp-http = { endpoint = "..." } }` in `.codex/config.toml`. Useful when you want tool-call traces and per-PR cost beyond what `events.jsonl` captures (Open Question #2 in §6). `events.jsonl` remains the routing-decision source of truth.
-3. `scripts/telemetry_dashboard.py` — reads the events file, writes a Markdown dashboard at `docs/telemetry/dashboard.md` summarizing route distribution, risk distribution, average confidence, and the last 20 PRs.
-4. `scripts/adapt_thresholds.py` — bounded mechanical policy updates (see §5.13). Always bounded, always logged, never unbounded.
-5. **MCP integration (NEW in v2):** add `[mcp_servers.github]` to the Reviewer agent's config so Reviewer findings can cite the linked issue, prior similar diffs, or runtime errors (see §5.12). Add the same MCP server to the Planner subagent's `mcpServers` field for spec-writing context.
-6. Monthly ritual: read the dashboard, run `adapt_thresholds.py`, review the three worst-performing specs/PRs, update Planner/Executor/Reviewer prompts AND the relevant skills if patterns emerge.
-7. Post-mortem template at `docs/specs/_postmortem.md` for production issues — each post-mortem produces one invariant addition or one prompt update. Also expressed as a `.claude/skills/postmortem/SKILL.md` skill.
+1. Telemetry file at `docs/telemetry/events.jsonl` — one JSON line per merged PR: `spec_id`, `risk_tier`, `complexity`, `changed_files_count`, `diff_lines`, `reviewer_validation_status`, `reviewer_confidence`, `findings_count_by_severity`, `route_decision`, `ci_outcome`, `merge_outcome`. (Under `docs/` — visible per Invariant 3.)
+2. **OPTIONAL:** OTel exporter for Codex via `[otel] exporter = { otlp-http = { endpoint = "..." } }` in `.codex/config.toml` (Open Question #2 in §6). `events.jsonl` remains the routing source of truth.
+3. `scripts/telemetry_dashboard.py` → `docs/telemetry/dashboard.md` (route/risk distribution, average confidence, last 20 PRs).
+4. `scripts/adapt_thresholds.py` — bounded policy updates (§5.13).
+5. `.github/workflows/record-telemetry.yml` — on merge to `main`: rebuild context, route, append event, regenerate dashboard, commit.
+6. **MCP integration (human, red-zone):** `[agents.reviewer.mcp_servers.*]` in `.codex/config.toml`; optional `mcpServers` on Planner (§5.12).
+7. Monthly ritual: dashboard → `adapt_thresholds.py` → review worst PRs → prompt/skill updates.
+8. Post-mortem template `docs/specs/_postmortem.md`; skill `.claude/skills/postmortem/SKILL.md` (human, red-zone).
 
-**Exit criterion:** Run at least one adapt-thresholds cycle based on real telemetry (policy file changes committed). At least one AGENTS.md invariant was added or revised as a direct result of a post-mortem or dashboard pattern. At least one Reviewer finding cited MCP-sourced context (e.g., a Sentry error or linked issue).
+**Exit criterion (checklist):**
 
-**Why (picturable):** Without Phase 5, the system cannot improve. Prompts rot because the world changes (new dependency versions, new patterns, new edge cases). A static prompt library is a garden that nobody weeds. Telemetry + bounded adaptive thresholds turns prompt and policy quality into a **measurable engineering metric**, not a vibe. MCP brings in the context that lives outside the repo — the issue tracker, the error monitor, the design doc — so the Reviewer can cite evidence beyond the diff itself. The bounds on adaptation (floors and ceilings in the policy) are what make this safe to run on a schedule rather than by hand.
+- [x] At least one adapt-thresholds cycle from real telemetry (policy committed; template: `max_diff_lines` 150→125, `min_reviewer_confidence` 60→65).
+- [ ] At least one AGENTS.md invariant added/revised from a post-mortem or dashboard pattern.
+- [ ] At least one Reviewer finding cites MCP-sourced context (issue, Sentry, etc.).
+
+Human steps for the open items: [GitHub issue #45](https://github.com/ladislav-lettovsky/ai-project-template/issues/45).
+
+**Why (picturable):** Without Phase 5, the system cannot improve. Prompts rot as dependencies
+and patterns change. Telemetry + bounded adaptation makes policy quality a **measurable**
+metric, not a vibe. MCP brings issue-tracker and runtime context into Reviewer evidence. Floors
+and ceilings in `.routing-policy.json` make scheduled adaptation safe.
 
 ### Phase 6 — Endgame: semi-autonomous factory
 
@@ -401,7 +498,7 @@ Required sections — a spec that omits any of these fails the lint:
 Why this work exists now.
 
 ## Assumptions
-- A1: <what we're assuming>
+- A1: <what we are assuming>
 
 ## Decisions
 - D1: <architectural decision with rationale>
@@ -504,18 +601,18 @@ Do NOT invent. If the spec does not cover a case, add a `# TODO(spec):` comment 
 
 ### 5.3 The routing policy (`.routing-policy.json` + `scripts/route_pr.py`)
 
-Policy file:
+Policy file (shape; live values in the repo may differ after `adapt_thresholds.py`):
 
 ```json
 {
   "version": 1,
   "max_changed_files": 3,
-  "max_diff_lines": 150,
-  "min_reviewer_confidence": 60,
+  "max_diff_lines": 125,
+  "min_reviewer_confidence": 65,
   "auto_review_allowed_risk_tiers": ["T0"],
   "auto_review_allowed_complexity": ["low"],
   "adaptive": {
-    "enabled": true,
+    "enabled": false,
     "floor_max_changed_files": 1,
     "floor_max_diff_lines": 50,
     "ceiling_min_reviewer_confidence": 85
@@ -523,7 +620,8 @@ Policy file:
 }
 ```
 
-Router (illustrative — final version will have tests):
+Router (illustrative — see `scripts/route_pr.py` and `tests/test_route_pr.py` for the
+shipped gate order; red-zone paths come from `scripts/red_zone_paths.py`):
 
 ```python
 # scripts/route_pr.py
@@ -600,7 +698,9 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-**Calibration warning:** The thresholds are version 1. Expect to revise after 20 real PRs. Every routing decision writes a telemetry event so you can audit false positives and false negatives.
+**Calibration warning:** Thresholds are version 1. Expect revision after ~20 real PRs.
+Merged PRs append rows via `record-telemetry.yml`; use `docs/telemetry/dashboard.md` and
+`adapt_thresholds.py` to audit false positives and negatives.
 
 ### 5.4 Reviewer JSON Schema (`.reviewer-schema.json`)
 
@@ -679,7 +779,8 @@ copy-paste hazard for downstream repos.
 
 ### 5.5 Red-zone file list (canonical)
 
-Files/paths that trigger `review:human` regardless of other signals AND are blocked at edit-time by the PreToolUse hook (see §5.8):
+Files/paths that trigger `review:human` regardless of other signals AND
+are blocked at edit-time by the PreToolUse hook (see §5.8):
 
 ```text
 AGENTS.md
@@ -703,11 +804,13 @@ migrations/**
 infra/**
 ```
 
-Rationale: the first block protects the agent-governance surface itself (including the new subagents, skills, hooks, and Codex config layers added in v2). The second block protects production-critical code paths that should never be silently modified by an agent.
+Rationale: the first block protects the agent-governance surface itself.
+The second block protects production-critical code paths that should never be
+silently modified by an agent.
 
 ### 5.6 Prompt-injection scan (`scripts/scan_injection.py`)
 
-Extended in v2 to cover MCP-tool outputs and persisted web-search results, not only spec files.
+Covers MCP-tool outputs and persisted web-search results, not only spec files.
 
 ```python
 # scripts/scan_injection.py
@@ -725,7 +828,7 @@ INJECTION_PATTERNS = [
     "<system>",
     "###INSTRUCTION",
     "### instructions:",
-    # MCP / web-source patterns added in v2:
+    # MCP / web-source patterns:
     "tool_call_override",
     "skip approval",
     "disregard safety",
@@ -761,61 +864,23 @@ if __name__ == "__main__":
 
 This is version 2. It catches obvious attacks across a wider surface than v1. A future version (Phase 5+ territory) could use a small classifier model. Do not over-engineer this before you see a real attack in the wild.
 
-### 5.7 Routing workflow (`.github/workflows/route-pr.yml`) — illustrative skeleton
+### 5.7 Routing workflow (`.github/workflows/route-pr.yml`)
 
-```yaml
-name: route-pr
-on:
-  pull_request:
-    types: [opened, synchronize, edited]
+The **live workflow** is the source of truth. Summary:
 
-permissions:
-  pull-requests: write
-  contents: read
+1. Check out the **PR head** ref (not `main`).
+2. `build_pr_context.py --repo … --pr …` → `pr.json` (spec lint + reviewer validation
+   inlined).
+3. `route_pr.py pr.json` → `route.json`.
+4. Apply exactly one label (`review:codex` / `review:human` / `blocked`) and post reasons.
+5. Upload `pr.json` and `route.json` as artifacts. Fork-head PRs get a comment only (no label
+   mutation).
 
-jobs:
-  route:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+**Telemetry:** `append_event.py` runs on **merge** in `record-telemetry.yml`, not on every
+`synchronize` — avoids push loops and records final CI outcome.
 
-      - name: Set up uv + Python
-        uses: astral-sh/setup-uv@v3
-
-      - name: Build PR context
-        id: ctx
-        run: |
-          # Construct pr.json: changed_files, diff_lines, spec metadata,
-          # reviewer JSON extracted from PR body, validation results.
-          uv run scripts/build_pr_context.py \
-            --pr "${{ github.event.pull_request.number }}" \
-            --out pr.json
-
-      - name: Validate spec
-        run: uv run scripts/lint_spec.py --pr-context pr.json
-
-      - name: Validate reviewer JSON
-        run: uv run scripts/validate_reviewer.py --pr-context pr.json
-
-      - name: Route
-        id: route
-        run: uv run scripts/route_pr.py pr.json > route.json
-
-      - name: Apply label + comment
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          LABEL=$(jq -r '.route' route.json)
-          REASONS=$(jq -r '.reasons | join("\n- ")' route.json)
-          gh pr edit "${{ github.event.pull_request.number }}" --add-label "$LABEL"
-          gh pr comment "${{ github.event.pull_request.number }}" \
-            --body "Router decision: \`$LABEL\`\n\nReasons:\n- $REASONS"
-
-      - name: Append telemetry event
-        run: uv run scripts/append_event.py --pr pr.json --route route.json
-```
-
-The accompanying branch protection rule (configured in repo settings, not in YAML) requires the `route-pr` check to succeed and the label to be `review:codex` for auto-merge.
+**Branch protection:** Require CI plus the `route` job from `Router — Label PR`. Automerge bots
+(if any) must also require label `review:codex` — see `CONTRIBUTING.md`.
 
 ### 5.8 Hooks (`.claude/settings.json` + `scripts/hooks/`)
 
@@ -946,12 +1011,15 @@ If none of the above is true, an ad-hoc prompt is fine.
 Use the `write-spec` skill (`.claude/skills/write-spec/SKILL.md`) for the canonical workflow.
 ```
 
-**Routing-primacy lesson.** Claude Code routes between subagents and skills based on `description:` text matching the user's prompt. In the Phase 2 demo, the `write-spec` skill's description matched the user's "draft a spec" prompt more literally than the Planner subagent's, so the skill loaded into the *main* agent (which has Edit/Write tools) instead of the constrained Planner subagent. The mitigation is belt-and-suspenders:
+**Routing-primacy lesson.** Claude Code picks subagents/skills by `description:` match. In the
+Phase 2 demo, `write-spec` matched "draft a spec" more literally than Planner, so the skill
+loaded in the *main* agent (with Edit tools). Mitigation:
 
-- The Planner subagent description claims primacy explicitly ("USE PROACTIVELY ... invoke this BEFORE loading the write-spec skill").
-- The skill description scopes itself as Planner-loaded (see §5.11), not as a generally-callable spec-drafting playbook.
+- Planner `description:` claims primacy ("USE PROACTIVELY … BEFORE write-spec").
+- Skill `description:` scopes itself as Planner-only (§5.11).
 
-This is a fragility worth knowing: any future skill whose description matches a user prompt more literally than its parent subagent will exhibit the same routing race. If you add a new skill scoped to a subagent, sharpen both descriptions in the same PR.
+Any skill whose description out-matches its parent subagent can race the same way — sharpen
+both descriptions in one PR when adding scoped skills.
 
 **Codex Executor + Reviewer (`.codex/config.toml`):**
 
@@ -1065,10 +1133,10 @@ def adapt(events: list[dict], policy: dict) -> tuple[dict, list[str]]:
     notes = []
     adaptive = new.get("adaptive", {})
 
-    blocked_count = sum(1 for e in events if e.get("route") == "blocked")
+    blocked_count = sum(1 for e in events if e.get("route_decision") == "blocked")
     invalid_reviewer_count = sum(
         1 for e in events
-        if e.get("reviewer_validation", {}).get("status") not in {None, "valid"}
+        if e.get("reviewer_validation_status") not in {None, "valid"}
     )
 
     # Blocked PRs → tighten diff-size gate
@@ -1126,6 +1194,7 @@ Key properties:
 │   └── workflows/
 │       ├── ci.yml
 │       ├── route-pr.yml             (Phase 4)
+│       ├── record-telemetry.yml     (Phase 5)
 │       └── scheduled-executor.yml   (Phase 6)
 ├── docs/
 │   ├── specs/                       (Phase 2)
@@ -1138,7 +1207,7 @@ Key properties:
 │       └── dashboard.md             (generated)
 ├── scripts/
 │   ├── lint_spec.py                 (Phase 2)
-│   ├── scan_injection.py            (Phase 2; extended in v2)
+│   ├── scan_injection.py            (Phase 2)
 │   ├── validate_reviewer.py         (Phase 3)
 │   ├── route_pr.py                  (Phase 4)
 │   ├── build_pr_context.py          (Phase 4)
@@ -1169,11 +1238,17 @@ Notice what is NOT here:
 
 2. **Cost of two-Codex per PR.** Phase 3 runs Codex twice per PR (Executor + Reviewer). At low volume this is trivial; at 100 PRs/week it matters. Phase 5 telemetry should include per-PR cost so you can make this call with data rather than opinion. Codex's OTel exporter (§5 Phase 5 deliverable #2) gives per-tool-call cost natively if `events.jsonl` ends up under-instrumented.
 
-3. **Routing rule calibration loop.** The `max_changed_files: 3` and `max_diff_lines: 150` thresholds in §5.3 are gut-feel. The first 20 PRs through the Router will probably produce several "the Router routed this wrong" events. The adaptive mechanism in §5.13 handles *mechanical* tightening; big directional changes (e.g., "we need a `max_diff_lines` of 500 for this repo") are human calls made by editing the policy file directly.
+3. **Routing rule calibration loop.** Initial caps (`max_changed_files: 3`, `max_diff_lines`
+   starting at 150) are gut-feel. The first ~20 PRs will surface mis-routes. §5.13 handles
+   *mechanical* nudges; large directional changes (e.g. `max_diff_lines: 500`) are human edits
+   to `.routing-policy.json`.
 
 4. **Reviewer-prompt calibration is the hardest prompt engineering in the system.** The Reviewer must be adversarial without being noisy, must produce schema-valid JSON reliably, and must cite evidence from the diff. Expect 3–5 iterations of `developer_instructions` before the 6-of-10 useful-finding bar in reviewer calibration exit criterion is met. The `calibrate-reviewer` skill codifies the iteration procedure.
 
-   **Goodhart-aware framing.** The 6-of-10 bar is a heuristic, not an SLA. The right response to a borderline calibration window (say 5 of 10) is to read the noise and the misses, then revise the Reviewer's `developer_instructions` accordingly — *not* to torque the threshold up or down. Treating the metric as a target rather than a signal is exactly the failure mode Goodhart's Law warns about: the moment "useful finding rate" becomes the optimization target, the Reviewer learns to produce verbose, technically-true findings that score well and inform little. Use the metric to find Reviewer drift; use human judgment to fix it.
+   **Goodhart-aware framing.** The 6-of-10 bar is a heuristic, not an SLA. A borderline window
+   (e.g. 5/10) → read noise and misses, revise Reviewer `developer_instructions` — do not
+   torque the threshold. Optimizing "useful finding rate" produces verbose, technically-true
+   noise. Use the metric to detect drift; use human judgment to fix it.
 
 5. **Fenced-block parsing is fragile.** Extracting JSON between `<!-- REVIEWER_JSON -->` markers assumes the Reviewer puts exactly one such block in the PR body. The fallback "emit minimum-confidence JSON on error" pattern in the Reviewer's `developer_instructions` is the mitigation. Expect at least one post-mortem about a malformed output.
 
@@ -1188,7 +1263,9 @@ Notice what is NOT here:
 1. **This is design, not implementation.** Every phase has ways to go wrong that cannot be fully anticipated. Exit criteria define whether a phase is completed.
 2. **The multi-agent orchestration patterns are industry-young.** Much of this will be obsolete in 18 months. The blueprint's durable value is in the *decomposition* and *discipline*, not in any specific tool choice.
 3. **Personal calibration matters more than this document.** This blueprint is scaffolding for *human* judgment, not a replacement for it.
-4. **`ai-project-template` is a living repo.** Every phase changes it. What counts as "gold-standard" today is the completed Phase 3.
+4. **`ai-project-template` is a living repo.** Every phase changes it. As of this writing the
+   template has completed Phase 5 automation (telemetry + adapt); human Phase 5 exit items may
+   still be open (issue #45).
 5. **Native primitives churn.** Hooks, subagents, skills, plan mode, and MCP all matured visibly between phases of this blueprint. Expect another wave of primitive evolution before Phase 6 lands. Track the official docs (Claude Code docs map, Codex developer docs) before each phase advance.
 
 ---
