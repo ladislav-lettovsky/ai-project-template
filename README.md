@@ -3,220 +3,143 @@
 ![CI](https://github.com/ladislav-lettovsky/ai-project-template/actions/workflows/ci.yml/badge.svg)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ladislav-lettovsky/ai-project-template)
 
-A GitHub template repository for modern Python / AI projects. Click the
-green **"Use this template"** button at the top of this page to bootstrap
-a new project with zero hygiene debt — `uv`, `ruff`, `ty`, pre-commit,
-`just`, GitHub Actions CI, Cursor rules, and a multi-agent AI governance
-system all preconfigured.
+**Legend (for forkers):**
 
-This template goes beyond hygiene: it ships an **AI-native development
-environment** that separates planning, execution, and review across
-constrained subagents, with lint-enforced specs and defense-in-depth
-hooks. The full design is documented in
+| Tag | Meaning |
+| --- | --- |
+| **Keep** | Still valid after fork — content or workflow carries over |
+| **Customize** | Keep the idea; update names, URLs, badges, or placeholders |
+| **Replace** | Template-only — delete and write your project's version |
+
+**You are here:**
+
+- Browsing the **template** on GitHub → read [About this template](#about-this-template-replace-on-fork), then create a repo.
+- Working in a **fork** → start at [Your project](#your-project-keep--customize); use
+  [docs/post-fork-checklist.md](./docs/post-fork-checklist.md) for rename steps.
+
+---
+
+## About this template *(Replace on fork)*
+
+A GitHub **template repository** for modern Python / AI projects. Click the green
+**"Use this template"** button to bootstrap a new repo with `uv`, `ruff`, `ty`,
+pre-commit, `just`, GitHub Actions CI, Cursor rules, and a multi-agent governance
+system preconfigured.
+
+The design — Planner / Executor / Reviewer, specs, hooks, Router — is in
 [`docs/blueprint.md`](./docs/blueprint.md).
 
----
+### How to create a repo from this template
 
-## What you get
+1. Click **"Use this template"** → **"Create a new repository"**
+2. Name your new repo (e.g. `ai-my-new-project`)
+3. Clone locally and follow [docs/post-fork-checklist.md](./docs/post-fork-checklist.md)
 
-### Tooling
-
-- `pyproject.toml` — project metadata, dependencies, `ruff` + `ty` + `jsonschema` configuration
-- `justfile` — canonical task runner (`just check` is the full quality gate)
-- `.pre-commit-config.yaml` — branch protection + hygiene + ruff + ty
-- `.github/workflows/ci.yml` — thin CI wrapper that runs `just check`
-- `.python-version` — pinned to Python 3.12
-
-### Multi-agent governance
-
-Three roles, each running under a different runtime with its own sandbox
-and contract. Boundaries are enforced by the runtime, not by prompts.
-
-- **Planner** — Claude Code subagent (`.claude/agents/planner.md`).
-  Read-only Plan Mode. Drafts specs at `docs/specs/<slug>.md` per the
-  §5.1 structure. Sets `risk_tier` and `complexity` on every spec.
-- **Executor** — Codex subagent (`.codex/config.toml [agents.executor]`).
-  `sandbox_mode = "workspace-write"`, `approval_policy = "on-request"`.
-  Implements one spec per branch in its own git worktree. Runs
-  `just check` before declaring done.
-- **Reviewer** — Codex subagent (`.codex/config.toml [agents.reviewer]`).
-  `sandbox_mode = "read-only"`, `model_reasoning_effort = "high"`.
-  Produces schema-valid JSON code review fenced in
-  `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` markers.
-  Currently in calibration; see
-  `.claude/skills/calibrate-reviewer/SKILL.md`.
-
-### Spec-driven flow
-
-- `docs/specs/` — per-feature specs, lint-enforced
-- `docs/specs/README.md` — spec format documentation
-- `docs/specs/_template.md` — fillable spec skeleton
-- `scripts/lint_spec.py` — structural linter (gates `just check`)
-- `.reviewer-schema.json` + `scripts/validate_reviewer.py` — JSON Schema
-  contract for Reviewer output, with a validator script
-
-### Defense-in-depth hooks
-
-Tripwires fire at the earliest layer they can. Hook scripts live under
-`scripts/hooks/`:
-
-- `check_red_zone.py` — PreToolUse hook; blocks edits to invariant-protected
-  files (AGENTS.md, justfile, agent configs, etc.)
-- `check_branch_name.py` — UserPromptSubmit hook; rejects prompts unless
-  `HEAD` is `main`, `scratch`, or starts with `chore/`, `docs/`, `feat/`,
-  `fix/`, `refactor/`, `spec/`, or `test/` (traceable PRs still use
-  `spec/<slug>` or `fix/<slug>` per Invariant 1)
-- `require_just_check.py` — Stop hook; refuses session completion if a
-  touched spec fails `lint_spec.py`
-
-### Skills (progressive disclosure)
-
-Agent Skills load detailed playbooks on demand without bloating the
-agent's eager context.
-
-- `.claude/skills/write-spec/SKILL.md` — spec-writing walkthrough,
-  loaded by the Planner
-- `.claude/skills/calibrate-reviewer/SKILL.md` — Reviewer calibration
-  procedure (6-of-10 scoring)
-
-### Prompt-injection defense
-
-- `scripts/scan_injection.py` — string-match scanner over LLM-input
-  surfaces (specs, agent definitions, skills, Cursor rules, AGENTS.md,
-  persisted MCP/web outputs). Runs as part of `just check`.
-
-### Cursor rules
-
-- `.cursor/rules/00-always.mdc` — always-on project conventions
-- `.cursor/rules/tests.mdc` — pytest conventions (auto-attached to `tests/**`)
-- `.cursor/rules/writing-rules.mdc` — meta-guide for authoring new rules
-
-### Source layout
-
-- `src/your_package/__init__.py` — placeholder to rename on fork
-- `tests/` — pytest test suite (smoke test + tests for the spec/scan/validator scripts)
-- `.scratch/.gitkeep` — sanctioned ephemeral-work directory
-
-### Documentation
-
-- `README.md` — this file (rewrite after forking)
-- `CONTRIBUTING.md` — generic contribution guide, ready to extend
-- `docs/blueprint.md` — full architecture: agent roles, invariants,
-  red-zone files, phased plan
-- `docs/post-fork-checklist.md` — the first-hour ritual after forking
-- `LICENSE` — MIT (edit the copyright line)
-
----
-
-## How to use
-
-### Option 1 — GitHub "Use this template" button (recommended)
-
-1. Click **"Use this template"** at the top of this page → **"Create a new repository"**
-2. Name your new repo (e.g., `ai-my-new-project`)
-3. Clone it locally and follow [docs/post-fork-checklist.md](./docs/post-fork-checklist.md)
-
-### Option 2 — Manual clone
+Or mirror manually:
 
 ```bash
 git clone --depth 1 https://github.com/ladislav-lettovsky/ai-project-template.git my-project
 cd my-project
-rm -rf .git
-git init
-# then follow docs/post-fork-checklist.md
+rm -rf .git && git init
+# then docs/post-fork-checklist.md
 ```
 
 ---
 
-## Actions after forking
+## Your project *(Keep & customize)*
+
+After forking, treat everything below as **your** project README. Replace the title,
+badges, and [About this template](#about-this-template-replace-on-fork); keep the
+workflows and doc links unless you remove features.
+
+### Quick start *(Keep)*
 
 ```bash
-# 1. Install dependencies
 uv sync --extra dev
-
-# 2. Install pre-commit hooks (one-time)
-just install-hooks
-
-# 3. Verify everything works
+just install-hooks    # one-time
 just check
 ```
 
-If `just check` is green, your fork is healthy. Read
-[docs/post-fork-checklist.md](./docs/post-fork-checklist.md) for the
-full bootstrap process (renaming the placeholder package, filling in
-AGENTS.md, adding a domain-specific Cursor rule, deciding what to do
-with the example specs).
+Green `just check` means the fork is healthy. Full bootstrap (rename package, fill
+`AGENTS.md`, trim example specs): [docs/post-fork-checklist.md](./docs/post-fork-checklist.md).
 
-For the architectural picture — why three agents, what the invariants
-mean, what gets enforced at edit-time vs commit-time vs CI-time — read
-[docs/blueprint.md](./docs/blueprint.md).
+Architecture and invariants: [docs/blueprint.md](./docs/blueprint.md). Day-to-day
+contributing: [CONTRIBUTING.md](./CONTRIBUTING.md).
 
----
+### What you get *(Keep — customize placeholders)*
 
-## What ships in this template
+#### Tooling
 
-- **Router (Phase 4)** — `.github/workflows/route-pr.yml` runs
-  `scripts/build_pr_context.py` and `scripts/route_pr.py` using
-  `.routing-policy.json` to label each PR `review:codex`, `review:human`, or
-  `blocked`, with an explanatory comment. Wire your **automerge or bot merge**
-  policy to require `review:codex` if you want the low-friction lane; humans
-  can merge other PRs once satisfied — routing is informational, not a merge
-  block by default.
+- `pyproject.toml` — metadata, dependencies, `ruff` + `ty` + `jsonschema`
+- `justfile` — `just check` is the full quality gate (same as CI)
+- `.pre-commit-config.yaml`, `.github/workflows/ci.yml`, `.python-version`
 
-## Telemetry (Phase 5)
+#### Multi-agent governance
 
-- **`docs/telemetry/events.jsonl`** — one JSON line per merged PR (route, spec
-  metadata, reviewer confidence, findings by severity).
-- **`just telemetry-dashboard`** — regenerate `docs/telemetry/dashboard.md`.
-- **`just adapt-thresholds`** / **`just adapt-thresholds-write`** — bounded
-  updates to `.routing-policy.json` from telemetry (see `scripts/adapt_thresholds.py`).
-- **`.github/workflows/record-telemetry.yml`** — appends an event when a PR
-  merges to `main`.
+- **Planner** — Claude Code (`.claude/agents/planner.md`), Plan Mode, specs at
+  `docs/specs/<slug>.md`
+- **Executor** — Codex (`[agents.executor]`), workspace-write sandbox, one spec per
+  worktree, `just check` before done
+- **Reviewer** — Codex (`[agents.reviewer]`), read-only, schema-valid JSON in PR bodies
 
-MCP on Planner/Reviewer and OTel remain optional (red-zone config); see
-`docs/blueprint.md` Phase 5 exit criteria.
+#### Spec-driven flow
 
-## What's planned (not yet shipped)
+- `docs/specs/`, `scripts/lint_spec.py`, `.reviewer-schema.json`,
+  `scripts/validate_reviewer.py`
 
-- **Scheduled executor** (Phase 6) — semi-autonomous endgame: a spec
-  in `docs/specs/` without a corresponding PR is dispatched to Codex
-  on a schedule.
+#### Hooks, skills, injection scan, Cursor rules
 
-Each future phase has an exit criterion in `docs/blueprint.md` §4.
+- `scripts/hooks/` — red-zone, branch name, scratch guard, spec lint on Stop
+- `.claude/skills/` — `write-spec`, `calibrate-reviewer`
+- `scripts/scan_injection.py` — part of `just check`
+- `.cursor/rules/` — project conventions
 
----
+#### Layout *(Customize)*
 
-## Why this exists
+- `src/your_package/` — rename to your package (see post-fork checklist)
+- `tests/`, `.scratch/`, `docs/blueprint.md`, `CONTRIBUTING.md`
 
-Modern AI-assisted development needs more than hygiene — it needs a
-governance system that enforces role boundaries (planning vs. executing
-vs. reviewing) at the runtime layer rather than relying on prompt
-discipline. This template provides scaffolding that gives you both:
-the gold-standard hygiene tooling (`uv` + `ty` + pre-commit + CI) AND
-the multi-agent governance layer (subagents + sandboxes + hooks +
-specs + structured review). Forks inherit the full system.
+### Optional: GitHub MCP (Codex Reviewer) *(Keep)*
 
----
+Not required for `just check` or CI. Only if you enable GitHub MCP in
+`.codex/config.toml` so Reviewer can read linked issues (`docs/blueprint.md` §4).
 
-## Philosophy
+1. `cp .env.example .env` — set `GITHUB_PERSONAL_ACCESS_TOKEN` (never commit `.env`)
+2. Load env before Codex (Codex does **not** read `.env` automatically):
 
-- **Local-first execution** — no cloud services required to develop
-- **`just check` is the contract** — same command local and CI
-- **Sandboxes over prompts** — role boundaries enforced by the runtime
-  (Plan Mode, workspace-write, read-only), not by "please don't" instructions
-- **Tooling over guidelines** — if a lint rule exists, don't also put it
-  in AGENTS.md; if ruff catches it, a prose rule is noise
-- **Invariants over style** — AGENTS.md is for rules linters cannot catch
-- **Specs are documentation, not metadata** — every spec is plain
-  Markdown a human can read, with structure enforced by `lint_spec.py`
-- **Hooks are tripwires, not vibes** — every tripwire that can fire at
-  edit-time is a hook, not a prompt instruction
-- **Minimal placeholders** — no fake content that might ship unchanged;
-  placeholders are flagged with `TODO:` or `your_package` so they can't
-  be accidentally committed as-is
+   ```bash
+   set -a && source .env && set +a
+   codex --profile reviewer
+   ```
 
----
+3. Add `[mcp_servers.github]` in `.codex/config.toml` (red-zone; human edit). Details:
+   [CONTRIBUTING.md](./CONTRIBUTING.md), blueprint §5.12.
 
-## License
+### Shipped governance features *(Keep)*
 
-MIT License — see [LICENSE](./LICENSE).
+**Router (Phase 4)** — `route-pr.yml` labels PRs `review:codex`, `review:human`, or
+`blocked`. Automerge bots should gate on `review:codex` + green CI; see CONTRIBUTING.
+
+**Telemetry (Phase 5)** — `docs/telemetry/events.jsonl`, `just telemetry-dashboard`,
+`just adapt-thresholds` / `adapt-thresholds-write`, `record-telemetry.yml` on merge.
+
+**Roadmap** — Phase 6 (scheduled executor) is not shipped; see `docs/blueprint.md` §4.
+
+### Why this exists *(Keep — optional trim)*
+
+AI-assisted work needs governance at the runtime layer, not only in prompts. This
+stack combines hygiene tooling (`uv`, `ty`, pre-commit, CI) with role-split agents,
+lint-enforced specs, hooks, structured review, and deterministic PR routing.
+
+### Philosophy *(Keep)*
+
+- **Local-first** — no cloud required to develop
+- **`just check` is the contract** — local and CI
+- **Sandboxes over prompts** — Plan Mode, workspace-write, read-only Reviewer
+- **Tooling over guidelines** — don't duplicate ruff rules in prose
+- **Specs are documentation** — plain Markdown, `lint_spec.py` enforced
+- **Hooks are tripwires** — edit-time enforcement where possible
+
+### License *(Customize)*
+
+MIT — see [LICENSE](./LICENSE) (update copyright on fork).

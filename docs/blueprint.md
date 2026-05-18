@@ -456,7 +456,7 @@ Router said so.
 - [ ] At least one AGENTS.md invariant added/revised from a post-mortem or dashboard pattern.
 - [ ] At least one Reviewer finding cites MCP-sourced context (issue, Sentry, etc.).
 
-Human steps for the open items: [GitHub issue #45](https://github.com/ladislav-lettovsky/ai-project-template/issues/45).
+Human steps for the open items: track in your repo (issue tracker or internal checklist).
 
 **Why (picturable):** Without Phase 5, the system cannot improve. Prompts rot as dependencies
 and patterns change. Telemetry + bounded adaptation makes policy quality a **measurable**
@@ -1118,6 +1118,13 @@ What MCP buys: the Reviewer can cite "this fix to `auth.py` also resolves Sentry
 
 What MCP doesn't change: the sandbox boundary. A Reviewer with MCP access still runs in `sandbox_mode = "read-only"` — MCP only widens *read* surface, not write surface. Web-search results and MCP tool outputs are run through `scan_injection.py` before being persisted to specs (Anti-pattern #18).
 
+**Operator setup (cloners):** `just check` does not need a GitHub token. If you enable
+`[mcp_servers.github]` in `.codex/config.toml`, set `GITHUB_PERSONAL_ACCESS_TOKEN` in
+your **shell** before starting Codex (`export` or `source .env` — Codex does not load
+`.env` automatically). Commit [`.env.example`](../.env.example) with a placeholder; keep
+secrets in gitignored `.env`. Step-by-step: [README.md](../README.md) and
+[CONTRIBUTING.md](../CONTRIBUTING.md).
+
 ### 5.13 Adaptive thresholds (`scripts/adapt_thresholds.py`)
 
 Bounded, conservative mechanical updates — never unbounded.
@@ -1263,9 +1270,8 @@ Notice what is NOT here:
 1. **This is design, not implementation.** Every phase has ways to go wrong that cannot be fully anticipated. Exit criteria define whether a phase is completed.
 2. **The multi-agent orchestration patterns are industry-young.** Much of this will be obsolete in 18 months. The blueprint's durable value is in the *decomposition* and *discipline*, not in any specific tool choice.
 3. **Personal calibration matters more than this document.** This blueprint is scaffolding for *human* judgment, not a replacement for it.
-4. **`ai-project-template` is a living repo.** Every phase changes it. As of this writing the
-   template has completed Phase 5 automation (telemetry + adapt); human Phase 5 exit items may
-   still be open (issue #45).
+4. **`ai-project-template` is a living repo.** Every phase changes it. Forks inherit
+   shipped phases; complete any remaining human exit items in your own repo.
 5. **Native primitives churn.** Hooks, subagents, skills, plan mode, and MCP all matured visibly between phases of this blueprint. Expect another wave of primitive evolution before Phase 6 lands. Track the official docs (Claude Code docs map, Codex developer docs) before each phase advance.
 
 ---
