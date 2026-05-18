@@ -5,6 +5,10 @@ This file is the day-to-day operational guide. The architecture lives in
 [`AGENTS.md`](./AGENTS.md). Read those two for the *why*. Read this one
 for the *how* and the *gotchas*.
 
+**Legend (same as [README.md](./README.md)):** **Keep** = valid after fork;
+**Customize** = update placeholders; **Replace** = template-only, delete on fork.
+This file is mostly **Keep** except where noted.
+
 ## Development Setup
 
 ```bash
@@ -151,13 +155,46 @@ The Executor and Reviewer roles are Codex *profiles*. Select them at
 session start:
 
 ```bash
-codex --profile executor --cd ../template-<slug>
+codex --profile executor --cd ../<repo>-<slug>   # sibling worktree; name to taste
 codex --profile reviewer
 ```
 
 Switching profiles mid-session via slash command does not change the
 sandbox mode — the sandbox is set when the process starts. If you want
 a read-only Reviewer session, you must launch it that way.
+
+### GitHub MCP for Reviewer (optional)
+
+Not required for `just check` or CI. Enable only when you want the Reviewer to
+fetch linked GitHub issues (e.g. `Fixes #N` in the PR body) and cite them in
+`evidence` fields.
+
+1. **Secrets** — copy [`.env.example`](.env.example) to `.env` (gitignored).
+   Set `GITHUB_PERSONAL_ACCESS_TOKEN` to a fine-scoped PAT. Do not commit `.env`.
+
+2. **Load env before Codex** — Codex forwards `env_vars` from your **shell**, not
+   from `.env` on disk unless you source it:
+
+   ```bash
+   set -a && source .env && set +a
+   codex --profile reviewer
+   ```
+
+3. **Config** — add `[mcp_servers.github]` to `.codex/config.toml` (red-zone;
+   human-authored). Official shape is documented in
+   [Codex MCP](https://developers.openai.com/codex/mcp); see blueprint §5.12.
+   Example (stdio via Docker):
+
+   ```toml
+   [mcp_servers.github]
+   command = "docker"
+   args = ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
+           "ghcr.io/github/github-mcp-server"]
+   env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]
+   ```
+
+4. **Injection** — do not paste raw MCP tool output into `docs/specs/*.md`. If you
+   paraphrase issue text into a spec, run `just scan-injection`.
 
 ### Worktree cleanup
 
@@ -231,11 +268,6 @@ X" without additional rules or bots.
 Fork-head PRs receive a comment with the router’s recommendation; automated
 label application applies to same-repo head branches (see workflow `if:`).
 
-**Phase 4 exit drills:** See [`docs/phase4-exit-drills/README.md`](./docs/phase4-exit-drills/README.md)
-and the observation log [`STATUS.md`](./docs/phase4-exit-drills/STATUS.md).
-Minimum three outcomes on real PRs: `review:codex`, `review:human` (red-zone
-touch such as `AGENTS.md`), `blocked` (critical finding in valid Reviewer JSON).
-
 ### Branch protection (Phase 4 deliverable #4)
 
 Configure in GitHub **Settings → Branches → Branch protection rules** for
@@ -278,3 +310,10 @@ still follows markdownlint normally.
 - [`AGENTS.md`](./AGENTS.md) — agent-facing rules and invariants.
 - [`docs/blueprint.md`](./docs/blueprint.md) — full architecture and phased roadmap.
 - [`docs/specs/README.md`](./docs/specs/README.md) — spec format reference.
+
+### Phase 4 exit drills *(Replace on fork — template history)*
+
+The living template repo used [`docs/phase4-exit-drills/`](./docs/phase4-exit-drills/)
+to record Router smoke outcomes on specific PRs. Forks do not need this log unless
+you run your own exit drill campaign — you may delete `docs/phase4-exit-drills/`.
+Router behavior is documented above under **`route-pr` workflow**.

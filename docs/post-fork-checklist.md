@@ -30,8 +30,12 @@ After this step, `uv sync --extra dev && just check` should pass.
 
 - [ ] `LICENSE` — replace `TODO: Your Name` with your real name
 - [ ] `pyproject.toml` — `description = "TODO: ..."` with one real sentence
-- [ ] `README.md` — rewrite from scratch using the template as scaffolding;
-      the template's README is about *the template*, not your project
+- [ ] `README.md` — delete the **About this template** section, update the title
+      and CI badge URLs to your `owner/repo`, and trim anything you do not use.
+      Sections under **Your project** in the README legend are intended to stay
+      valid after fork (see the table at the top of README.md)
+- [ ] If you keep the optional **GitHub MCP** section: `.env.example` and
+      `GITHUB_PERSONAL_ACCESS_TOKEN` apply to any fork; no template-specific URLs
 
 ## 3. Write AGENTS.md
 
@@ -73,9 +77,12 @@ The template assumes no runtime secrets — `just check` passes without
 network or API keys. If your project needs them:
 
 - [ ] Create `.env.example` listing every required variable with placeholder
-      values. Commit this file.
+      values. Commit this file. (This template ships `.env.example` with
+      `GITHUB_PERSONAL_ACCESS_TOKEN` for optional Codex GitHub MCP.)
 - [ ] Add `.env` to `.gitignore` (the template already does this)
-- [ ] Document required variables in README under `## Setup`
+- [ ] Document required variables in README (see **Optional: GitHub MCP**)
+- [ ] If using GitHub MCP: `source .env` before `codex --profile reviewer` — see
+      CONTRIBUTING.md
 - [ ] If tests need an API key, mark them `@pytest.mark.integration`, not
       `@pytest.mark.skipif` — gives users explicit control over what runs
 

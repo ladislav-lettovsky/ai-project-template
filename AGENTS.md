@@ -5,15 +5,18 @@
 > (Claude Code), Executor (Codex), Reviewer (Codex),
 > and a deterministic Router (Phase 4 — `.github/workflows/route-pr.yml`).
 > Defense-in-depth via hooks → pre-commit → `just check` → CI → branch protection.
+> **After forking:** replace `{PROJECT_NAME}` and every section marked **(Customize)**
+> below. Keep agent roles, commands, invariants, and the red-zone list unless you
+> deliberately change governance. See [docs/post-fork-checklist.md](docs/post-fork-checklist.md).
 
-## What this is
+## What this is *(Customize)*
 
 TODO: One paragraph explaining what this project does and who uses it.
 If it is a library, an application, a scaffolder, or a service, say so
 explicitly — the shape of "what this is" determines the shape of
 invariants that belong here.
 
-## Stack
+## Stack *(Customize)*
 
 - Python 3.12+, `uv` for dependency management, `just` as the task runner
 - TODO: list frameworks and libraries this project actually depends on
@@ -120,7 +123,7 @@ sufficient for day-to-day work.
 8. **AGENTS.md is canonical; CLAUDE.md is a symlink.** Do not add content to
    CLAUDE.md. Tool-specific guidance belongs in subagent definitions.
 
-> **TODO (project-specific):** add invariants 9+ for *this* project's domain.
+> **TODO (Customize — project-specific):** add invariants 9+ for *this* project's domain.
 > Each entry: What/where (concrete file or directory) — Why (picturable
 > failure when violated) — Tripwire (the rule's negation, in observable form).
 
@@ -160,7 +163,7 @@ Every non-trivial spec is implemented in its own git worktree to prevent
 parallel agents from colliding on shared file state.
 
 - Claude Code: `claude -w spec-<slug>` (creates `.claude/worktrees/spec-<slug>/`)
-- Codex: `git worktree add ../template-<slug> -b spec/<slug> && codex --cd ../template-<slug>`
+- Codex: `git worktree add ../<repo>-<slug> -b spec/<slug> && codex --cd ../<repo>-<slug>`
 - Cleanup: weekly `git worktree prune` plus removal of stale `.claude/worktrees/` dirs.
 
 Read-only sessions (Planner subagent, ad-hoc questions) do not need worktrees.
