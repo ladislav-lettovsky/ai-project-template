@@ -25,6 +25,8 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert "codex_agents" in text
     assert "openai/codex-action@v1" in text
     assert "OPENAI_API_KEY" in text
+    assert "codex_enabled" in text
+    assert "secrets.OPENAI_API_KEY != ''" not in text
     assert "pull-requests: write" in text
     assert "scheduler-failure" in text
     assert "|| true" not in text
