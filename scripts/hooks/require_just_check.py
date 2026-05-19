@@ -89,7 +89,7 @@ def _run_lint(paths: list[Path]) -> tuple[int, str]:
     if not paths:
         return 0, ""
     if not LINT_SPEC.is_file():
-        return 0, ""  # Fail open — Phase 2 not fully bootstrapped yet.
+        return 0, ""  # Fail open — pre-commit hooks not fully bootstrapped yet.
     try:
         completed = subprocess.run(
             [sys.executable, str(LINT_SPEC), *[str(p) for p in paths]],

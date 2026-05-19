@@ -1,4 +1,4 @@
-"""Dispatch one eligible Phase 6 spec (branch + open PR, or legacy issue stub).
+"""Dispatch one eligible eligible spec (branch + open PR, or legacy issue stub).
 
 Usage:
     uv run scripts/dispatch_spec.py --spec docs/specs/<slug>.md --dry-run
@@ -43,7 +43,7 @@ REVIEWER_STUB = {
 REVIEWER_FENCE = (
     f"<!-- REVIEWER_JSON -->\n{json.dumps(REVIEWER_STUB, indent=2)}\n<!-- /REVIEWER_JSON -->"
 )
-PHASE6_QUEUE_LABEL = "phase6-queue"
+SCHEDULER_QUEUE_LABEL = "scheduler-queue"
 DEFAULT_TRANSPORT = "pr"
 
 
@@ -57,7 +57,7 @@ def build_pr_body(spec_path: str) -> str:
 
 def build_issue_body(descriptor: dict[str, Any], pr_body: str) -> str:
     return (
-        "Phase 6 queued spec dispatch (legacy issue transport).\n\n"
+        "Queued spec dispatch (legacy issue transport) (legacy issue transport).\n\n"
         f"- Spec: [{descriptor['path']}]({descriptor['path']})\n"
         f"- Branch: `spec/{descriptor['slug']}`\n"
         "- Transport: `issue`\n\n"
@@ -244,8 +244,8 @@ def build_dispatch_payload(descriptor: dict[str, Any], *, transport: str) -> dic
     }
     if transport == "issue":
         payload["issue"] = {
-            "title": f"Phase 6 queue: {slug}",
-            "label": PHASE6_QUEUE_LABEL,
+            "title": f"Scheduler queue: {slug}",
+            "label": SCHEDULER_QUEUE_LABEL,
             "body": build_issue_body(descriptor, pr_body),
         }
     else:
@@ -299,7 +299,7 @@ def dispatch_open_pr(
     seeded_commit = seed_dispatch_branch(
         remote,
         branch,
-        message=f"chore(phase6): initialize spec/{slug} for scheduled dispatch",
+        message=f"chore(scheduler): initialize spec/{slug} for scheduled dispatch",
     )
     pr_meta = payload["pr"]
     pr_url = open_pull_request(
@@ -319,7 +319,7 @@ def dispatch_open_pr(
 
 
 def argv_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Dispatch a single eligible Phase 6 spec.")
+    parser = argparse.ArgumentParser(description="Dispatch a single eligible eligible spec.")
     parser.add_argument("--spec", type=Path, required=True, help="Path to docs/specs/<slug>.md")
     parser.add_argument("--repo-root", type=Path, default=_REPO_ROOT)
     parser.add_argument("--remote", default="origin")

@@ -21,7 +21,7 @@ and the Reviewer (Codex) checks against.
 
 - `_template.md` — a fill-in-the-blanks skeleton. Copy it to
   `docs/specs/<slug>.md` to start a new spec.
-- `_postmortem.md` — Phase 5. A separate template for production-issue
+- `_postmortem.md` — A separate template for production-issue
   postmortems (one postmortem produces one invariant addition or one
   prompt update). Procedure: `.claude/skills/postmortem/SKILL.md`.
 - `<slug>.md` — one file per spec. Filename slug matches the branch name
@@ -108,7 +108,7 @@ Specs that authorize work touching red-zone files (per AGENTS.md "Red-zone
 files") cannot ship as `risk_tier: T0` regardless of size — see
 `Red-Zone Assessment` in the template.
 
-## Status lifecycle and the Phase 6 scheduler
+## Status lifecycle and the scheduled executor
 
 `status` is not decorative — `scripts/queue_specs.py` only queues specs with
 `status: drafted`. The scheduled executor (`scheduled-executor.yml`) dispatches
@@ -123,13 +123,13 @@ citing the spec path.
 | `archived` | Abandoned or superseded — not queued |
 
 **After merge:** set `status: complete` (or `archived` if abandoned). Keep the file
-under `docs/specs/` for your project's specs. Template phase specs that shipped before
+under `docs/specs/` for your project's specs. Template build specs that shipped before
 the archive layout live under `docs/archive/template-specs/` — do not move them back.
 
 **Forking:** remove template history with `rm -rf docs/archive` (see
 `docs/post-fork-checklist.md` §9). Lint example specs live in the archive, not here.
 
 Active scheduler drill fixtures may live under `docs/specs/_drills/` while a drill
-runs; when finished, move them to `docs/archive/exit-drills/<phase>/` with
+runs; when finished, move them to `docs/archive/exit-drills/<kit>/` with
 `status: complete` so cron does not re-queue them (see
 [`docs/archive/exit-drills/phase6/`](../archive/exit-drills/phase6/)).

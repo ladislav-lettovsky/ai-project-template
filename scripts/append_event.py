@@ -1,4 +1,4 @@
-"""Append one telemetry event line for a PR routing decision (Phase 5).
+"""Append one telemetry event line for a PR routing decision .
 
 Reads ``pr.json`` from ``build_pr_context`` and ``route.json`` from ``route_pr``.
 Appends a single JSON object as one line to ``docs/telemetry/events.jsonl``.
@@ -50,7 +50,7 @@ def findings_count_by_severity(reviewer: dict) -> dict[str, int]:
 
 
 def parse_dispatch_source_marker(text: str) -> DispatchSource | None:
-    """Return ``scheduled`` when *text* contains the Phase 6 PR/commit marker."""
+    """Return ``scheduled`` when *text* contains the scheduled-dispatch PR/commit marker."""
     if DISPATCH_SOURCE_MARKER_RE.search(text):
         return "scheduled"
     return None
@@ -176,7 +176,7 @@ def append_event(path: Path, event: dict, *, replace_existing: bool = True) -> b
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="Append a Phase 5 telemetry event.")
+    p = argparse.ArgumentParser(description="Append a routing telemetry event.")
     p.add_argument("--pr", type=Path, required=True, help="pr.json from build_pr_context")
     p.add_argument("--route", type=Path, required=True, help="route.json from route_pr")
     p.add_argument("--out", type=Path, default=DEFAULT_EVENTS_PATH, help="events.jsonl path")

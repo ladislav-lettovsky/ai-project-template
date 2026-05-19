@@ -95,7 +95,7 @@ def parse_validated_review_or_errors(pr_body: str, schema: dict) -> tuple[dict |
     """Parse + schema-validate reviewer JSON embedded in PR body.
 
     Returns ``(parsed_instance, errors)``. On any failure ``instance`` is
-    ``None`` and ``errors`` is non-empty. Used by CLI and Phase 4
+    ``None`` and ``errors`` is non-empty. Used by CLI and the Router
     ``build_pr_context`` so extraction rules stay unified.
     """
     try:

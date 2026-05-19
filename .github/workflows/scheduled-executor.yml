@@ -1,6 +1,6 @@
-# Phase 6 — queue and dispatch T0+low drafted specs (docs/archive/template-specs/phase6-scheduled-executor.md).
+# Queue and dispatch T0+low drafted specs (docs/archive/template-specs/phase6-scheduled-executor.md).
 # v1 transport: open PR via scripts/dispatch_spec.py --transport pr (D1); no Codex in CI.
-name: Phase 6 — Scheduled Executor
+name: Scheduled Executor
 
 on:
   schedule:
@@ -13,7 +13,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: phase6-scheduled-executor
+  group: scheduled-executor
   cancel-in-progress: false
 
 jobs:
@@ -42,7 +42,7 @@ jobs:
       - name: Fetch origin for branch inspection
         run: git fetch origin main
 
-      - name: Ensure Phase 6 labels
+      - name: Ensure scheduler labels
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -58,8 +58,8 @@ jobs:
                 --color "${color}" --description "${desc}"
             fi
           }
-          ensure_label phase6-queue 0E8A16 "Phase 6 queued spec dispatch"
-          ensure_label phase6-failure B60205 "Phase 6 scheduler failure"
+          ensure_label scheduler-queue 0E8A16 "Queued spec dispatch (legacy issue transport)"
+          ensure_label scheduler-failure B60205 "Scheduled executor workflow failure"
 
       - name: Discover queue
         id: queue
@@ -82,7 +82,7 @@ jobs:
       - name: Workflow summary
         run: |
           {
-            echo "## Phase 6 scheduled executor"
+            echo "## Scheduled executor"
             echo ""
             echo "| Metric | Value |"
             echo "| --- | --- |"
@@ -126,10 +126,10 @@ jobs:
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           gh issue create \
             --repo "${{ github.repository }}" \
-            --title "phase6-failure: workflow run ${{ github.run_id }}" \
-            --label phase6-failure \
+            --title "scheduler-failure: workflow run ${{ github.run_id }}" \
+            --label scheduler-failure \
             --body "$(cat <<EOFBODY
-          Phase 6 scheduled executor failed.
+          Scheduled executor workflow failed.
 
           - Workflow run: ${RUN_URL}
           - Event: ${{ github.event_name }}

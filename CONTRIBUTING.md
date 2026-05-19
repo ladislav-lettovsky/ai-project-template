@@ -85,7 +85,7 @@ on `scratch` by default means edits land somewhere safe.
 | `feat/`, `refactor/`, `chore/`, `docs/`, `test/` | Conventional prefixes for ad-hoc work. |
 
 Specs of any non-trivial size should land on `spec/<slug>` so the
-Phase 4 Router can recognize them.
+The Router can recognize them.
 
 ## Project Layout
 
@@ -263,7 +263,7 @@ GitHub Actions runs `just check` on every push to `main` and on every
 pull request. The workflow is intentionally a thin wrapper — same
 command as local, no rule duplication. See `.github/workflows/ci.yml`.
 
-### `route-pr` workflow (Phase 4 Router)
+### `route-pr` workflow (Router)
 
 `.github/workflows/route-pr.yml` runs on pull requests to `main`. It:
 
@@ -282,7 +282,7 @@ X" without additional rules or bots.
 Fork-head PRs receive a comment with the router’s recommendation; automated
 label application applies to same-repo head branches (see workflow `if:`).
 
-### Phase 6 scheduled executor
+### Scheduled executor
 
 `.github/workflows/scheduled-executor.yml` runs on weekdays at 09:00 UTC and via
 `workflow_dispatch:`. It never runs on fork repositories (`if:
@@ -299,10 +299,10 @@ empty commit when needed, and opens a GitHub PR whose body links the spec and ca
 a schema-valid `REVIEWER_JSON` stub. It does **not** invoke Codex in CI. A human or
 local Codex session runs the Executor and Reviewer on that branch; `route-pr.yml`
 labels the PR. PR bodies include `dispatch-source: scheduled` for telemetry (Slice 2).
-Legacy `--transport issue` opens a `phase6-queue` tracking issue only (rollback).
+Legacy `--transport issue` opens a `scheduler-queue` tracking issue only (rollback).
 
 **Failure visibility (D6):** Any failing step fails the job (no `|| true`). A
-`phase6-failure` issue is opened with the workflow run URL.
+`scheduler-failure` issue is opened with the workflow run URL.
 
 **Disable / rollback:** Rename or delete `.github/workflows/scheduled-executor.yml`
 (e.g. `scheduled-executor.yml.disabled`) to stop cron and manual runs. Revert
@@ -311,7 +311,7 @@ Legacy `--transport issue` opens a `phase6-queue` tracking issue only (rollback)
 Authorizing spec:
 [`docs/archive/template-specs/phase6-scheduled-executor.md`](docs/archive/template-specs/phase6-scheduled-executor.md).
 
-### Branch protection (Phase 4 deliverable #4)
+### Branch protection (Router)
 
 Configure in GitHub **Settings → Branches → Branch protection rules** for
 `main` (not in-repo YAML):
@@ -351,7 +351,7 @@ still follows markdownlint normally.
 ## See also
 
 - [`AGENTS.md`](./AGENTS.md) — agent-facing rules and invariants.
-- [`docs/blueprint.md`](./docs/blueprint.md) — full architecture and phased roadmap.
+- [`docs/blueprint.md`](./docs/blueprint.md) — full architecture and blueprint roadmap.
 - [`docs/specs/README.md`](./docs/specs/README.md) — spec format reference.
 
 ### Template exit-drill logs *(forks may delete)*

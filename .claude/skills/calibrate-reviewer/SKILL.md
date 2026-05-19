@@ -85,7 +85,7 @@ prompt_iteration: vN  (the developer_instructions hash you were running)
 notes: <one or two sentences>
 ```
 
-Append to `.scratch/reviewer-calibration.md` (Phase 5 will move this to
+Append to `.scratch/reviewer-calibration.md` (telemetry may later move this to
 `events.jsonl`; for the 10-PR calibration window, plain markdown is fine).
 
 ## When to iterate the developer_instructions

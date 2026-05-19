@@ -1,4 +1,4 @@
-"""Build ``pr.json`` for the deterministic Phase 4 Router.
+"""Build ``pr.json`` for the deterministic Router.
 
 ``pr.json`` schema (minimal contract):
   * branch_name — head ref short name string

@@ -63,7 +63,7 @@ before renaming.
 
 1. **Risk tier and complexity are mandatory and honest.** Set `risk_tier`
    (T0 / T1 / T2 / T3) and `complexity` (low / medium / high) on every spec.
-   Only T0 + low is eligible for the future Phase-4 auto-review path.
+   Only T0 + low is eligible for the future auto-review path.
    Marking consequential work as T0/low to dodge human review is the worst
    failure mode in this system. When in doubt, escalate the tier.
 
@@ -98,7 +98,7 @@ before renaming.
 ## Where to find things
 
 - The blueprint: `docs/blueprint.md` (full v2 design, including spec
-  structure §5.1, invariants §2, anti-patterns §3, phased plan §4).
+  structure §5.1, invariants §2, anti-patterns §3, execution plan §4).
 - Project memory: `AGENTS.md` (compressed invariants, agent roles,
   red-zone list, worktree workflow).
 - The spec format, in human-readable form: `docs/specs/README.md`.

@@ -1,4 +1,4 @@
-"""Bounded mechanical updates to ``.routing-policy.json`` from telemetry (Phase 5).
+"""Bounded mechanical updates to ``.routing-policy.json`` from telemetry .
 
 Reads ``docs/telemetry/events.jsonl`` and emits an updated policy when signals
 warrant small nudges. Floors/ceilings in the ``adaptive`` block prevent runaway.

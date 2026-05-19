@@ -1,4 +1,4 @@
-# Telemetry (Phase 5)
+# Telemetry
 
 Machine-readable routing history for the deterministic PR Router.
 
@@ -9,11 +9,11 @@ Machine-readable routing history for the deterministic PR Router.
 
 ## Event schema (`events.jsonl`)
 
-Each line is one JSON object. Phase 5 fields are unchanged; Phase 6 adds:
+Each line is one JSON object. Core routing fields are unchanged; scheduled dispatch adds:
 
 | Field | Type | Values | Notes |
 | --- | --- | --- | --- |
-| `dispatch_source` | string | `manual`, `scheduled` | How the PR was opened. Default `manual` when absent on historical rows. Set to `scheduled` when the merged PR body or merge commit history contains a `dispatch-source: scheduled` marker (Phase 6 scheduler / `dispatch_spec.py`). |
+| `dispatch_source` | string | `manual`, `scheduled` | How the PR was opened. Default `manual` when absent on historical rows. Set to `scheduled` when the merged PR body or merge commit history contains a `dispatch-source: scheduled` marker (`dispatch_spec.py` scheduled transport). |
 
 Historical rows without `dispatch_source` remain valid; readers should treat missing values as `manual`.
 
@@ -38,4 +38,4 @@ just adapt-thresholds          # dry-run JSON to stdout
 just adapt-thresholds --write  # apply bounded updates to .routing-policy.json
 ```
 
-See `docs/blueprint.md` Phase 5 and `scripts/adapt_thresholds.py`.
+See `docs/blueprint.md` and `scripts/adapt_thresholds.py`.

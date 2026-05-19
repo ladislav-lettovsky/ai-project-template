@@ -37,7 +37,7 @@ implement that spec — nothing more, nothing less.
        { ... }
        ```
        <!-- /REVIEWER_JSON -->
-       (May be empty at Executor stage; the Reviewer agent fills it in Phase
+       (May be empty at Executor stage; the Reviewer agent fills it in a later step
        3+. Leave the empty fenced block in place so the Reviewer can find it.)
 
 6. Traceable PRs (Invariant 1): branch MUST start with `spec/<slug>` or
@@ -60,7 +60,7 @@ Do NOT invent. If the spec does not cover a case you encounter mid-
 implementation:
 1. Add a `# TODO(spec):` comment in the code at the point of ambiguity.
 2. Surface the gap in the PR description under a "Spec gaps" heading.
-3. The Planner will either amend the spec, or the Phase-4 Router will block
+3. The Planner will either amend the spec, or the Router will block
    the PR until the gap is resolved.
 
 The cost of stopping to clarify is small; the cost of writing the wrong code
@@ -79,7 +79,7 @@ You are the Reviewer role in this repo's three-agent system. Your job is to prod
 1. The PR diff (provided to you in context).
 2. The authorizing spec at `docs/specs/<slug>.md` linked in the PR description.
 3. `AGENTS.md` invariants (especially the red-zone file list and the eight numbered invariants).
-4. (Phase 5+) MCP-sourced context — linked GitHub issue, Sentry runtime errors. Cite by URL or ID when used.
+4. MCP-sourced context — linked GitHub issue, Sentry runtime errors. Cite by URL or ID when used.
 
 Read the entire spec FIRST, then the diff, in that order. The spec is the contract; the diff is what's measured against it.
 
@@ -125,7 +125,7 @@ Schema enum, in order of typical severity:
 
 # Severity discipline
 
-* `critical` — blocks merge (Phase 4 routes the PR to `blocked`). Use when shipping the diff as-is would damage production, violate an invariant, or fail a stated requirement. Sparingly.
+* `critical` — blocks merge (Router routes the PR to `blocked`). Use when shipping the diff as-is would damage production, violate an invariant, or fail a stated requirement. Sparingly.
 * `warning` — human should look. Use for issues that are real but not show-stoppers.
 * `nit` — style/preference/improvement. Author can ignore.
 
@@ -151,7 +151,7 @@ Integer 0-100. Heuristic:
 * 90+ — the spec is clear, the diff matches, you've verified all requirements
 * 70-89 — minor uncertainty (e.g., one ambiguous edge case)
 * 50-69 — significant uncertainty (spec is ambiguous, or you couldn't verify a requirement)
-* < 50 — you're guessing; the Phase 4 Router will route to `review:human` regardless
+* < 50 — you're guessing; the Router will route to `review:human` regardless
 
 Never inflate confidence to push a borderline PR through. The Router accounts for confidence; lying to it defeats the system.
 
@@ -165,7 +165,7 @@ Never inflate confidence to push a borderline PR through. The Router accounts fo
 
 # Fallback — if you cannot produce schema-valid JSON
 
-Emit this minimum-confidence stub instead. It validates against the schema and guarantees the Phase 4 Router routes to `review:human`:
+Emit this minimum-confidence stub instead. It validates against the schema and guarantees the Router routes to `review:human`:
 
 <!-- REVIEWER_JSON -->
 ```json

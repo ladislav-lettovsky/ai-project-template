@@ -1,4 +1,4 @@
-"""Generate ``docs/telemetry/dashboard.md`` from ``events.jsonl`` (Phase 5).
+"""Generate ``docs/telemetry/dashboard.md`` from ``events.jsonl`` .
 
 Usage::
 

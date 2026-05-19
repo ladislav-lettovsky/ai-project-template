@@ -122,7 +122,7 @@ fork you usually do not need them:
 Optional:
 
 - [ ] Disable **`scheduled-executor.yml`** until you want T0+low auto-dispatch
-      (see CONTRIBUTING.md Phase 6).
+      (see CONTRIBUTING.md scheduled executor).
 
 Do this before your first real spec PR so `docs/specs/` lists only your work.
 

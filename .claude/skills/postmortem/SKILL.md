@@ -19,7 +19,7 @@ Use when:
 
 - A production or staging incident occurred (preferred), or
 - `docs/telemetry/dashboard.md` shows a repeated `route_reasons` pattern
-  (monthly ritual in blueprint Phase 5), and process/policy alone is insufficient.
+  (monthly ritual in blueprint telemetry section), and process/policy alone is insufficient.
 
 Do **not** use for feature specs, bug fixes without systemic root cause, or
 Reviewer calibration (use `calibrate-reviewer` instead).

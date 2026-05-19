@@ -1,4 +1,4 @@
-# Phase 5 — append routing telemetry when a PR merges to main.
+# Append routing telemetry on merge to main when a PR merges to main.
 name: Telemetry — Record merged PR
 
 on:
