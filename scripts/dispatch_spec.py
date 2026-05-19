@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -118,18 +119,41 @@ def create_remote_branch(remote: str, branch_name: str) -> None:
     )
 
 
+def git_action_env() -> dict[str, str]:
+    """Ensure empty seed commits work on fresh CI checkouts."""
+    env = os.environ.copy()
+    defaults = {
+        "GIT_AUTHOR_NAME": "github-actions[bot]",
+        "GIT_AUTHOR_EMAIL": "github-actions[bot]@users.noreply.github.com",
+        "GIT_COMMITTER_NAME": "github-actions[bot]",
+        "GIT_COMMITTER_EMAIL": "github-actions[bot]@users.noreply.github.com",
+    }
+    for key, value in defaults.items():
+        env.setdefault(key, value)
+    return env
+
+
 def seed_dispatch_branch(remote: str, branch_name: str, *, message: str) -> bool:
     """Push an empty commit when *branch_name* still points at *main* (enables PR open)."""
-    subprocess.run(["git", "fetch", remote, branch_name], check=True)
+    git_env = git_action_env()
+    subprocess.run(["git", "fetch", remote, branch_name], check=True, env=git_env)
     main_sha = resolve_ref(f"{remote}/main")
     branch_sha = resolve_ref(f"{remote}/{branch_name}")
     if branch_sha != main_sha:
         return False
     previous = resolve_ref("HEAD")
-    subprocess.run(["git", "checkout", "-B", branch_name, f"{remote}/{branch_name}"], check=True)
-    subprocess.run(["git", "commit", "--allow-empty", "-m", message], check=True)
-    subprocess.run(["git", "push", remote, branch_name], check=True)
-    subprocess.run(["git", "checkout", previous], check=True)
+    subprocess.run(
+        ["git", "checkout", "-B", branch_name, f"{remote}/{branch_name}"],
+        check=True,
+        env=git_env,
+    )
+    subprocess.run(
+        ["git", "commit", "--allow-empty", "-m", message],
+        check=True,
+        env=git_env,
+    )
+    subprocess.run(["git", "push", remote, branch_name], check=True, env=git_env)
+    subprocess.run(["git", "checkout", previous], check=True, env=git_env)
     return True
 
 
