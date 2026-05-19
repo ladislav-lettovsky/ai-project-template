@@ -7,6 +7,16 @@ Machine-readable routing history for the deterministic PR Router.
 | `events.jsonl` | One JSON object per line per PR (append-only log) |
 | `dashboard.md` | Human summary — regenerate with `just telemetry-dashboard` |
 
+## Event schema (`events.jsonl`)
+
+Each line is one JSON object. Phase 5 fields are unchanged; Phase 6 adds:
+
+| Field | Type | Values | Notes |
+| --- | --- | --- | --- |
+| `dispatch_source` | string | `manual`, `scheduled` | How the PR was opened. Default `manual` when absent on historical rows. Set to `scheduled` when the merged PR body or merge commit history contains a `dispatch-source: scheduled` marker (Phase 6 scheduler / `dispatch_spec.py`). |
+
+Historical rows without `dispatch_source` remain valid; readers should treat missing values as `manual`.
+
 ## Recording events
 
 On each merged PR, `.github/workflows/record-telemetry.yml` rebuilds `pr.json`,

@@ -45,7 +45,11 @@ PHASE6_QUEUE_LABEL = "phase6-queue"
 
 
 def build_pr_body(spec_path: str) -> str:
-    return f"Implements [{spec_path}]({spec_path}).\n\n{REVIEWER_FENCE}\n"
+    return (
+        f"Implements [{spec_path}]({spec_path}).\n\n"
+        "dispatch-source: scheduled\n\n"
+        f"{REVIEWER_FENCE}\n"
+    )
 
 
 def build_issue_body(descriptor: dict[str, Any], pr_body: str) -> str:
