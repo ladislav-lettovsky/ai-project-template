@@ -1,0 +1,102 @@
+"""Tests for ``scripts/dispatch_spec.py``."""
+
+from __future__ import annotations
+
+import importlib.util
+import json
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+_DISPATCH_PATH = REPO_ROOT / "scripts" / "dispatch_spec.py"
+
+
+def _load_dispatch():
+    scripts_dir = str(REPO_ROOT / "scripts")
+    if scripts_dir not in sys.path:
+        sys.path.insert(0, scripts_dir)
+    spec = importlib.util.spec_from_file_location("dispatch_spec", _DISPATCH_PATH)
+    assert spec is not None and spec.loader is not None
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+dispatch_spec = _load_dispatch()
+
+
+def _write_spec(repo_root: Path, slug: str, *, risk_tier: str = "T0") -> Path:
+    spec_dir = repo_root / "docs" / "specs"
+    spec_dir.mkdir(parents=True, exist_ok=True)
+    path = spec_dir / f"{slug}.md"
+    path.write_text(
+        f"""# {slug}
+
+## Metadata
+- spec_id: SPEC-20260518-{slug}
+- owner: tests
+- status: drafted
+- complexity: low
+- risk_tier: {risk_tier}
+
+## Red-Zone Assessment
+- auth: no
+- billing: no
+- dependencies: no
+- CI: no
+- migrations: no
+- secrets: no
+- infra: no
+- invariant-protected files: no
+""",
+        encoding="utf-8",
+    )
+    return path
+
+
+def test_build_pr_body_links_spec_and_contains_reviewer_fence() -> None:
+    body = dispatch_spec.build_pr_body("docs/specs/widget.md")
+
+    assert "[docs/specs/widget.md](docs/specs/widget.md)" in body
+    assert "<!-- REVIEWER_JSON -->" in body
+    assert "<!-- /REVIEWER_JSON -->" in body
+
+
+def test_dry_run_payload_has_issue_stub_and_no_remote_calls(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
+    spec_path = _write_spec(tmp_path, "widget")
+
+    rc = dispatch_spec.main(
+        [
+            "--repo-root",
+            str(tmp_path),
+            "--spec",
+            str(spec_path),
+            "--dry-run",
+        ]
+    )
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["dry_run"] is True
+    assert payload["transport"] == "issue"
+    assert payload["branch"] == "spec/widget"
+    assert payload["issue"]["label"] == "phase6-queue"
+    assert "Planned PR body" in payload["issue"]["body"]
+    assert "<!-- REVIEWER_JSON -->" in payload["pr_body"]
+
+
+def test_ineligible_spec_is_rejected(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
+    spec_path = _write_spec(tmp_path, "unsafe", risk_tier="T1")
+
+    rc = dispatch_spec.main(
+        [
+            "--repo-root",
+            str(tmp_path),
+            "--spec",
+            str(spec_path),
+            "--dry-run",
+        ]
+    )
+
+    assert rc == 2
+    assert "risk_tier_ineligible" in capsys.readouterr().err
