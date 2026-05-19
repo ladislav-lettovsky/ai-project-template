@@ -289,7 +289,9 @@ jobs:
             --pr "${PR_NUMBER}" \
             --reviewer-json .scratch/reviewer.json \
             --repo "${{ github.repository }}"
-          uv run scripts/validate_reviewer.py .scratch/reviewer.json
+          gh pr view "${PR_NUMBER}" --repo "${{ github.repository }}" \
+            --json body -q .body > .scratch/pr-body.md
+          uv run scripts/validate_reviewer.py .scratch/pr-body.md
 
       - name: Optional auto-merge
         if: vars.SCHEDULER_AUTO_MERGE == 'true'
