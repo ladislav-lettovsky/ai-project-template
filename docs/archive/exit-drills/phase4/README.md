@@ -1,6 +1,6 @@
 # Phase 4 Router — exit drill kit
 
-Observability checklist for [blueprint Phase 4 exit criteria](../blueprint.md)
+Observability checklist for [blueprint Phase 4 exit criteria](../../../blueprint.md)
 (§4). Record outcomes in [`STATUS.md`](STATUS.md).
 
 ## Drill A — `review:codex` (done)
@@ -20,7 +20,7 @@ Observed on PR **#39** (`review:codex`, router comment *All policy thresholds sa
 
 1. Branch `spec/phase4-exit-blocked-drill` from `main` with **only**
    `docs/specs/phase4-exit-blocked-drill.md` (no second authorizing spec in diff)
-   (e.g. one-line change under `docs/phase4-exit-drills/`).
+   (e.g. one-line change under `docs/archive/exit-drills/phase4/`).
 2. Open PR; paste body from [`blocked-pr-body.md`](blocked-pr-body.md) (valid JSON + **critical** finding).
 3. Confirm label **`blocked`** and router comment.
 4. Close without merge; update `STATUS.md`.
@@ -28,6 +28,6 @@ Observed on PR **#39** (`review:codex`, router comment *All policy thresholds sa
 Validate bodies locally:
 
 ```bash
-just validate-reviewer docs/phase4-exit-drills/blocked-pr-body.md
-just validate-reviewer docs/phase4-exit-drills/human-redzone-pr-body.md
+just validate-reviewer docs/archive/exit-drills/phase4/blocked-pr-body.md
+just validate-reviewer docs/archive/exit-drills/phase4/human-redzone-pr-body.md
 ```

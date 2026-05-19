@@ -446,8 +446,8 @@ Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and
 **Exit criterion:** All three routing outcomes observed — `review:codex`, `review:human`
 (red-zone touch, e.g. `AGENTS.md`), and `blocked` (critical finding). Every decision has a
 PR comment with reasons. Log:
-[`docs/phase4-exit-drills/STATUS.md`](docs/phase4-exit-drills/STATUS.md); kit:
-[`docs/phase4-exit-drills/README.md`](docs/phase4-exit-drills/README.md).
+[`docs/archive/exit-drills/phase4/STATUS.md`](docs/archive/exit-drills/phase4/STATUS.md); kit:
+[`docs/archive/exit-drills/phase4/README.md`](docs/archive/exit-drills/phase4/README.md).
 
 **Why (picturable):** Phase 4 makes the environment **asynchronous**. Before: Codex opens a
 PR and waits. After: Codex opens a PR, the Router labels it, and `review:codex` can proceed
@@ -484,8 +484,8 @@ and ceilings in `.routing-policy.json` make scheduled adaptation safe.
 
 **Status:** **implemented** on `ai-project-template` (May 2026). Authorizing spec:
 [`docs/archive/template-specs/phase6-scheduled-executor.md`](archive/template-specs/phase6-scheduled-executor.md).
-D1 notes: [`docs/phase6-d1-spike/NOTES.md`](phase6-d1-spike/NOTES.md). Exit drill:
-[`docs/phase6-exit-drill/STATUS.md`](phase6-exit-drill/STATUS.md). **Phase 6.1** (not
+D1 notes: [`docs/archive/spikes/phase6-d1/NOTES.md`](archive/spikes/phase6-d1/NOTES.md). Exit drill:
+[`docs/archive/exit-drills/phase6/STATUS.md`](archive/exit-drills/phase6/STATUS.md). **Phase 6.1** (not
 shipped): `codex exec` in CI, scheduled Reviewer, optional auto-merge when
 `review:codex`.
 
@@ -495,7 +495,7 @@ deterministic tests.
 
 **Exit criterion (v1, met):** Scheduler opens a PR for a T0+low drill spec with spec
 link and schema-valid `REVIEWER_JSON` stub; `route-pr` labels; outcome in
-`docs/phase6-exit-drill/STATUS.md`.
+`docs/archive/exit-drills/phase6/STATUS.md`.
 
 **Spec layout:** Active specs live in `docs/specs/` only. Completed template-build
 specs live in [`docs/archive/template-specs/`](archive/template-specs/). Forks:

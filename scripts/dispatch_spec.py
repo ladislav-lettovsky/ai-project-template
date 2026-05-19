@@ -339,7 +339,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.transport == "codex":
         print(
             "ERROR: codex exec in CI is deferred; configure CODEX_API_KEY and see "
-            "docs/phase6-d1-spike/NOTES.md",
+            "docs/archive/spikes/phase6-d1/NOTES.md",
             file=sys.stderr,
         )
         return 2

@@ -1,11 +1,12 @@
 # Phase 6 exit drill kit
 
-Observability checklist for [Phase 6 exit criterion](../specs/phase6-scheduled-executor.md)
+Observability checklist for
+[Phase 6 exit criterion](../../template-specs/phase6-scheduled-executor.md)
 (R10). Record outcomes in [`STATUS.md`](STATUS.md).
 
 ## Drill — scheduled dispatch → open PR → Router label
 
-1. Ensure [`docs/specs/_drills/phase6-hello-world.md`](../specs/_drills/phase6-hello-world.md)
+1. Ensure [`docs/specs/_drills/phase6-hello-world.md`](../../../specs/_drills/phase6-hello-world.md)
    is on `main` with `status: drafted`, `risk_tier: T0`, `complexity: low`, all red-zone `no`.
 2. Confirm no `spec/phase6-hello-world` branch and no open/merged PR citing that spec path.
 3. Run **Actions → Phase 6 — Scheduled Executor → Run workflow** (`workflow_dispatch`).

@@ -111,19 +111,18 @@ network or API keys. If your project needs them:
 
 ## 9. Remove template spec history (recommended)
 
-The template keeps completed **template-build** specs under
-`docs/archive/template-specs/` (audit trail for the living repo). On a
-new product fork you usually do not need them:
+The template keeps completed **template-build** specs, exit-drill kits, and spike
+notes under `docs/archive/` (audit trail for the living repo). On a new product
+fork you usually do not need them:
 
-- [ ] **`rm -rf docs/archive`** — one step removes all template phase/demo
-      specs. Keep `docs/specs/_template.md`, `docs/specs/_postmortem.md`, and
+- [ ] **`rm -rf docs/archive`** — removes specs, exit-drills, and spikes in one step.
+      Keep `docs/specs/_template.md`, `docs/specs/_postmortem.md`, and
       `docs/specs/README.md`.
 
 Optional:
 
 - [ ] Delete **`docs/specs/add-greet-module.md`** if you do not want the lint
       example (update `tests/test_lint_spec.py` on your fork if you remove it).
-- [ ] Delete **`docs/phase4-exit-drills/`** and **`docs/phase6-exit-drill/`** drill logs.
 - [ ] Disable **`scheduled-executor.yml`** until you want T0+low auto-dispatch
       (see CONTRIBUTING.md Phase 6).
 
