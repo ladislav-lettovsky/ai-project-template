@@ -1,17 +1,17 @@
 # AI-Native Development Environment Blueprint
 
 **Author:** Ladislav Lettovsky
-**Target:** Semi-autonomous software factory where specs in → reviewed PRs out, with human judgment reserved for irreversible or architectural decisions
+**Status:** Retrospective build record for `ai-project-template` (May 2026)
+**Outcome:** Semi-autonomous software factory where specs in → reviewed PRs out, with human judgment reserved for irreversible or architectural decisions
 
 ---
 
 ## Document hygiene
 
-**AGENTS.md describes the present; this blueprint describes the trajectory.** When a phase
-ships, the corresponding capability gets promoted in `AGENTS.md` from a forward-looking
-marker (`*(Phase N)*`) to live full text, and the marker is deleted. The blueprint *does*
-keep historical phase numbers because its purpose is to explain how the system arrived at
-its present state.
+**AGENTS.md describes how to work in the repo today; this blueprint describes how it was built.**
+Phases 0–6 and 6.1 were executed on `ai-project-template` itself; each shipped capability
+was promoted into `AGENTS.md` and the living workflows. Phase numbers are kept here for
+historical traceability — not as a remaining rollout checklist.
 
 **Bootstrap exception for phase-implementation PRs.** Invariant 1 requires every PR to link
 an authorizing spec; §5.1 requires every spec to pass `lint_spec.py`. Phase-implementation
@@ -33,21 +33,21 @@ the authorizing plan for delivery work. Cursor may encode host-specific guidance
 
 ## Purpose of this document
 
-This blueprint defines the target state of a modern AI-native development environment and a
-phased path to reach it. It preserves the standards `ai-project-template` already ships —
-`uv`, `just`, `ty`, strict CI, and the invariants discipline from AGENTS.md — and extends
-them into a governed multi-agent system that exploits native primitives of Claude Code and
-Codex (subagents, hooks, plan mode, worktrees, skills, MCP).
+This blueprint records how `ai-project-template` acquired a governed multi-agent delivery
+system on top of its existing standards — `uv`, `just`, `ty`, strict CI, and the invariants
+discipline in `AGENTS.md` — using native primitives of Claude Code and Codex (subagents,
+hooks, plan mode, worktrees, skills, MCP).
 
 **Scope of applicability:**
 
-- `ai-project-template` is the **living repo** — every phase of this blueprint evolves it first.
-All future projects forked from the template inherit whatever phase is live.
+- `ai-project-template` is the **reference implementation** documented here. Forks inherit
+  whatever shipped on `main` at fork time; operator steps live in `CONTRIBUTING.md` and
+  `docs/post-fork-checklist.md`.
 
-**Phased implementation:**
+**How to read §4:**
 
-- Execute Phase 1 against `ai-project-template` first.
-- Each subsequent phase is gated by its predecessor's exit criterion.
+- Each phase lists what was delivered, how completion was verified, and why that step mattered.
+- Archived authorizing specs and exit drills live under `docs/archive/`.
 
 ---
 
@@ -113,7 +113,7 @@ All future projects forked from the template inherit whatever phase is live.
                ┌──────────────────────────────────────────────┐
                │        Telemetry + feedback                  │
                │      docs/telemetry/events.jsonl             │
-               │      + optional OTel exporter (Codex)        │
+               │      (events.jsonl — no OTel)                │
                │      → adaptive thresholds                   │
                │      → prompt + skill improvements           │
                └──────────────────────────────────────────────┘
@@ -366,9 +366,9 @@ times a year is doing its job.
 
 ---
 
-## 4. Phased execution plan
+## 4. Phased build history
 
-Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and a **one-sentence why**. Do not advance to phase N+1 until phase N's exit criterion is met.
+Each phase has a **deliverable**, an **exit criterion** (how we knew it was done), and a **one-sentence why**. All phases below are **implemented** on `ai-project-template` unless noted otherwise.
 
 ### Phase 0 (implemented) — Baseline
 
@@ -459,11 +459,11 @@ Router said so.
 **Deliverable (shipped on `ai-project-template`):**
 
 1. Telemetry file at `docs/telemetry/events.jsonl` — one JSON line per merged PR: `spec_id`, `risk_tier`, `complexity`, `changed_files_count`, `diff_lines`, `reviewer_validation_status`, `reviewer_confidence`, `findings_count_by_severity`, `route_decision`, `ci_outcome`, `merge_outcome`. (Under `docs/` — visible per Invariant 3.) Automation: PR #44.
-2. **OPTIONAL (not shipped):** OTel exporter for Codex via `[otel]` in `.codex/config.toml` (Open Question #2 in §6). `events.jsonl` remains the routing source of truth.
+2. `scripts/append_event.py` building events from `pr.json` + `route.json`. PR #44.
 3. `scripts/telemetry_dashboard.py` → `docs/telemetry/dashboard.md` (route/risk distribution, average confidence, last 20 PRs). PR #44.
 4. `scripts/adapt_thresholds.py` — bounded policy updates (§5.13). PR #44.
 5. `.github/workflows/record-telemetry.yml` — on merge to `main`: rebuild context, route, append event, regenerate dashboard, commit. PR #44.
-6. **MCP integration:** `[mcp_servers.github]` in `.codex/config.toml` (read-only Docker stdio per §5.12); optional `mcpServers` on Planner (not shipped on template). Human exit: PR #48 (postmortem skill, Invariant 9), PR #49 (read-only MCP hardening), issue #45 closed.
+6. **MCP integration:** `[mcp_servers.github]` in `.codex/config.toml` (read-only Docker stdio per §5.12) for the Reviewer. Planner `mcpServers: [github]` in `.claude/agents/planner.md` shipped in Phase 6.1. Human exit: PR #48 (postmortem skill, Invariant 9), PR #49 (read-only MCP hardening), issue #45 closed.
 7. **Ongoing ritual (operator):** dashboard → `adapt_thresholds.py` → review worst PRs → prompt/skill updates.
 8. Post-mortem template `docs/specs/_postmortem.md` (PR #44); skill `.claude/skills/postmortem/SKILL.md` (PR #48).
 
@@ -485,12 +485,10 @@ and ceilings in `.routing-policy.json` make scheduled adaptation safe.
 **Status:** **implemented** on `ai-project-template` (May 2026). Authorizing spec:
 [`docs/archive/template-specs/phase6-scheduled-executor.md`](archive/template-specs/phase6-scheduled-executor.md).
 D1 notes: [`docs/archive/spikes/phase6-d1/NOTES.md`](archive/spikes/phase6-d1/NOTES.md). Exit drill:
-[`docs/archive/exit-drills/phase6/STATUS.md`](archive/exit-drills/phase6/STATUS.md). **Phase 6.1** (not
-shipped): `codex exec` in CI, scheduled Reviewer, optional auto-merge when
-`review:codex`.
+[`docs/archive/exit-drills/phase6/STATUS.md`](archive/exit-drills/phase6/STATUS.md).
 
 **Shipped (v1):** `queue_specs.py`, `dispatch_spec.py` (`--transport pr`),
-`scheduled-executor.yml`, telemetry `dispatch_source`, CONTRIBUTING Phase 6 section,
+`scheduled-executor.yml`, telemetry `dispatch_source`, CONTRIBUTING scheduled-executor section,
 deterministic tests.
 
 **Exit criterion (v1, met):** Scheduler opens a PR for a T0+low drill spec with spec
@@ -501,8 +499,25 @@ link and schema-valid `REVIEWER_JSON` stub; `route-pr` labels; outcome in
 specs live in [`docs/archive/template-specs/`](archive/template-specs/). Forks:
 `rm -rf docs/archive` (see `docs/archive/README.md`).
 
-**Why (picturable):** Phase 6 closes initiation for the narrow T0+low lane on `main`
+**Why (picturable):** Phase 6 closed initiation for the narrow T0+low lane on `main`
 without waiting for a human to run `dispatch_spec.py` locally.
+
+### Phase 6.1 (implemented) — Codex in CI + Planner MCP
+
+**Status:** **implemented** (May 2026) on the same scheduler spine as Phase 6 v1.
+
+**Shipped:**
+
+1. `scripts/codex_ci.py` — Executor/Reviewer prompt files, local `codex exec`, `apply-reviewer` for PR bodies.
+2. `scripts/try_auto_merge.py` — optional squash-merge when `review:codex` and merge state is clean.
+3. `dispatch_spec.py --transport codex` — opens the PR (same as `pr`) and records whether CI agents can run.
+4. `.github/workflows/scheduled-executor.yml` — `codex_agents` job using `openai/codex-action@v1` when `OPENAI_API_KEY` is configured; falls back to v1 open-PR-only when the secret is absent.
+5. Planner MCP — `mcpServers: [github]` on `.claude/agents/planner.md`; [`.mcp.json.example`](../.mcp.json.example) and CONTRIBUTING setup steps.
+6. Tests: `tests/test_codex_ci.py`, `tests/test_try_auto_merge.py`, extended scheduler YAML contract.
+
+**Operator knobs:** Repository secret `OPENAI_API_KEY`; optional repository variable `SCHEDULER_AUTO_MERGE=true` for guarded auto-merge after routing.
+
+**Why (picturable):** Phase 6.1 closed the loop for the T0+low lane — queue → implement → review → label — without a human starting Codex locally, while keeping v1 behavior when no API key is configured.
 
 ---
 
@@ -1132,7 +1147,7 @@ Skills also work in Codex via `[[skills.config]]` blocks pointing to the same SK
 
 ### 5.12 MCP servers (`.codex/config.toml` + `.claude/agents/*.md`)
 
-Phase 5 enhancement. Adds external context to the Reviewer (and optionally the Planner) without inflating the diff itself.
+Shipped in Phase 5 (Reviewer) and Phase 6.1 (Planner). Adds external context without inflating the diff itself.
 
 ```toml
 # .codex/config.toml — top-level MCP (Codex docs); optional Sentry server similarly
@@ -1251,7 +1266,7 @@ Key properties:
 │   │   └── calibrate-reviewer/SKILL.md (Phase 3+)
 │   └── worktrees/                  (auto-managed, gitignored)
 ├── .codex/
-│   └── config.toml                 (Phase 1: Executor; Phase 3: Reviewer; Phase 5: MCP, OTel)
+│   └── config.toml                 (Phase 1: Executor; Phase 3: Reviewer; Phase 5: MCP)
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml
@@ -1294,11 +1309,11 @@ Notice what is NOT here:
 
 ---
 
-## 6. Open questions
+## 6. Open questions (post-build)
 
-1. **Codex in CI (Phase 6.1).** Phase 6 v1 ships queue + open-PR dispatch via `gh` (`--transport pr`). Running **Executor** (`codex exec`) inside GitHub Actions still needs repo secrets, isolation, and a pinned harness. If the async API is immature, 6.1 may use Claude Code background agents or a self-hosted runner instead. The rest of the blueprint is API-agnostic.
+1. **Codex-in-CI cost and isolation at scale.** Phase 6.1 uses `openai/codex-action@v1` with `OPENAI_API_KEY`. At high PR volume, per-run cost and runner isolation matter; `events.jsonl` can gain per-PR cost fields if needed. OpenTelemetry was not adopted — `events.jsonl` remains the source of truth.
 
-2. **Cost of two-Codex per PR.** Phase 3 runs Codex twice per PR (Executor + Reviewer). At low volume this is trivial; at 100 PRs/week it matters. Phase 5 telemetry should include per-PR cost so you can make this call with data rather than opinion. Codex's OTel exporter (§5 Phase 5 deliverable #2) gives per-tool-call cost natively if `events.jsonl` ends up under-instrumented.
+2. **Cost of two-Codex per PR.** Phase 3 established Executor + Reviewer on every PR. At low volume this is trivial; at 100 PRs/week it matters. Phase 5 telemetry can be extended with per-PR cost fields if `events.jsonl` proves under-instrumented.
 
 3. **Routing rule calibration loop.** Initial caps (`max_changed_files: 3`, `max_diff_lines`
    starting at 150) are gut-feel. The first ~20 PRs will surface mis-routes. §5.13 handles
@@ -1322,12 +1337,10 @@ Notice what is NOT here:
 
 ## 7. Limitations of this blueprint
 
-1. **This is design, not implementation.** Every phase has ways to go wrong that cannot be fully anticipated. Exit criteria define whether a phase is completed.
-2. **The multi-agent orchestration patterns are industry-young.** Much of this will be obsolete in 18 months. The blueprint's durable value is in the *decomposition* and *discipline*, not in any specific tool choice.
-3. **Personal calibration matters more than this document.** This blueprint is scaffolding for *human* judgment, not a replacement for it.
-4. **`ai-project-template` is a living repo.** Every phase changes it. Forks inherit
-   shipped phases through the phase marked **implemented** in §4; re-run fork-specific operator
-   steps (MCP `.env`, PAT scopes) per CONTRIBUTING.
-5. **Native primitives churn.** Hooks, subagents, skills, plan mode, and MCP all matured visibly between phases of this blueprint. Phase 6 v1 is shipped; expect further churn on **6.1** (Codex-in-CI, scheduled Reviewer). Track the official docs (Claude Code docs map, Codex developer docs) before each advance.
+1. **Build record, not a guarantee.** §4 documents what shipped and how it was verified; forks still need their own calibration and operator setup.
+2. **The multi-agent orchestration patterns are industry-young.** Much of this will be obsolete in 18 months. The durable value is in the *decomposition* and *discipline*, not in any specific tool choice.
+3. **Personal calibration matters more than this document.** The blueprint is scaffolding for *human* judgment, not a replacement for it.
+4. **`ai-project-template` is a living repo.** Forks inherit whatever is on `main` at fork time; re-run fork-specific operator steps (MCP `.env`, PAT scopes, `OPENAI_API_KEY` for scheduled Codex) per CONTRIBUTING.
+5. **Native primitives churn.** Hooks, subagents, skills, plan mode, MCP, and `codex-action` will keep evolving. Track the official docs (Claude Code docs map, Codex developer docs) when extending beyond what §4 records.
 
 ---

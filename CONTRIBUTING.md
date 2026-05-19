@@ -207,6 +207,18 @@ fetch linked GitHub issues (e.g. `Fixes #N` in the PR body) and cite them in
 4. **Injection** — do not paste raw MCP tool output into `docs/specs/*.md`. If you
    paraphrase issue text into a spec, run `just scan-injection`.
 
+### GitHub MCP for Planner (optional)
+
+The Planner subagent (`.claude/agents/planner.md`) declares `mcpServers: [github]` so
+Claude Code can pull linked issue/PR context while drafting specs in Plan Mode. Same PAT
+and read-only Docker server as the Reviewer; see steps 1–4 above.
+
+1. Copy [`.mcp.json.example`](.mcp.json.example) to `.mcp.json` (gitignored) or merge
+   the `github` entry into your Claude project MCP config.
+2. Export `GITHUB_PERSONAL_ACCESS_TOKEN` in the shell before starting Claude Code.
+3. Do not paste raw MCP tool output into committed specs — paraphrase and run
+   `just scan-injection` when issue text influences Requirements.
+
 **Post-mortems** — template `docs/specs/_postmortem.md`; playbook
 `.claude/skills/postmortem/SKILL.md` (one incident → one invariant or prompt change).
 
@@ -293,13 +305,22 @@ Red-Zone Assessment axis `no`, and `status: drafted` are candidates. T1+ specs,
 red-zone `yes` rows, or malformed metadata are logged with `skip_reason` and never
 dispatched. One spec per run: lexicographically first eligible slug (D5).
 
-**v1 stop-at-open-PR (D3):** The workflow calls `scripts/dispatch_spec.py` with
-`--transport pr` (default), which creates `spec/<slug>` from `origin/main`, seeds an
-empty commit when needed, and opens a GitHub PR whose body links the spec and carries
-a schema-valid `REVIEWER_JSON` stub. It does **not** invoke Codex in CI. A human or
-local Codex session runs the Executor and Reviewer on that branch; `route-pr.yml`
-labels the PR. PR bodies include `dispatch-source: scheduled` for telemetry (Slice 2).
-Legacy `--transport issue` opens a `scheduler-queue` tracking issue only (rollback).
+**Dispatch (D3):** The workflow calls `scripts/dispatch_spec.py`, which creates
+`spec/<slug>` from `origin/main`, seeds an empty commit when needed, and opens a GitHub
+PR whose body links the spec and carries a schema-valid `REVIEWER_JSON` stub. PR bodies
+include `dispatch-source: scheduled` for telemetry (Slice 2). Legacy `--transport issue`
+opens a `scheduler-queue` tracking issue only (rollback).
+
+**Without `OPENAI_API_KEY`:** transport stays `pr` — stop at open PR; a human or local
+Codex session runs Executor and Reviewer; `route-pr.yml` labels the PR.
+
+**With `OPENAI_API_KEY` (Phase 6.1):** transport is `codex`; the `codex_agents` job runs
+`openai/codex-action@v1` for Executor (workspace-write) and Reviewer (read-only), applies
+Reviewer JSON via `scripts/codex_ci.py apply-reviewer`, and validates with
+`scripts/validate_reviewer.py`. Optional squash-merge when repository variable
+`SCHEDULER_AUTO_MERGE=true` and the PR is labeled `review:codex` with a clean merge state
+(`scripts/try_auto_merge.py`). Local replay: `uv run scripts/codex_ci.py write-prompt`
+and `uv run scripts/codex_ci.py exec` (requires `codex` CLI + API key).
 
 **Failure visibility (D6):** Any failing step fails the job (no `|| true`). A
 `scheduler-failure` issue is opened with the workflow run URL.

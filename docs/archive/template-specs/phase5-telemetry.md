@@ -15,8 +15,9 @@
 Phase 4 shipped the deterministic Router (`route_pr.py`, `route-pr.yml`). Phase 5
 adds **observability**: append-only `events.jsonl`, a Markdown dashboard, bounded
 `adapt_thresholds.py`, and merge-time recording so routing decisions become a
-measurable signal. MCP / OTel / post-mortem skill exit items are partially deferred
-to human red-zone edits (`.codex/config.toml`, `AGENTS.md`).
+measurable signal. MCP and post-mortem skill exit items were partially deferred
+to human red-zone edits (`.codex/config.toml`, `AGENTS.md`). OpenTelemetry export
+was explicitly not pursued.
 
 ## Assumptions
 
@@ -53,8 +54,9 @@ adapt cycle committed from real telemetry.
 
 ## Non-Goals
 
-- [ ] NG1: OTel exporter in `.codex/config.toml` (optional; human red-zone).
-- [ ] NG2: MCP servers on Planner/Reviewer (exit criterion; human red-zone).
+- [ ] NG1: MCP servers on Reviewer (exit criterion; human red-zone). Planner MCP
+  shipped later in Phase 6.1.
+- [ ] NG2: OTel exporter — out of scope; `events.jsonl` remains the telemetry source of truth.
 - [ ] NG3: New `AGENTS.md` invariant from post-mortem (exit criterion; human red-zone).
 - [ ] NG4: `.claude/skills/postmortem/SKILL.md` (human red-zone; template at `docs/specs/_postmortem.md` ships).
 

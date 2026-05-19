@@ -97,6 +97,28 @@ def test_dry_run_payload_default_pr_transport(tmp_path: Path, capsys) -> None:  
     assert "<!-- REVIEWER_JSON -->" in payload["pr_body"]
 
 
+def test_dry_run_codex_transport_metadata(tmp_path: Path, capsys, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    spec_path = _write_spec(tmp_path, "widget")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+
+    rc = dispatch_spec.main(
+        [
+            "--repo-root",
+            str(tmp_path),
+            "--spec",
+            str(spec_path),
+            "--dry-run",
+            "--transport",
+            "codex",
+        ]
+    )
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["transport"] == "codex"
+    assert payload["codex_agents"]["enabled_in_ci"] is True
+
+
 def test_dry_run_issue_transport(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
     spec_path = _write_spec(tmp_path, "widget")
     rc = dispatch_spec.main(
