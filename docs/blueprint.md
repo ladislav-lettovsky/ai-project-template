@@ -408,7 +408,7 @@ Each phase has a **deliverable**, an **exit criterion** (a testable "done"), and
 4. Add `just lint-spec <path>` recipe.
 5. Extend `just check` to lint any spec modified in the current branch (`git diff --name-only` filtered to `docs/specs/`).
 6. Add prompt-injection scan at `scripts/scan_injection.py` — string-match for known injection patterns in spec files AND in any persisted output from web search or MCP tools (see §5.6). Runs as part of `just check`.
-7. Update Planner subagent definition to state: *"Specs for work >30 minutes of effort must lint clean before the Executor begins."*
+7. Update Planner subagent definition to state: *"Specs for work meeting the consequence-based criteria (see Operating Notes) must lint clean before the Executor begins."*
 8. Add `.claude/skills/write-spec/SKILL.md` — the spec-writing playbook as an Agent Skill, loaded via progressive disclosure when the Planner needs to draft a new spec (see §5.11).
 9. Add a Stop hook that refuses session completion if the active branch has uncommitted spec changes that fail `lint_spec.py`.
 10. Add to `post-fork-checklist.md`: step 9 — *"Delete example specs in `docs/specs/` or keep as references."*

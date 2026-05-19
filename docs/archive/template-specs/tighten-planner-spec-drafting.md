@@ -4,7 +4,7 @@
 
 - spec_id: SPEC-20260508-tighten-planner-spec-drafting
 - owner: Ladislav Lettovsky
-- status: archived
+- status: complete
 - complexity: low
 - risk_tier: T1
 - repo: ai-project-template
@@ -40,6 +40,11 @@ were noted during Stage D review:
 This spec fixes both in one PR because they share a surface (the
 Planner subagent definition and the `write-spec` skill, especially
 their `description:` frontmatter and trigger language).
+
+**Shipped (2026-05):** R1–R4 landed in `.claude/agents/planner.md`, `.codex/agents/planner.toml`,
+and both `write-spec` skills (routing + consequence-based criteria). Remaining doc hygiene
+(`docs/specs/README.md`, duplicate skill section removal) completed in
+`chore/housekeeping-phase6-planner-docs`.
 
 ## Assumptions
 

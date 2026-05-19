@@ -18,20 +18,6 @@ will faithfully build the wrong thing.
 
 ## When this skill applies
 
-Use this skill when the user asks for any of:
-
-- "write a spec for…"
-- "plan how we should add / change / remove …"
-- "draft a feature for …"
-- An implementation request estimated at more than 30 minutes of effort.
-
-If the work is < 30 minutes — fix one typo, rename one variable, add one
-log line — say so explicitly and offer to proceed without a spec. Specs
-are for work substantial enough to benefit from the structure.
-
-<!-- markdownlint-disable-next-line MD024 -->
-## When this skill applies
-
 This skill is loaded by the Planner subagent. The Planner has already
 decided spec-drafting is appropriate before loading this skill (see the
 Planner's Operating Notes for the consequence-based criteria). Inside the
