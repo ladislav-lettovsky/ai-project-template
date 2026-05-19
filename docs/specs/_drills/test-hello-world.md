@@ -2,13 +2,13 @@
 
 ## Metadata
 
-- spec_id: SPEC-20260519-phase6-hello-world
+- spec_id: SPEC-20260519-test-hello-world
 - owner: template
 - status: drafted
 - complexity: low
 - risk_tier: T0
 - repo: ai-project-template
-- branch: spec/phase6-hello-world
+- branch: spec/test-hello-world
 
 ## Context
 
@@ -16,7 +16,7 @@ Standing T0/low fixture so **Scheduled Executor** runs have an eligible spec whe
 operators trigger `workflow_dispatch` or weekday cron fires. No production code
 changes are intended — only branch + PR initiation (and optional Codex agents when
 `OPENAI_API_KEY` is configured). Historical exit-drill notes remain under
-`docs/archive/exit-drills/phase6/`.
+`docs/archive/exit-drills/phase6/` (archived fixture name `phase6-hello-world`).
 
 ## Assumptions
 
@@ -25,18 +25,18 @@ changes are intended — only branch + PR initiation (and optional Codex agents 
 
 ## Decisions
 
-- D1: No implementation beyond an empty seed commit on `spec/phase6-hello-world`.
+- D1: No implementation beyond an empty seed commit on `spec/test-hello-world`.
 
 ## Problem Statement
 
-Provide a always-eligible (when no competing drafted T0/low specs) target so the
+Provide an always-eligible (when no competing drafted T0/low specs) target so the
 scheduler queue is non-empty for manual verification of dispatch and optional
 `codex_agents`.
 
 ## Requirements (STRICT)
 
-- [ ] R1: `queue_specs.py` reports this spec as eligible when no `spec/phase6-hello-world`
-  branch exists and no open/merged PR cites `docs/specs/_drills/phase6-hello-world.md`.
+- [ ] R1: `queue_specs.py` reports this spec as eligible when no `spec/test-hello-world`
+  branch exists and no open/merged PR cites `docs/specs/_drills/test-hello-world.md`.
 - [ ] R2: `dispatch_spec.py` can open a PR linking this spec with a schema-valid
   `REVIEWER_JSON` stub.
 
@@ -47,7 +47,7 @@ scheduler queue is non-empty for manual verification of dispatch and optional
 
 ## Interfaces
 
-- `docs/specs/_drills/phase6-hello-world.md` — this file only.
+- `docs/specs/_drills/test-hello-world.md` — this file only.
 
 ## Invariants to Preserve
 
@@ -71,15 +71,15 @@ scheduler queue is non-empty for manual verification of dispatch and optional
 
 ## Validation Contract
 
-- R1 -> `uv run scripts/queue_specs.py --json` includes eligible `phase6-hello-world`
-- R2 -> `uv run scripts/dispatch_spec.py --spec docs/specs/_drills/phase6-hello-world.md --dry-run --transport pr`
+- R1 -> `uv run scripts/queue_specs.py --json` includes eligible `test-hello-world`
+- R2 -> `uv run scripts/dispatch_spec.py --spec docs/specs/_drills/test-hello-world.md --dry-run --transport pr`
 
 ## Edge Cases
 
 - EC1: Another eligible drafted spec sorts before this path lexicographically — only one
   spec dispatches per run; temporarily set the other to `complete` or remove it for smoke.
-- EC2: Leftover `spec/phase6-hello-world` branch or open PR — spec is ineligible until
-  branch/PR is closed and deleted.
+- EC2: Leftover `spec/test-hello-world` or legacy `spec/phase6-hello-world` branch or open
+  PR — spec is ineligible until branch/PR is closed and deleted.
 
 ## Security / Prompt-Injection Review
 
@@ -94,7 +94,7 @@ Manual runs: workflow summary on **Scheduled Executor**. Merged drill PRs append
 
 ## Rollback / Recovery
 
-Close smoke PR; delete remote `spec/phase6-hello-world`. Set `status: complete` or move
+Close smoke PR; delete remote `spec/test-hello-world`. Set `status: complete` or move
 this file to `docs/archive/exit-drills/phase6/` to stop cron from re-queuing.
 
 ## Implementation Slices
@@ -103,5 +103,5 @@ this file to `docs/archive/exit-drills/phase6/` to stop cron from re-queuing.
 
 ## Done When
 
-- [ ] `just lint-spec docs/specs/_drills/phase6-hello-world.md` passes
+- [ ] `just lint-spec docs/specs/_drills/test-hello-world.md` passes
 - [ ] At least one successful `workflow_dispatch` selects this spec (or documents skip_reason in run log)
