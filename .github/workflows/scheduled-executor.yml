@@ -116,7 +116,8 @@ jobs:
           uv run scripts/dispatch_spec.py \
             --spec "${{ steps.queue.outputs.spec_path }}" \
             --repo "${{ github.repository }}" \
-            --transport "${TRANSPORT}" | tee dispatch.json
+            --transport "${TRANSPORT}" \
+            --json-out dispatch.json
           PR_URL=$(jq -r '.pr_url // empty' dispatch.json)
           BRANCH=$(jq -r '.branch // empty' dispatch.json)
           echo "pr_url=${PR_URL}" >> "${GITHUB_OUTPUT}"
