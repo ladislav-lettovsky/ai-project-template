@@ -17,8 +17,8 @@ Design notes:
 
     Requirement IDs are matched as either ``R<digits>`` or
     ``REQ-<UPPER-AND-DIGITS-AND-DASHES>``; both forms appear in the wild
-    (the blueprint template uses ``R1``; archived example specs may use
-    ``REQ-FOO-01``).
+    (the blueprint template uses ``R1``; the long form is
+    ``REQ-<DOMAIN>-<NN>``, e.g. ``REQ-FOO-01`` in archived specs).
 """
 
 from __future__ import annotations
@@ -62,7 +62,8 @@ ALLOWED_STATUS: frozenset[str] = frozenset({"drafted", "in-progress", "complete"
 # ``FR-01``) here and they will be picked up everywhere automatically.
 REQ_ID_ALT = r"R\d+|REQ-[A-Z0-9][A-Z0-9-]*"
 
-# ``R1``, ``R12``, ``REQ-FOO-01`` — must start at a word boundary, not
+# ``R1``, ``R12``, long-form ``REQ-<DOMAIN>-<NN>`` (e.g. ``REQ-FOO-01``) —
+# must start at a word boundary, not
 # mid-word. Used to scan Requirements bullets and Test Plan ID lists.
 REQ_ID_RE = re.compile(rf"\b({REQ_ID_ALT})\b")
 
@@ -82,7 +83,7 @@ REDZONE_LINE_RE = re.compile(r"^\s*-\s*(?P<key>.+?)\s*:\s*(?P<value>yes|no)\s*$"
 
 # Test Plan mapping line. We accept both checked and unchecked checkboxes
 # and bullet-prefixed lines: ``- [ ] T1 -> covers R1, R2`` or
-# ``- **T1** → covers REQ-FOO-01``. Both ASCII ``->`` and the Unicode
+# ``- **T1** → covers REQ-FOO-01`` (long-form ID). Both ASCII ``->`` and the Unicode
 # arrow ``→`` are accepted; both render identically in prose Markdown.
 ARROW = r"(?:->|→)"
 TEST_MAP_RE = re.compile(
@@ -91,7 +92,8 @@ TEST_MAP_RE = re.compile(
 )
 
 # Validation Contract line: ``R1 -> just check``, or table rows where the
-# first cell is ``REQ-FOO-01`` and a later token is ``just check``. We
+# first cell is a long-form ID (e.g. ``REQ-FOO-01``) and a later token is
+# ``just check``. We
 # match the requirement ID followed by ``->`` (in a list line) or by ``|``
 # in a markdown table — both shapes appear in the example spec.
 VALIDATION_LIST_RE = re.compile(
@@ -270,7 +272,7 @@ def collect_validation_ids(body: str) -> set[str]:
     """Set of requirement IDs that appear as a validator key.
 
     Matches both list shape (``- R1 -> just check``) and the markdown-table
-    shape used in some specs (``| REQ-FOO-01 | pytest ... |``).
+    shape used in some specs (``| REQ-FOO-01 | pytest ... |`` — long-form ID).
     """
     ids: set[str] = set()
     for m in VALIDATION_LIST_RE.finditer(body):

@@ -358,7 +358,7 @@ def test_requirement_without_validation_is_reported(tmp_path: Path) -> None:
 
 
 def test_req_dash_form_is_recognized(tmp_path: Path) -> None:
-    """The ``REQ-DOMAIN-NN`` ID shape (used by some archived specs) is supported."""
+    """The long-form ``REQ-<DOMAIN>-<NN>`` shape (e.g. ``REQ-FOO-01``) is supported."""
     text = (
         _minimal_valid_spec()
         .replace("- [ ] R1: do the thing.", "- [ ] REQ-FOO-01: do the thing.")
