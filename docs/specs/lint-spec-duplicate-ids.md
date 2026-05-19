@@ -4,7 +4,7 @@
 
 - spec_id: SPEC-20260514-lint-spec-duplicate-ids
 - owner: Ladislav Lettovsky
-- status: drafted
+- status: complete
 - complexity: low
 - risk_tier: T0
 - repo: ai-project-template

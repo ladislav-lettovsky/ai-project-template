@@ -4,7 +4,7 @@
 
 - spec_id: SPEC-20260515-phase-4-deterministic-router
 - owner: template
-- status: in-progress
+- status: complete
 - complexity: medium
 - risk_tier: T1
 - repo: ai-project-template

@@ -4,7 +4,7 @@
 
 - spec_id: SPEC-20260518-phase6-scheduled-executor
 - owner: template
-- status: drafted
+- status: complete
 - complexity: high
 - risk_tier: T2
 - repo: ai-project-template

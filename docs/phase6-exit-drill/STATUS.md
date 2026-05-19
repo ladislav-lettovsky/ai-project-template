@@ -31,9 +31,9 @@
 
 ## Notes
 
-- Close PR #56 without merge (drill-only branch).
-- After fix merges, re-run **Phase 6 — Scheduled Executor** `workflow_dispatch` to confirm CI
-  selects `_drills/phase6-hello-world.md` and opens the PR without local CLI.
+- Drill PR #56: **closed** without merge (2026-05-19).
+- Spec housekeeping (2026-05-19): shipped specs set to `status: complete` so cron no
+  longer treats them as queued; see `docs/specs/README.md` § Status lifecycle.
 
 ## Run 2 — GitHub Actions post-fix (2026-05-19)
 
