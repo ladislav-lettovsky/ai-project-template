@@ -72,8 +72,8 @@ jobs:
             --json > queue.json
           QUEUE_SIZE=$(jq 'length' queue.json)
           ELIGIBLE_COUNT=$(jq '[.[] | select(.eligible == true)] | length' queue.json)
-          SPEC_PATH=$(jq -r '[.[] | select(.eligible == true)] | sort_by(.slug) | .[0].path // empty' queue.json)
-          SPEC_SLUG=$(jq -r '[.[] | select(.eligible == true)] | sort_by(.slug) | .[0].slug // empty' queue.json)
+          SPEC_PATH=$(jq -r '[.[] | select(.eligible == true)] | sort_by((.path | contains("_drills/") | not), .path) | .[0].path // empty' queue.json)
+          SPEC_SLUG=$(jq -r '[.[] | select(.eligible == true)] | sort_by((.path | contains("_drills/") | not), .path) | .[0].slug // empty' queue.json)
           echo "queue_size=${QUEUE_SIZE}" >> "${GITHUB_OUTPUT}"
           echo "eligible_count=${ELIGIBLE_COUNT}" >> "${GITHUB_OUTPUT}"
           echo "spec_path=${SPEC_PATH}" >> "${GITHUB_OUTPUT}"
@@ -101,6 +101,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -o pipefail
           uv run scripts/dispatch_spec.py \
             --spec "${{ steps.queue.outputs.spec_path }}" \
             --repo "${{ github.repository }}" \

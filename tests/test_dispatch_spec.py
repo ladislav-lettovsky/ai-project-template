@@ -56,6 +56,13 @@ def _write_spec(repo_root: Path, slug: str, *, risk_tier: str = "T0") -> Path:
     return path
 
 
+def test_resolve_spec_path_relative_to_repo_root(tmp_path: Path) -> None:
+    spec_path = _write_spec(tmp_path, "widget")
+    rel = Path("docs/specs/widget.md")
+    resolved = dispatch_spec.resolve_spec_path(rel, tmp_path)
+    assert resolved == spec_path.resolve()
+
+
 def test_build_pr_body_links_spec_and_contains_reviewer_fence() -> None:
     body = dispatch_spec.build_pr_body("docs/specs/widget.md")
 
