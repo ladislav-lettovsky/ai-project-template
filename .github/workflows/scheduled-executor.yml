@@ -26,6 +26,7 @@ jobs:
       pr_url: ${{ steps.dispatch.outputs.pr_url }}
       branch: ${{ steps.dispatch.outputs.branch }}
       spec_path: ${{ steps.queue.outputs.spec_path }}
+      codex_enabled: ${{ steps.codex_gate.outputs.enabled }}
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -105,10 +106,11 @@ jobs:
         id: dispatch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           set -o pipefail
           TRANSPORT=pr
-          if [ -n "${{ secrets.OPENAI_API_KEY }}" ]; then
+          if [ -n "${OPENAI_API_KEY}" ]; then
             TRANSPORT=codex
           fi
           uv run scripts/dispatch_spec.py \
@@ -155,7 +157,7 @@ jobs:
     needs: dispatch
     if: >-
       needs.dispatch.outputs.pr_url != '' &&
-      secrets.OPENAI_API_KEY != ''
+      needs.dispatch.outputs.codex_enabled == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
