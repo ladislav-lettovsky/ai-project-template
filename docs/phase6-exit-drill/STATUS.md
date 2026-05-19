@@ -2,14 +2,35 @@
 
 | Step | Signal | Result |
 | --- | --- | --- |
-| Fixture on `main` | `docs/specs/_drills/phase6-hello-world.md` drafted T0/low | Pending merge of `spec/phase6-scheduled-executor` |
-| Scheduler run | `workflow_dispatch` on `scheduled-executor.yml` | Pending |
-| Dispatch | `pr_url` in workflow summary | Pending |
-| Router | `review:codex` / `review:human` / `blocked` on drill PR | Pending |
+| Fixture on `main` | `docs/specs/_drills/phase6-hello-world.md` drafted T0/low | OK (merged #55) |
+| Scheduler run | `workflow_dispatch` on `scheduled-executor.yml` | See run 1 below |
+| Dispatch | PR opened for drill spec | OK via local dispatch → PR #56 |
+| Router | Label on drill PR | `review:human` (see notes) |
 
-After the drill PR exists, fill:
+## Run 1 — GitHub Actions (2026-05-19)
 
-- **Workflow run:** (paste Actions URL)
-- **Drill PR:** (paste PR link)
-- **Router label:** (paste label)
-- **Notes:** (optional — e.g. why `review:human` if red-zone gate fired)
+- **Workflow run:** [actions/runs/26080008734](https://github.com/ladislav-lettovsky/ai-project-template/actions/runs/26080008734)
+- **Outcome:** Job green, but dispatch step failed silently (`pipefail` off). Selected
+  `docs/specs/phase4-router-smoke.md` (lexicographically before `_drills/`) and hit a
+  relative-path bug in `dispatch_spec.py` when loading the spec from the workflow cwd.
+- **Follow-up:** `fix/phase6-exit-drill-dispatch` — resolve spec paths against `--repo-root`,
+  prefer `_drills/` eligible specs in the workflow `jq` sort, enable `set -o pipefail` on dispatch.
+
+## Drill PR (exit criterion)
+
+- **Drill PR:** [#56](https://github.com/ladislav-lettovsky/ai-project-template/pull/56)
+- **Branch:** `spec/phase6-hello-world` (empty seed commit + stub PR body)
+- **Body checks:** Links `docs/specs/_drills/phase6-hello-world.md`; contains
+  `dispatch-source: scheduled`; schema-valid `REVIEWER_JSON` stub.
+- **Router label:** `review:human` — expected for placeholder Reviewer JSON (`confidence: 0`,
+  `invariant_risk: high` in stub per policy). Not `review:codex`; drill still validates
+  scheduler → open PR → Router handoff.
+- **Dispatch path:** Local `uv run scripts/dispatch_spec.py --transport pr` after path fix
+  (same code path CI uses post-fix). Re-run Actions after merging the fix PR to confirm
+  end-to-end in CI.
+
+## Notes
+
+- Close PR #56 without merge (drill-only branch).
+- After fix merges, re-run **Phase 6 — Scheduled Executor** `workflow_dispatch` to confirm CI
+  selects `_drills/phase6-hello-world.md` and opens the PR without local CLI.

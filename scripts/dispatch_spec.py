@@ -67,8 +67,14 @@ def build_issue_body(descriptor: dict[str, Any], pr_body: str) -> str:
     )
 
 
+def resolve_spec_path(spec_path: Path, repo_root: Path) -> Path:
+    candidate = spec_path if spec_path.is_absolute() else (repo_root / spec_path)
+    return candidate.resolve()
+
+
 def load_descriptor(spec_path: Path, repo_root: Path) -> dict[str, Any]:
-    descriptor = queue_specs.parse_spec_descriptor(spec_path, repo_root)
+    resolved = resolve_spec_path(spec_path, repo_root)
+    descriptor = queue_specs.parse_spec_descriptor(resolved, repo_root)
     skip_reason = queue_specs.metadata_skip_reason(descriptor)
     if skip_reason is None:
         skip_reason = queue_specs.eligibility_skip_reason(descriptor)
@@ -314,7 +320,8 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 2
     try:
-        descriptor = load_descriptor(args.spec, args.repo_root)
+        spec_path = resolve_spec_path(args.spec, args.repo_root)
+        descriptor = load_descriptor(spec_path, args.repo_root)
         payload = build_dispatch_payload(descriptor, transport=args.transport)
         if args.dry_run:
             print(json.dumps({"dry_run": True, **payload}, indent=2))
