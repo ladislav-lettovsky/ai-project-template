@@ -55,7 +55,7 @@ The repo has reviewer validation (`scripts/validate_reviewer.py`), spec lint, an
 
 ## Interfaces
 
-New: `.routing-policy.json`, `scripts/red_zone_paths.py`, `scripts/build_pr_context.py`, `scripts/route_pr.py`, `.github/workflows/route-pr.yml`, `tests/test_route_pr.py`, `tests/test_build_pr_context.py`, `tests/test_red_zone_paths.py`, `tests/test_router_docs_phase4.py`.
+New: `.routing-policy.json`, `scripts/red_zone_paths.py`, `scripts/build_pr_context.py`, `scripts/route_pr.py`, `.github/workflows/route-pr.yml`, `tests/test_route_pr.py`, `tests/test_build_pr_context.py`, `tests/test_red_zone_paths.py`, `tests/test_router_docs.py`.
 
 Modified: `scripts/hooks/check_red_zone.py`, `scripts/validate_reviewer.py`, `CONTRIBUTING.md`, `README.md`, `AGENTS.md`.
 
@@ -80,14 +80,14 @@ Modified: `scripts/hooks/check_red_zone.py`, `scripts/validate_reviewer.py`, `CO
 
 ## Validation Contract
 
-- R1 -> `pytest tests/test_route_pr.py tests/test_validate_reviewer.py tests/test_build_pr_context.py tests/test_router_docs_phase4.py -q` and `.routing-policy.json` exists
+- R1 -> `pytest tests/test_route_pr.py tests/test_validate_reviewer.py tests/test_build_pr_context.py tests/test_router_docs.py -q` and `.routing-policy.json` exists
 - R2 -> `pytest tests/test_route_pr.py tests/test_red_zone_paths.py -q`
 - R3 -> `pytest tests/test_build_pr_context.py -q`
 - R4 -> `pytest tests/test_route_pr.py -q`
 - R5 -> `pytest tests/test_validate_reviewer.py -q`
 - R6 -> `pytest tests/test_route_pr.py -q`
-- R7 -> `pytest tests/test_router_docs_phase4.py -q` and `.github/workflows/route-pr.yml` exists
-- R8 -> `pytest tests/test_router_docs_phase4.py -q`
+- R7 -> `pytest tests/test_router_docs.py -q` and `.github/workflows/route-pr.yml` exists
+- R8 -> `pytest tests/test_router_docs.py -q`
 - FULL -> `just check`
 
 ## Edge Cases
