@@ -1,7 +1,6 @@
 """your_package — TODO: replace with one-sentence description.
 
-The template ships without demo modules (no greet/farewell). Add your package
-code here after forking.
+Add your package code here after forking.
 
 After forking:
 1. Rename this directory from `your_package` to your actual package name

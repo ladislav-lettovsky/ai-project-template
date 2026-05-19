@@ -6,11 +6,11 @@ authorizing specs for new product work on a fork.
 ## `template-specs/`
 
 Completed (and superseded) specs that built the template through Phases 0–6:
-Router, telemetry, scheduled executor, demo greet/farewell modules, lint gates,
+Router, telemetry, scheduled executor, lint gates, planner-tightening backlog,
 and similar. They remain in git as an audit trail and as lint/regression examples
-(`add-greet-module.md` is the canonical §5.1 example for `lint_spec.py` tests).
-Demo Python modules and their pytest files were removed from `src/` and `tests/`
-on the living template — forks start with an empty package shell.
+(`add-greet-module.md` is one §5.1 regression target for `lint_spec.py` tests).
+Demo Python modules were removed from `src/` — forks start with an empty package
+shell (`__init__.py` only).
 
 ## `exit-drills/`
 

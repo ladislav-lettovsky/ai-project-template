@@ -75,7 +75,7 @@ nobody will read.
    If yes, the `## Security / Prompt-Injection Review` section is
    non-empty and the risk is at least medium.
 5. **Pick the slug.** `<verb>-<noun>` or `<noun>-<scope>` style.
-   Examples: `add-cache-warmup`, `fix-greet-unicode`, `migrate-pg-15`.
+   Examples: `add-cache-warmup`, `fix-auth-token-refresh`, `migrate-pg-15`.
    The slug becomes:
    - the filename: `docs/specs/<slug>.md`
    - the branch name: `spec/<slug>`
@@ -152,9 +152,9 @@ Bullet-form. Stable IDs (`R1`, `R2`, … or `REQ-<DOMAIN>-<NN>`). Each
 requirement is **specific** (one observable behavior) and **testable**
 (you can write a unit/integration test for it).
 
-Bad: `R1: greet should be nice.`
-Good: `R1: greet(name) returns "Hello, <name>!" when name is a non-empty
-str.`
+Bad: `R1: the API should be nice.`
+Good: `R1: create_user(name) returns a User with display_name equal to
+name when name is a non-empty str.`
 
 ### Non-Goals (`NG1`, `NG2`, …)
 

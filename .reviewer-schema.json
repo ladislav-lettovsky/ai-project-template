@@ -53,7 +53,7 @@
             },
             "evidence": {
               "type": "string",
-              "description": "Pointer to the specific code or spec location supporting the finding (e.g., 'src/farewell.py:18', 'spec ## Decisions D2')."
+              "description": "Pointer to the specific code or spec location supporting the finding (e.g., 'src/your_package/module.py:42', 'spec ## Decisions D2')."
             },
             "suggested_action": {
               "type": "string",
