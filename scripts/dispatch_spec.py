@@ -22,7 +22,25 @@ if str(_SCRIPTS_DIR) not in sys.path:
 
 import queue_specs  # noqa: E402
 
-REVIEWER_FENCE = "<!-- REVIEWER_JSON -->\n<!-- /REVIEWER_JSON -->"
+REVIEWER_STUB = {
+    "summary": "Placeholder until Reviewer runs.",
+    "findings": [],
+    "coverage": {
+        "requirements_total": 0,
+        "requirements_covered": 0,
+        "tests_expected": 0,
+        "tests_present": 0,
+    },
+    "risk_assessment": {
+        "scope_fit": "correct",
+        "invariant_risk": "high",
+        "production_risk": "high",
+    },
+    "confidence": 0,
+}
+REVIEWER_FENCE = (
+    f"<!-- REVIEWER_JSON -->\n{json.dumps(REVIEWER_STUB, indent=2)}\n<!-- /REVIEWER_JSON -->"
+)
 PHASE6_QUEUE_LABEL = "phase6-queue"
 
 
@@ -65,9 +83,25 @@ def branch_exists(remote: str, branch_name: str) -> bool:
     return bool(cp.stdout.strip())
 
 
+def resolve_ref(ref: str) -> str:
+    cp = subprocess.run(
+        ["git", "rev-parse", "--verify", ref],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return cp.stdout.strip()
+
+
 def create_remote_branch(remote: str, branch_name: str) -> None:
+    main_ref = f"{remote}/main"
+    main_sha = resolve_ref(main_ref)
+    head_sha = resolve_ref("HEAD")
+    if head_sha != main_sha:
+        msg = f"local HEAD ({head_sha}) does not match {main_ref} ({main_sha})"
+        raise RuntimeError(msg)
     subprocess.run(
-        ["git", "push", remote, f"HEAD:refs/heads/{branch_name}"],
+        ["git", "push", remote, f"{main_sha}:refs/heads/{branch_name}"],
         check=True,
     )
 

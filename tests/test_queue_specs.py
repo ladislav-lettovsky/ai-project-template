@@ -34,16 +34,8 @@ def _write_spec(
     complexity: str = "low",
     red_zone: dict[str, str] | None = None,
 ) -> Path:
-    red_zone = red_zone or {
-        "auth": "no",
-        "billing": "no",
-        "dependencies": "no",
-        "CI": "no",
-        "migrations": "no",
-        "secrets": "no",
-        "infra": "no",
-        "invariant-protected files": "no",
-    }
+    if red_zone is None:
+        red_zone = {key: "no" for key in queue_specs.RED_ZONE_AXES}
     spec_dir = repo_root / "docs" / "specs"
     spec_dir.mkdir(parents=True, exist_ok=True)
     red_zone_lines = "\n".join(f"- {key}: {value}" for key, value in red_zone.items())
@@ -92,7 +84,9 @@ def test_eligibility_filter(tmp_path: Path) -> None:
     _write_spec(tmp_path, "eligible")
     _write_spec(tmp_path, "tier", risk_tier="T1")
     _write_spec(tmp_path, "complex", complexity="medium")
-    _write_spec(tmp_path, "redzone", red_zone={"auth": "no", "infra": "yes"})
+    redzone_values = {key: "no" for key in queue_specs.RED_ZONE_AXES}
+    redzone_values["infra"] = "yes"
+    _write_spec(tmp_path, "redzone", red_zone=redzone_values)
 
     by_slug = {
         item["slug"]: item
@@ -107,6 +101,32 @@ def test_eligibility_filter(tmp_path: Path) -> None:
     assert by_slug["tier"]["skip_reason"] == "risk_tier_ineligible"
     assert by_slug["complex"]["skip_reason"] == "complexity_ineligible"
     assert by_slug["redzone"]["skip_reason"] == "red_zone_yes"
+
+
+def test_red_zone_partial_axes_are_incomplete(tmp_path: Path) -> None:
+    _write_spec(tmp_path, "partial-redzone", red_zone={"auth": "no", "billing": "no"})
+
+    [descriptor] = queue_specs.discover_specs(
+        repo_root=tmp_path,
+        remote_branches=set(),
+        pull_requests=[],
+    )
+
+    assert descriptor["eligible"] is False
+    assert descriptor["skip_reason"] == "red_zone_incomplete"
+
+
+def test_red_zone_missing_section_is_missing(tmp_path: Path) -> None:
+    _write_spec(tmp_path, "missing-redzone", red_zone={})
+
+    [descriptor] = queue_specs.discover_specs(
+        repo_root=tmp_path,
+        remote_branches=set(),
+        pull_requests=[],
+    )
+
+    assert descriptor["eligible"] is False
+    assert descriptor["skip_reason"] == "red_zone_missing"
 
 
 def test_existing_branch_and_pr_reference_skip_dispatch(tmp_path: Path) -> None:
