@@ -53,10 +53,10 @@ jobs:
         run: |
           PRN="${{ github.event.pull_request.number }}"
           REPO="${{ github.repository }}"
-          CONCLUSION=$(gh pr checks "${PRN}" --repo "${REPO}" \
-            --json name,conclusion \
-            --jq '[.[] | select(.name=="Lint, type-check, unit tests")][0].conclusion // "unknown"')
-          case "${CONCLUSION}" in
+          CHECK_STATE=$(gh pr checks "${PRN}" --repo "${REPO}" \
+            --json name,state \
+            --jq '[.[] | select(.name=="Lint, type-check, unit tests")][0].state // "UNKNOWN"')
+          case "${CHECK_STATE}" in
             SUCCESS) OUTCOME=success ;;
             FAILURE) OUTCOME=failure ;;
             *) OUTCOME=unknown ;;
