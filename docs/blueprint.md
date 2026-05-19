@@ -480,64 +480,29 @@ and patterns change. Telemetry + bounded adaptation makes policy quality a **mea
 metric, not a vibe. MCP brings issue-tracker and runtime context into Reviewer evidence. Floors
 and ceilings in `.routing-policy.json` make scheduled adaptation safe.
 
-### Phase 6 — Endgame: semi-autonomous factory
+### Phase 6 (implemented) — Scheduled executor (v1)
 
-**Status:** implemented — queue/dispatcher, telemetry `dispatch_source`,
-`scheduled-executor.yml` (PR transport per D1 spike), and exit-drill kit shipped.
-Run `workflow_dispatch` on the scheduler and record the drill PR in
-`docs/phase6-exit-drill/STATUS.md` after merge. `codex exec` in CI remains Phase 6.1.
+**Status:** **implemented** on `ai-project-template` (May 2026). Authorizing spec:
+[`docs/archive/template-specs/phase6-scheduled-executor.md`](archive/template-specs/phase6-scheduled-executor.md).
+D1 notes: [`docs/phase6-d1-spike/NOTES.md`](phase6-d1-spike/NOTES.md). Exit drill:
+[`docs/phase6-exit-drill/STATUS.md`](phase6-exit-drill/STATUS.md). **Phase 6.1** (not
+shipped): `codex exec` in CI, scheduled Reviewer, optional auto-merge when
+`review:codex`.
 
-**Deliverable:**
+**Shipped (v1):** `queue_specs.py`, `dispatch_spec.py` (`--transport pr`),
+`scheduled-executor.yml`, telemetry `dispatch_source`, CONTRIBUTING Phase 6 section,
+deterministic tests.
 
-1. All repos in scope running the full system (starting with `ai-project-template`, then propagating to any new project forked from it).
-2. A scheduled workflow at `.github/workflows/scheduled-executor.yml` that picks up any spec in `docs/specs/` without a corresponding PR and dispatches it to Codex for execution (contingent on a usable async Codex API or equivalent — see Open Question #1 in §6).
-3. Portfolio-level status documentation updated to reflect the system's operational state.
+**Exit criterion (v1, met):** Scheduler opens a PR for a T0+low drill spec with spec
+link and schema-valid `REVIEWER_JSON` stub; `route-pr` labels; outcome in
+`docs/phase6-exit-drill/STATUS.md`.
 
-**Exit criterion:** A submitted spec is executed (Executor subagent in its own worktree), reviewed (Reviewer subagent, structured JSON), routed (policy), CI-validated, and auto-merged — or blocked with a clear reason. Upon completion, read the dashboard, and spend time on specs rather than on code.
+**Spec layout:** Active specs live in `docs/specs/` only. Completed template-build
+specs live in [`docs/archive/template-specs/`](archive/template-specs/). Forks:
+`rm -rf docs/archive` (see `docs/archive/README.md`).
 
-**Why (picturable):** Phase 6 is the semi-autonomous endgame done right with five verified phases, each with a tripwire, each tested on `ai-project-template` before propagating.
-
-#### Authorizing spec scope (draft — for `docs/specs/phase6-scheduled-executor.md`)
-
-Use the Planner subagent + `write-spec` skill to expand this outline into a lint-clean spec.
-Suggested metadata: `risk_tier: T2` or `T3`, `complexity: high` (touches CI, secrets, and
-automation). Branch: `spec/phase6-scheduled-executor`.
-
-**Problem:** Approved specs on `main` with `status: drafted` (or equivalent) and no open
-`spec/<slug>` branch/PR sit idle until a human kicks off the Executor. Phase 6 closes the
-loop: spec in → PR out with the same gates as manual runs.
-
-**In scope (candidate requirements):**
-
-| ID | Topic | Notes |
-| --- | --- | --- |
-| R1 | **Spec queue discovery** | Script or workflow step lists `docs/specs/*.md` (exclude `_template.md`, `_postmortem.md`, `README.md`) where metadata `status` ∈ `{drafted, approved}` and no PR exists for branch `spec/<slug>`. |
-| R2 | **Eligibility gate** | Only enqueue specs with `risk_tier: T0` and `complexity: low` initially; skip red-zone Assessment "yes" rows; cap one concurrent execution per repo. |
-| R3 | **`scheduled-executor.yml`** | Cron (e.g. weekdays) or `workflow_dispatch`; uses `GITHUB_TOKEN` + optional `CODEX_*` / API token secrets; never runs on fork PRs from untrusted contributors without approval. |
-| R4 | **Dispatch mechanism** | **Spike first (D1):** Codex async/cloud API vs `codex exec` in Actions vs self-hosted runner with Docker. Document chosen path in spec Decisions; fallback = open issue + manual dispatch only. |
-| R5 | **Worktree / branch** | Create `spec/<slug>` branch (or reuse existing), run Executor in isolated worktree per §5.9; push branch; open PR with spec link + empty `REVIEWER_JSON` fence. |
-| R6 | **Reviewer + Router handoff** | After Executor PR opens: trigger Reviewer (API or documented human step for v1), ensure `route-pr` runs, respect `review:codex` / `review:human` / `blocked`. |
-| R7 | **Merge policy** | Auto-merge only when label `review:codex`, CI green, and branch protection satisfied; never auto-merge `review:human` or `blocked`. |
-| R8 | **Telemetry** | Merged PRs recorded by existing `record-telemetry.yml`; append `dispatch_source: scheduled` field to events schema if useful. |
-| R9 | **Failure visibility** | On failure: GitHub issue comment or workflow summary with spec path, log excerpt, and "no silent skip". |
-| R10 | **Deterministic tests** | Unit tests for queue discovery and eligibility (fixture specs + mock PR list); workflow YAML schema/shellcheck where applicable. |
-
-**Non-goals (initial slice):**
-
-- Parallel execution of multiple specs in one workflow run.
-- Planner auto-drafting specs from issues (human/Planner still authors specs).
-- Auto-merge on red-zone PRs.
-- Replacing human review for T1+ specs.
-
-**Red-zone / CI:** Expect `review:human` for `.github/workflows/scheduled-executor.yml` and any new dispatch secrets documentation.
-
-**Exit criterion for Phase 6 (maps to blueprint):** One **dry-run** spec (T0, low) picked by the scheduler, Executor opens a PR, Reviewer JSON validates, Router labels `review:codex`, CI passes, and merge happens without human code edits — or the workflow blocks with an auditable reason.
-
-**Open decisions for the spec:**
-
-- D1: Dispatch transport (Open Question #1).
-- D2: Where Executor runs (GitHub-hosted runner vs self-hosted vs Codex Cloud).
-- D3: Whether v1 stops at "open PR" and leaves Reviewer to a second scheduled job.
+**Why (picturable):** Phase 6 closes initiation for the narrow T0+low lane on `main`
+without waiting for a human to run `dispatch_spec.py` locally.
 
 ---
 
@@ -1331,7 +1296,7 @@ Notice what is NOT here:
 
 ## 6. Open questions
 
-1. **Codex async API maturity.** Phase 6's scheduled-executor workflow assumes an API that can be invoked from GitHub Actions on a cron. If the right API doesn't exist when you get there, Phase 6 may need to run on Claude Code's background agents or a third-party orchestrator. The rest of the blueprint is API-agnostic.
+1. **Codex in CI (Phase 6.1).** Phase 6 v1 ships queue + open-PR dispatch via `gh` (`--transport pr`). Running **Executor** (`codex exec`) inside GitHub Actions still needs repo secrets, isolation, and a pinned harness. If the async API is immature, 6.1 may use Claude Code background agents or a self-hosted runner instead. The rest of the blueprint is API-agnostic.
 
 2. **Cost of two-Codex per PR.** Phase 3 runs Codex twice per PR (Executor + Reviewer). At low volume this is trivial; at 100 PRs/week it matters. Phase 5 telemetry should include per-PR cost so you can make this call with data rather than opinion. Codex's OTel exporter (§5 Phase 5 deliverable #2) gives per-tool-call cost natively if `events.jsonl` ends up under-instrumented.
 
@@ -1363,6 +1328,6 @@ Notice what is NOT here:
 4. **`ai-project-template` is a living repo.** Every phase changes it. Forks inherit
    shipped phases through the phase marked **implemented** in §4; re-run fork-specific operator
    steps (MCP `.env`, PAT scopes) per CONTRIBUTING.
-5. **Native primitives churn.** Hooks, subagents, skills, plan mode, and MCP all matured visibly between phases of this blueprint. Expect another wave of primitive evolution before Phase 6 lands. Track the official docs (Claude Code docs map, Codex developer docs) before each phase advance.
+5. **Native primitives churn.** Hooks, subagents, skills, plan mode, and MCP all matured visibly between phases of this blueprint. Phase 6 v1 is shipped; expect further churn on **6.1** (Codex-in-CI, scheduled Reviewer). Track the official docs (Claude Code docs map, Codex developer docs) before each advance.
 
 ---

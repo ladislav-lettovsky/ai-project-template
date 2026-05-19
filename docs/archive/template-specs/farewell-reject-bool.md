@@ -12,7 +12,7 @@
 
 ## Context
 
-`docs/specs/add-farewell-module.md` lists Edge Case EC5: "`bool` input. `bool`
+`docs/archive/template-specs/add-farewell-module.md` lists Edge Case EC5: "`bool` input. `bool`
 is a subclass of `int`, not `str`; raises `TypeError`." The current
 implementation in `src/your_package/farewell.py` already satisfies this — the
 `isinstance(name, str)` guard rejects `True` and `False` because `bool`
@@ -67,7 +67,7 @@ regression guard.
 
 `tests/test_farewell.py` has no test case asserting that `farewell(True)` or
 `farewell(False)` raises `TypeError`. The contract in
-`docs/specs/add-farewell-module.md` (REQ-FAREWELL-03 plus EC5) requires this
+`docs/archive/template-specs/add-farewell-module.md` (REQ-FAREWELL-03 plus EC5) requires this
 behaviour. The production code satisfies it today via `isinstance(name, str)`,
 but a future guard refactor could silently regress and start returning
 stringified-bool farewells. A deterministic test pins down the documented edge
@@ -99,7 +99,7 @@ case.
   existing parametrized list.
 - [ ] NG4: No new edge cases beyond `bool`. Other subclass-of-a-non-string-builtin
   cases (e.g., `IntEnum` members, `numpy.bool_`) are out of scope.
-- [ ] NG5: No edit to `docs/specs/add-farewell-module.md`. EC5 there already
+- [ ] NG5: No edit to `docs/archive/template-specs/add-farewell-module.md`. EC5 there already
   documents the behaviour; this spec adds the test, not the documentation.
 
 ## Interfaces
@@ -112,7 +112,7 @@ Files modified:
 
 Files created:
 
-- `docs/specs/farewell-reject-bool.md` (this spec).
+- `docs/archive/template-specs/farewell-reject-bool.md` (this spec).
 
 Files NOT modified:
 
@@ -133,7 +133,7 @@ both `farewell(True)` and `farewell(False)` raise `TypeError` with message
 - [ ] INV4: The existing six parameter cases in
   `test_farewell_raises_type_error_on_non_string` continue to pass — the new
   `True` / `False` cases are appended, not substituted.
-- [ ] INV5: REQ-FAREWELL-03 from `docs/specs/add-farewell-module.md` continues
+- [ ] INV5: REQ-FAREWELL-03 from `docs/archive/template-specs/add-farewell-module.md` continues
   to hold; this spec strengthens its test coverage, it does not replace it.
 - [ ] INV6: Red-zone files are not touched (AGENTS.md Invariant 7) — this PR
   edits only `tests/test_farewell.py` plus this spec file, neither of which is
@@ -187,7 +187,7 @@ verified by the Executor manually and is visible in the PR diff.
   but `numpy` is not a project dependency and this case is out of scope (NG4).
 - EC3: A `bool`-like custom class that does subclass `str` (e.g.,
   `class Truthy(str): ...`) would be accepted by the guard. This is consistent
-  with EC6 (`str` subclass) in `docs/specs/add-farewell-module.md` and is out
+  with EC6 (`str` subclass) in `docs/archive/template-specs/add-farewell-module.md` and is out
   of scope here.
 - EC4: If a future PR rewrites the guard to `if type(name) is not str`, then
   `str` subclasses would start raising `TypeError` — that would regress EC6,
@@ -235,6 +235,6 @@ production-code impact.
 - [ ] CI green on the PR branch.
 - [ ] Invariants INV1–INV6 hold.
 - [ ] Branch name starts with `spec/farewell-reject-bool` (Invariant 1).
-- [ ] PR description links this spec at `docs/specs/farewell-reject-bool.md`.
+- [ ] PR description links this spec at `docs/archive/template-specs/farewell-reject-bool.md`.
 - [ ] PR body contains a `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->`
   block (empty fenced block acceptable until Phase 3 Reviewer lands).

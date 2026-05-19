@@ -54,7 +54,7 @@ red-zone `review:human` on GitHub.
 ## Interfaces
 
 - `docs/phase4-exit-drills/**` (new)
-- `docs/specs/phase4-exit-drills.md` (this file)
+- `docs/archive/template-specs/phase4-exit-drills.md` (this file)
 - `docs/blueprint.md`, `CONTRIBUTING.md` (docs only)
 
 ## Invariants to Preserve

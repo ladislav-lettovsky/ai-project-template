@@ -12,6 +12,11 @@ literally and the Reviewer (Codex) checks against.
 
 ## What lives here
 
+**Active authorizing specs** — only files in this directory (not
+`docs/archive/`). Template build history lives in
+[`docs/archive/template-specs/`](../archive/template-specs/); see
+[`docs/archive/README.md`](../archive/README.md).
+
 - `_template.md` — a fill-in-the-blanks skeleton. Copy it to
   `docs/specs/<slug>.md` to start a new spec.
 - `_postmortem.md` — Phase 5. A separate template for production-issue
@@ -95,7 +100,7 @@ says no" is not a successful spec — fix the spec.
    spec on the same branch.
 5. The PR description links the spec; the branch is named `spec/<slug>`;
    the PR body contains a `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON
-   -->` block (empty until Phase 3).
+   -->` block (Reviewer JSON or a schema-valid stub until Reviewer runs).
 
 Specs that authorize work touching red-zone files (per AGENTS.md "Red-zone
 files") cannot ship as `risk_tier: T0` regardless of size — see
@@ -115,9 +120,13 @@ citing the spec path.
 | `complete` | Shipped or drill finished — not queued; **keep the file** as history |
 | `archived` | Abandoned or superseded — not queued |
 
-**Do not delete old specs** after merge; set `status: complete` (or `archived` if
-abandoned). Deleting breaks PR links and spec-lint history. Demo specs (`add-greet-*`,
-`add-farewell-*`) and phase exit specs stay in-tree as worked examples.
+**After merge:** set `status: complete` (or `archived` if abandoned). Keep the file
+under `docs/specs/` for your project's specs. Template phase specs that shipped before
+the archive layout live under `docs/archive/template-specs/` — do not move them back.
+
+**Forking:** remove template history with `rm -rf docs/archive` (see
+`docs/post-fork-checklist.md` §9). Optionally delete `docs/specs/add-greet-module.md`
+if you do not want the canonical lint example.
 
 Drill fixtures live under `docs/specs/_drills/`; mark them `complete` after the exit
 drill so cron does not reopen them.

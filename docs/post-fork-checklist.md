@@ -109,25 +109,25 @@ network or API keys. If your project needs them:
       ships with a `.gitkeep` and convention pointers in `AGENTS.md` and
       the Cursor `00-always.mdc` rule.
 
-## 9. Decide what to do with the example specs
+## 9. Remove template spec history (recommended)
 
-The template ships with one or more example specs under `docs/specs/`
-(currently `add-greet-module.md`). They demonstrate the §5.1 structure
-end-to-end and serve as a regression target for `lint_spec.py`. You have
-two reasonable options:
+The template keeps completed **template-build** specs under
+`docs/archive/template-specs/` (audit trail for the living repo). On a
+new product fork you usually do not need them:
 
-- [ ] **Delete them.** A fresh project should not carry example specs
-      that aren't authorizing real work. Run
-      `rm docs/specs/add-greet-module.md` (and any other
-      example-named files). Confirm `just check` still passes.
-- [ ] **Keep them as references.** Move them under
-      `docs/specs/_examples/` so they don't appear alongside your real
-      specs but remain discoverable. Update `docs/specs/README.md` to
-      mention the references directory.
+- [ ] **`rm -rf docs/archive`** — one step removes all template phase/demo
+      specs. Keep `docs/specs/_template.md`, `docs/specs/_postmortem.md`, and
+      `docs/specs/README.md`.
 
-Either way, do this before opening your first real spec PR — otherwise
-the example will appear in `just lint-changed-specs` outputs and create
-confusion.
+Optional:
+
+- [ ] Delete **`docs/specs/add-greet-module.md`** if you do not want the lint
+      example (update `tests/test_lint_spec.py` on your fork if you remove it).
+- [ ] Delete **`docs/phase4-exit-drills/`** and **`docs/phase6-exit-drill/`** drill logs.
+- [ ] Disable **`scheduled-executor.yml`** until you want T0+low auto-dispatch
+      (see CONTRIBUTING.md Phase 6).
+
+Do this before your first real spec PR so `docs/specs/` lists only your work.
 
 ## Done state
 

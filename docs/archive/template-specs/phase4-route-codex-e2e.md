@@ -64,7 +64,7 @@ This spec establishes a documented positive observation of the CI happy path.
 
 ## Interfaces
 
-Only one file is added: `docs/specs/phase4-route-codex-e2e.md`. The PR body is
+Only one file is added: `docs/archive/template-specs/phase4-route-codex-e2e.md`. The PR body is
 the artifact under test for reviewer JSON extraction.
 
 ## Invariants to Preserve

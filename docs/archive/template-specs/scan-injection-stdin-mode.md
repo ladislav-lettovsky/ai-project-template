@@ -397,6 +397,6 @@ single-commit operation. Callers can pivot back to the temp-file pattern.
 - [ ] Invariants INV1–INV7 hold.
 - [ ] Branch name starts with `spec/scan-injection-stdin-mode` (Invariant 1).
 - [ ] PR description links this spec at
-  `docs/specs/scan-injection-stdin-mode.md`.
+  `docs/archive/template-specs/scan-injection-stdin-mode.md`.
 - [ ] PR body contains a `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->`
   block.
