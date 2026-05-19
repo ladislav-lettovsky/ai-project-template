@@ -28,9 +28,9 @@ fork; kept on the living template as observability history.
 
 ## `spikes/`
 
-Time-boxed investigation notes (e.g. scheduled-executor D1 dispatch transport).
+Time-boxed investigation notes (e.g. scheduled-executor dispatch transport).
 
-- [`spikes/scheduled-executor-d1/NOTES.md`](spikes/scheduled-executor-d1/NOTES.md)
+- [`spikes/scheduled-executor/NOTES.md`](spikes/scheduled-executor/NOTES.md)
 
 **Active specs** live in [`docs/specs/`](../specs/) only (`_template.md`,
 `_postmortem.md`, optional examples, and work in progress).

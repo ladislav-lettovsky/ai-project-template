@@ -484,7 +484,7 @@ and ceilings in `.routing-policy.json` make scheduled adaptation safe.
 
 **Status:** **implemented** on `ai-project-template` (May 2026). Authorizing spec:
 [`docs/archive/template-specs/scheduled-executor.md`](archive/template-specs/scheduled-executor.md).
-D1 notes: [`docs/archive/spikes/scheduled-executor-d1/NOTES.md`](archive/spikes/scheduled-executor-d1/NOTES.md). Exit drill:
+Dispatch spike: [`docs/archive/spikes/scheduled-executor/NOTES.md`](archive/spikes/scheduled-executor/NOTES.md). Exit drill:
 [`docs/archive/exit-drills/scheduled-executor/STATUS.md`](archive/exit-drills/scheduled-executor/STATUS.md).
 
 **Shipped (v1):** `queue_specs.py`, `dispatch_spec.py` (`--transport pr`),
