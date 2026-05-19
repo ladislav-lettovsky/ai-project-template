@@ -145,12 +145,23 @@ def list_pull_requests(repo: str | None = None) -> list[dict[str, Any]]:
     return data
 
 
-def pr_references_spec(pr: dict[str, Any], spec_path: str) -> bool:
+def pr_references_spec(pr: dict[str, Any], spec_path: str, *, slug: str) -> bool:
+    """True when a PR is an in-flight or completed scheduler dispatch for this spec.
+
+      Substring match on ``spec_path`` alone is too broad (e.g. a chore PR that
+    mentions the path in its description). Match ``spec/<slug>`` head branches or
+      bodies shaped like ``dispatch_spec.build_pr_body`` (spec link +
+      ``dispatch-source: scheduled``).
+    """
     state = str(pr.get("state") or "").upper()
     merged_at = pr.get("mergedAt")
     if state not in {"OPEN", "MERGED"} and not merged_at:
         return False
-    return spec_path in str(pr.get("body") or "")
+    head = str(pr.get("headRefName") or "")
+    if head == f"spec/{slug}":
+        return True
+    body = str(pr.get("body") or "")
+    return spec_path in body and "dispatch-source: scheduled" in body
 
 
 def iter_spec_paths(spec_dir: Path) -> list[Path]:
@@ -178,7 +189,10 @@ def discover_specs(
             branch_name = f"spec/{descriptor['slug']}"
             if branch_name in remote_branches:
                 skip_reason = "branch_exists"
-            elif any(pr_references_spec(pr, descriptor["path"]) for pr in pull_requests):
+            elif any(
+                pr_references_spec(pr, descriptor["path"], slug=descriptor["slug"])
+                for pr in pull_requests
+            ):
                 skip_reason = "pr_exists"
             else:
                 skip_reason = eligibility_skip_reason(descriptor)
