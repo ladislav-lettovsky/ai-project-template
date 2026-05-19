@@ -125,8 +125,7 @@ under `docs/specs/` for your project's specs. Template phase specs that shipped 
 the archive layout live under `docs/archive/template-specs/` — do not move them back.
 
 **Forking:** remove template history with `rm -rf docs/archive` (see
-`docs/post-fork-checklist.md` §9). Optionally delete `docs/specs/add-greet-module.md`
-if you do not want the canonical lint example.
+`docs/post-fork-checklist.md` §9). Lint example specs live in the archive, not here.
 
 Drill fixtures live under `docs/specs/_drills/`; mark them `complete` after the exit
 drill so cron does not reopen them.

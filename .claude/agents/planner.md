@@ -104,7 +104,7 @@ before renaming.
 - The spec format, in human-readable form: `docs/specs/README.md`.
 - The fillable spec skeleton: `docs/specs/_template.md`.
 - Existing specs: `docs/specs/<slug>.md` — read prior specs to maintain
-  consistency in style and rigor (e.g. `add-greet-module.md`).
+  consistency in style and rigor (see `docs/archive/template-specs/` for shipped examples).
 
 ## Operating notes
 
