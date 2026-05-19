@@ -454,26 +454,26 @@ PR and waits. After: Codex opens a PR, the Router labels it, and `review:codex` 
 without a human in the loop for routine work — while humans remain in the loop wherever the
 Router said so.
 
-### Phase 5 (implemented — automation; human exit partial) — Observability, MCP, adaptive thresholds
+### Phase 5 (implemented) — Observability, MCP, adaptive thresholds
 
-**Deliverable:**
+**Deliverable (shipped on `ai-project-template`):**
 
-1. Telemetry file at `docs/telemetry/events.jsonl` — one JSON line per merged PR: `spec_id`, `risk_tier`, `complexity`, `changed_files_count`, `diff_lines`, `reviewer_validation_status`, `reviewer_confidence`, `findings_count_by_severity`, `route_decision`, `ci_outcome`, `merge_outcome`. (Under `docs/` — visible per Invariant 3.)
-2. **OPTIONAL:** OTel exporter for Codex via `[otel] exporter = { otlp-http = { endpoint = "..." } }` in `.codex/config.toml` (Open Question #2 in §6). `events.jsonl` remains the routing source of truth.
-3. `scripts/telemetry_dashboard.py` → `docs/telemetry/dashboard.md` (route/risk distribution, average confidence, last 20 PRs).
-4. `scripts/adapt_thresholds.py` — bounded policy updates (§5.13).
-5. `.github/workflows/record-telemetry.yml` — on merge to `main`: rebuild context, route, append event, regenerate dashboard, commit.
-6. **MCP integration (human, red-zone):** `[mcp_servers.github]` in `.codex/config.toml`; optional `mcpServers` on Planner (§5.12).
-7. Monthly ritual: dashboard → `adapt_thresholds.py` → review worst PRs → prompt/skill updates.
-8. Post-mortem template `docs/specs/_postmortem.md`; skill `.claude/skills/postmortem/SKILL.md` (human, red-zone).
+1. Telemetry file at `docs/telemetry/events.jsonl` — one JSON line per merged PR: `spec_id`, `risk_tier`, `complexity`, `changed_files_count`, `diff_lines`, `reviewer_validation_status`, `reviewer_confidence`, `findings_count_by_severity`, `route_decision`, `ci_outcome`, `merge_outcome`. (Under `docs/` — visible per Invariant 3.) Automation: PR #44.
+2. **OPTIONAL (not shipped):** OTel exporter for Codex via `[otel]` in `.codex/config.toml` (Open Question #2 in §6). `events.jsonl` remains the routing source of truth.
+3. `scripts/telemetry_dashboard.py` → `docs/telemetry/dashboard.md` (route/risk distribution, average confidence, last 20 PRs). PR #44.
+4. `scripts/adapt_thresholds.py` — bounded policy updates (§5.13). PR #44.
+5. `.github/workflows/record-telemetry.yml` — on merge to `main`: rebuild context, route, append event, regenerate dashboard, commit. PR #44.
+6. **MCP integration:** `[mcp_servers.github]` in `.codex/config.toml` (read-only Docker stdio per §5.12); optional `mcpServers` on Planner (not shipped on template). Human exit: PR #48 (postmortem skill, Invariant 9), PR #49 (read-only MCP hardening), issue #45 closed.
+7. **Ongoing ritual (operator):** dashboard → `adapt_thresholds.py` → review worst PRs → prompt/skill updates.
+8. Post-mortem template `docs/specs/_postmortem.md` (PR #44); skill `.claude/skills/postmortem/SKILL.md` (PR #48).
 
-**Exit criterion (checklist):**
+**Exit criterion (checklist) — all met on the living template:**
 
-- [x] At least one adapt-thresholds cycle from real telemetry (policy committed; template: `max_diff_lines` 150→125, `min_reviewer_confidence` 60→65).
+- [x] At least one adapt-thresholds cycle from real telemetry (policy committed; `max_diff_lines` 150→125, `min_reviewer_confidence` 60→65).
 - [x] At least one AGENTS.md invariant added/revised from a post-mortem or dashboard pattern (Invariant 9 — spec path vs branch slug; drill PR #43).
-- [x] At least one Reviewer finding cites MCP-sourced context (template: issue #45 cited in Reviewer JSON evidence after MCP smoke).
+- [x] At least one Reviewer finding cites MCP-sourced context (issue #45 fetched via GitHub MCP / `codex_apps.github_*`; evidence in Reviewer JSON during smoke).
 
-Human steps for forks: enable `[mcp_servers.github]`, `source .env`, spawn Reviewer on a PR with `Fixes #N`; use read-only server flags per §5.12.
+**Fork operator steps:** copy `.env.example` → `.env`, `set -a && source .env && set +a` before Codex; enable `[mcp_servers.github]` per CONTRIBUTING (read-only flags required). MCP may also be satisfied by Codex built-in GitHub apps (`codex_apps.github_*`) when the GitHub plugin is enabled — the exit criterion is *external issue/PR context in Reviewer evidence*, not a specific transport.
 
 **Why (picturable):** Without Phase 5, the system cannot improve. Prompts rot as dependencies
 and patterns change. Telemetry + bounded adaptation makes policy quality a **measurable**
@@ -491,6 +491,48 @@ and ceilings in `.routing-policy.json` make scheduled adaptation safe.
 **Exit criterion:** A submitted spec is executed (Executor subagent in its own worktree), reviewed (Reviewer subagent, structured JSON), routed (policy), CI-validated, and auto-merged — or blocked with a clear reason. Upon completion, read the dashboard, and spend time on specs rather than on code.
 
 **Why (picturable):** Phase 6 is the semi-autonomous endgame done right with five verified phases, each with a tripwire, each tested on `ai-project-template` before propagating.
+
+#### Authorizing spec scope (draft — for `docs/specs/phase6-scheduled-executor.md`)
+
+Use the Planner subagent + `write-spec` skill to expand this outline into a lint-clean spec.
+Suggested metadata: `risk_tier: T2` or `T3`, `complexity: high` (touches CI, secrets, and
+automation). Branch: `spec/phase6-scheduled-executor`.
+
+**Problem:** Approved specs on `main` with `status: drafted` (or equivalent) and no open
+`spec/<slug>` branch/PR sit idle until a human kicks off the Executor. Phase 6 closes the
+loop: spec in → PR out with the same gates as manual runs.
+
+**In scope (candidate requirements):**
+
+| ID | Topic | Notes |
+| --- | --- | --- |
+| R1 | **Spec queue discovery** | Script or workflow step lists `docs/specs/*.md` (exclude `_template.md`, `_postmortem.md`, `README.md`) where metadata `status` ∈ `{drafted, approved}` and no PR exists for branch `spec/<slug>`. |
+| R2 | **Eligibility gate** | Only enqueue specs with `risk_tier: T0` and `complexity: low` initially; skip red-zone Assessment "yes" rows; cap one concurrent execution per repo. |
+| R3 | **`scheduled-executor.yml`** | Cron (e.g. weekdays) or `workflow_dispatch`; uses `GITHUB_TOKEN` + optional `CODEX_*` / API token secrets; never runs on fork PRs from untrusted contributors without approval. |
+| R4 | **Dispatch mechanism** | **Spike first (D1):** Codex async/cloud API vs `codex exec` in Actions vs self-hosted runner with Docker. Document chosen path in spec Decisions; fallback = open issue + manual dispatch only. |
+| R5 | **Worktree / branch** | Create `spec/<slug>` branch (or reuse existing), run Executor in isolated worktree per §5.9; push branch; open PR with spec link + empty `REVIEWER_JSON` fence. |
+| R6 | **Reviewer + Router handoff** | After Executor PR opens: trigger Reviewer (API or documented human step for v1), ensure `route-pr` runs, respect `review:codex` / `review:human` / `blocked`. |
+| R7 | **Merge policy** | Auto-merge only when label `review:codex`, CI green, and branch protection satisfied; never auto-merge `review:human` or `blocked`. |
+| R8 | **Telemetry** | Merged PRs recorded by existing `record-telemetry.yml`; append `dispatch_source: scheduled` field to events schema if useful. |
+| R9 | **Failure visibility** | On failure: GitHub issue comment or workflow summary with spec path, log excerpt, and "no silent skip". |
+| R10 | **Deterministic tests** | Unit tests for queue discovery and eligibility (fixture specs + mock PR list); workflow YAML schema/shellcheck where applicable. |
+
+**Non-goals (initial slice):**
+
+- Parallel execution of multiple specs in one workflow run.
+- Planner auto-drafting specs from issues (human/Planner still authors specs).
+- Auto-merge on red-zone PRs.
+- Replacing human review for T1+ specs.
+
+**Red-zone / CI:** Expect `review:human` for `.github/workflows/scheduled-executor.yml` and any new dispatch secrets documentation.
+
+**Exit criterion for Phase 6 (maps to blueprint):** One **dry-run** spec (T0, low) picked by the scheduler, Executor opens a PR, Reviewer JSON validates, Router labels `review:codex`, CI passes, and merge happens without human code edits — or the workflow blocks with an auditable reason.
+
+**Open decisions for the spec:**
+
+- D1: Dispatch transport (Open Question #1).
+- D2: Where Executor runs (GitHub-hosted runner vs self-hosted vs Codex Cloud).
+- D3: Whether v1 stops at "open PR" and leaves Reviewer to a second scheduled job.
 
 ---
 
@@ -1070,18 +1112,18 @@ Default bias: produce findings. False positives are preferred to false negatives
 NEVER emit prose instead of JSON. If you cannot produce schema-valid JSON, emit `{"summary": "Reviewer error: <reason>", "findings": [], "coverage": {"requirements_total": 0, "requirements_covered": 0, "tests_expected": 0, "tests_present": 0}, "risk_assessment": {"scope_fit": "correct", "invariant_risk": "high", "production_risk": "high"}, "confidence": 0}` — this guarantees `review:human` routing.
 """
 
-# Phase 5: MCP integration (optional — see §5.12; uncomment when PAT + Docker ready)
-# [mcp_servers.github]
-# command = "docker"
-# args = [
-#   "run", "-i", "--rm",
-#   "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
-#   "-e", "GITHUB_READ_ONLY=1",
-#   "ghcr.io/github/github-mcp-server",
-#   "stdio", "--read-only",
-#   "--toolsets=issues,pull_requests",
-# ]
-# env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]
+# Phase 5: MCP integration (live on template main — see §5.12)
+[mcp_servers.github]
+command = "docker"
+args = [
+  "run", "-i", "--rm",
+  "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
+  "-e", "GITHUB_READ_ONLY=1",
+  "ghcr.io/github/github-mcp-server",
+  "stdio", "--read-only",
+  "--toolsets=issues,pull_requests",
+]
+env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]
 
 ````
 
@@ -1162,6 +1204,11 @@ your **shell** before starting Codex (`export` or `source .env` — Codex does n
 `.env` automatically). Commit [`.env.example`](../.env.example) with a placeholder; keep
 secrets in gitignored `.env`. Step-by-step: [README.md](../README.md) and
 [CONTRIBUTING.md](../CONTRIBUTING.md).
+
+**Transport alternatives:** The living template uses Docker + `github-mcp-server` (above).
+Codex may also expose GitHub via built-in app tools (`codex_apps.github_fetch_issue`, etc.)
+when the GitHub plugin is enabled — sufficient for Phase 5 exit (Reviewer `evidence` cites
+issue/PR URLs). Prefer one transport per repo; do not duplicate PAT exposure.
 
 ### 5.13 Adaptive thresholds (`scripts/adapt_thresholds.py`)
 
@@ -1309,7 +1356,8 @@ Notice what is NOT here:
 2. **The multi-agent orchestration patterns are industry-young.** Much of this will be obsolete in 18 months. The blueprint's durable value is in the *decomposition* and *discipline*, not in any specific tool choice.
 3. **Personal calibration matters more than this document.** This blueprint is scaffolding for *human* judgment, not a replacement for it.
 4. **`ai-project-template` is a living repo.** Every phase changes it. Forks inherit
-   shipped phases; complete any remaining human exit items in your own repo.
+   shipped phases through the phase marked **implemented** in §4; re-run fork-specific operator
+   steps (MCP `.env`, PAT scopes) per CONTRIBUTING.
 5. **Native primitives churn.** Hooks, subagents, skills, plan mode, and MCP all matured visibly between phases of this blueprint. Expect another wave of primitive evolution before Phase 6 lands. Track the official docs (Claude Code docs map, Codex developer docs) before each phase advance.
 
 ---
