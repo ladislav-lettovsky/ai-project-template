@@ -14,9 +14,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
+import subprocess
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Literal
 
 _SCRIPTS_DIR = Path(__file__).resolve().parent
 _REPO_ROOT = _SCRIPTS_DIR.parent
@@ -27,6 +30,12 @@ import lint_spec  # noqa: E402
 
 DEFAULT_EVENTS_PATH = _REPO_ROOT / "docs" / "telemetry" / "events.jsonl"
 SEVERITIES = ("critical", "warning", "nit")
+DispatchSource = Literal["manual", "scheduled"]
+DISPATCH_SOURCE_VALUES: frozenset[str] = frozenset({"manual", "scheduled"})
+DISPATCH_SOURCE_MARKER_RE = re.compile(
+    r"^dispatch-source:\s*scheduled\s*$",
+    re.IGNORECASE | re.MULTILINE,
+)
 
 
 def findings_count_by_severity(reviewer: dict) -> dict[str, int]:
@@ -38,6 +47,43 @@ def findings_count_by_severity(reviewer: dict) -> dict[str, int]:
         if sev in counts:
             counts[sev] += 1
     return counts
+
+
+def parse_dispatch_source_marker(text: str) -> DispatchSource | None:
+    """Return ``scheduled`` when *text* contains the Phase 6 PR/commit marker."""
+    if DISPATCH_SOURCE_MARKER_RE.search(text):
+        return "scheduled"
+    return None
+
+
+def commit_bodies_for_sha(repo_root: Path, head_sha: str, *, limit: int = 20) -> list[str]:
+    cp = subprocess.run(
+        ["git", "log", "--format=%B", f"-n{limit}", head_sha],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if cp.returncode != 0 or not cp.stdout.strip():
+        return []
+    return [block for block in cp.stdout.split("\n\n") if block.strip()]
+
+
+def resolve_dispatch_source(
+    pr: dict,
+    *,
+    repo_root: Path,
+    head_sha: str | None = None,
+) -> DispatchSource:
+    """Infer dispatch provenance from PR body marker or commit trailers on *head_sha*."""
+    pr_body = str(pr.get("pr_body") or "")
+    if parse_dispatch_source_marker(pr_body) == "scheduled":
+        return "scheduled"
+    if head_sha:
+        for body in commit_bodies_for_sha(repo_root, head_sha):
+            if parse_dispatch_source_marker(body) == "scheduled":
+                return "scheduled"
+    return "manual"
 
 
 def parse_spec_id(repo_root: Path, pr: dict) -> str | None:
@@ -60,10 +106,13 @@ def build_event(
     head_sha: str | None = None,
     ci_outcome: str = "pending",
     merge_outcome: str = "open",
+    repo_root: Path | None = None,
 ) -> dict:
     reviewer = pr.get("reviewer") or {}
     spec_meta = pr.get("spec") or {}
     reviewer_val = pr.get("reviewer_validation") or {}
+    root = repo_root if repo_root is not None else _REPO_ROOT
+    dispatch_source = resolve_dispatch_source(pr, repo_root=root, head_sha=head_sha)
     return {
         "recorded_at": datetime.now(UTC).isoformat(),
         "pr_number": pr_number,
@@ -83,6 +132,7 @@ def build_event(
         "route_reasons": route.get("reasons") or [],
         "ci_outcome": ci_outcome,
         "merge_outcome": merge_outcome,
+        "dispatch_source": dispatch_source,
     }
 
 

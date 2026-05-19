@@ -282,6 +282,33 @@ X" without additional rules or bots.
 Fork-head PRs receive a comment with the router’s recommendation; automated
 label application applies to same-repo head branches (see workflow `if:`).
 
+### Phase 6 scheduled executor
+
+`.github/workflows/scheduled-executor.yml` runs on weekdays at 09:00 UTC and via
+`workflow_dispatch:`. It never runs on fork repositories (`if:
+github.event.repository.fork == false`).
+
+**Eligibility (D2):** Only specs with `risk_tier: T0`, `complexity: low`, every
+Red-Zone Assessment axis `no`, and `status: drafted` are candidates. T1+ specs,
+red-zone `yes` rows, or malformed metadata are logged with `skip_reason` and never
+dispatched. One spec per run: lexicographically first eligible slug (D5).
+
+**v1 stop-at-open-PR (D3):** The workflow calls `scripts/dispatch_spec.py` with
+`--transport issue`, which creates `spec/<slug>` from `origin/main` (when missing)
+and opens a `phase6-queue` tracking issue with the planned PR body. It does **not**
+open a GitHub PR or invoke Codex in CI. A human or local Codex session runs the
+Executor and Reviewer; `route-pr.yml` labels any PR once opened. PR bodies from
+`dispatch_spec.py` include `dispatch-source: scheduled` for telemetry (Slice 2).
+
+**Failure visibility (D6):** Any failing step fails the job (no `|| true`). A
+`phase6-failure` issue is opened with the workflow run URL.
+
+**Disable / rollback:** Rename or delete `.github/workflows/scheduled-executor.yml`
+(e.g. `scheduled-executor.yml.disabled`) to stop cron and manual runs. Revert
+`CONTRIBUTING.md` / blueprint notes if you remove the feature entirely.
+
+Authorizing spec: [`docs/specs/phase6-scheduled-executor.md`](docs/specs/phase6-scheduled-executor.md).
+
 ### Branch protection (Phase 4 deliverable #4)
 
 Configure in GitHub **Settings → Branches → Branch protection rules** for

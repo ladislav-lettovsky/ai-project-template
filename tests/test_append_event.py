@@ -66,6 +66,7 @@ def test_build_event_fields() -> None:
     assert event["changed_files_count"] == 2
     assert event["findings_count_by_severity"]["nit"] == 1
     assert event["ci_outcome"] == "success"
+    assert event["dispatch_source"] == "manual"
 
 
 def test_findings_count_by_severity() -> None:
