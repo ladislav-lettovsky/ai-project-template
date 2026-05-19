@@ -301,6 +301,23 @@ With the symlink pattern, the two files cannot drift.
 Either you're using the wrong file (symlink should make this impossible)
 or the content belongs in a subagent definition, not in the canonical instructions.
 
+### Invariant 9 — Authorizing spec path matches branch slug
+
+**Subject:** PRs on branches `spec/<slug>` or `fix/<slug>` that cite an authorizing spec.
+
+**Rule:** The authorizing spec file on disk MUST be `docs/specs/<slug>.md` where `<slug>` is
+the branch suffix after `spec/` or `fix/`. The PR description MUST link that path.
+`scripts/build_pr_context.py` lint-checks the file when present.
+
+**Why (picturable):** A branch `spec/phase4-exit-drills` with spec at
+`docs/specs/phase4-router-exit-drills.md` yields `spec_validation.invalid`, forces
+`review:human`, and breaks Invariant 1 traceability (Router cannot trust `spec.risk_tier`).
+Template Phase 4 exit drill PR #43 hit this failure mode.
+
+**Tripwire:** `spec_validation.status` is `invalid` with error
+`authorizing spec file missing at docs/specs/<slug>.md` while the PR links a differently
+named spec file.
+
 ---
 
 ## 3. Anti-patterns to avoid
@@ -446,17 +463,17 @@ Router said so.
 3. `scripts/telemetry_dashboard.py` → `docs/telemetry/dashboard.md` (route/risk distribution, average confidence, last 20 PRs).
 4. `scripts/adapt_thresholds.py` — bounded policy updates (§5.13).
 5. `.github/workflows/record-telemetry.yml` — on merge to `main`: rebuild context, route, append event, regenerate dashboard, commit.
-6. **MCP integration (human, red-zone):** `[agents.reviewer.mcp_servers.*]` in `.codex/config.toml`; optional `mcpServers` on Planner (§5.12).
+6. **MCP integration (human, red-zone):** `[mcp_servers.github]` in `.codex/config.toml`; optional `mcpServers` on Planner (§5.12).
 7. Monthly ritual: dashboard → `adapt_thresholds.py` → review worst PRs → prompt/skill updates.
 8. Post-mortem template `docs/specs/_postmortem.md`; skill `.claude/skills/postmortem/SKILL.md` (human, red-zone).
 
 **Exit criterion (checklist):**
 
 - [x] At least one adapt-thresholds cycle from real telemetry (policy committed; template: `max_diff_lines` 150→125, `min_reviewer_confidence` 60→65).
-- [ ] At least one AGENTS.md invariant added/revised from a post-mortem or dashboard pattern.
-- [ ] At least one Reviewer finding cites MCP-sourced context (issue, Sentry, etc.).
+- [x] At least one AGENTS.md invariant added/revised from a post-mortem or dashboard pattern (Invariant 9 — spec path vs branch slug; drill PR #43).
+- [ ] At least one Reviewer finding cites MCP-sourced context (issue, Sentry, etc.) — requires enabled `[mcp_servers.github]` and a smoke PR.
 
-Human steps for the open items: track in your repo (issue tracker or internal checklist).
+Human steps for the open MCP item: enable config (uncomment), `source .env`, run Reviewer on a PR with `Fixes #N`; track in your issue tracker.
 
 **Why (picturable):** Without Phase 5, the system cannot improve. Prompts rot as dependencies
 and patterns change. Telemetry + bounded adaptation makes policy quality a **measurable**
@@ -1053,11 +1070,12 @@ Default bias: produce findings. False positives are preferred to false negatives
 NEVER emit prose instead of JSON. If you cannot produce schema-valid JSON, emit `{"summary": "Reviewer error: <reason>", "findings": [], "coverage": {"requirements_total": 0, "requirements_covered": 0, "tests_expected": 0, "tests_present": 0}, "risk_assessment": {"scope_fit": "correct", "invariant_risk": "high", "production_risk": "high"}, "confidence": 0}` — this guarantees `review:human` routing.
 """
 
-# Phase 5: MCP integration (Reviewer reaches GitHub)
-
-[agents.reviewer.mcp_servers.github]
-url = "<http://localhost:7301/mcp>"
-startup_timeout_sec = 20
+# Phase 5: MCP integration (optional — see §5.12; uncomment when PAT + Docker ready)
+# [mcp_servers.github]
+# command = "docker"
+# args = ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
+#         "ghcr.io/github/github-mcp-server"]
+# env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]
 
 ````
 
@@ -1099,12 +1117,15 @@ Skills also work in Codex via `[[skills.config]]` blocks pointing to the same SK
 Phase 5 enhancement. Adds external context to the Reviewer (and optionally the Planner) without inflating the diff itself.
 
 ```toml
-# .codex/config.toml — Reviewer reaches GitHub PR data, Sentry runtime errors
-[agents.reviewer.mcp_servers.github]
-url = "http://localhost:7301/mcp"
+# .codex/config.toml — top-level MCP (Codex docs); optional Sentry server similarly
+[mcp_servers.github]
+command = "docker"
+args = ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"]
+env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]
 
-[agents.reviewer.mcp_servers.sentry]
-url = "http://localhost:7401/mcp"
+# [mcp_servers.sentry]
+# url = "http://127.0.0.1:7401/mcp"
 ```
 
 ```md
