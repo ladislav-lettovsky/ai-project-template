@@ -27,6 +27,16 @@ import lint_spec  # noqa: E402
 
 EXCLUDED_SPEC_NAMES = frozenset({"_template.md", "_postmortem.md", "README.md"})
 RED_ZONE_VALUES = frozenset({"yes", "no"})
+RED_ZONE_AXES = (
+    "auth",
+    "billing",
+    "dependencies",
+    "CI",
+    "migrations",
+    "secrets",
+    "infra",
+    "invariant-protected files",
+)
 
 
 def slug_from_path(path: Path) -> str:
@@ -83,6 +93,9 @@ def eligibility_skip_reason(descriptor: dict[str, Any]) -> str | None:
     red_zone = descriptor.get("red_zone") or {}
     if not red_zone:
         return "red_zone_missing"
+    missing_axes = [key for key in RED_ZONE_AXES if key not in red_zone]
+    if missing_axes:
+        return "red_zone_incomplete"
     invalid_values = [key for key, value in red_zone.items() if value not in RED_ZONE_VALUES]
     if invalid_values:
         return "red_zone_invalid"

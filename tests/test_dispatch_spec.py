@@ -6,6 +6,7 @@ import importlib.util
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 _DISPATCH_PATH = REPO_ROOT / "scripts" / "dispatch_spec.py"
@@ -23,6 +24,7 @@ def _load_dispatch():
 
 
 dispatch_spec = _load_dispatch()
+validate_reviewer = importlib.import_module("validate_reviewer")
 
 
 def _write_spec(repo_root: Path, slug: str, *, risk_tier: str = "T0") -> Path:
@@ -60,6 +62,10 @@ def test_build_pr_body_links_spec_and_contains_reviewer_fence() -> None:
     assert "[docs/specs/widget.md](docs/specs/widget.md)" in body
     assert "<!-- REVIEWER_JSON -->" in body
     assert "<!-- /REVIEWER_JSON -->" in body
+    json_text = body.split("<!-- REVIEWER_JSON -->", 1)[1].split("<!-- /REVIEWER_JSON -->", 1)[0]
+    reviewer = json.loads(json_text)
+    assert reviewer == dispatch_spec.REVIEWER_STUB
+    assert validate_reviewer.validate(body, validate_reviewer.load_reviewer_schema()) == []
 
 
 def test_dry_run_payload_has_issue_stub_and_no_remote_calls(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
@@ -100,3 +106,41 @@ def test_ineligible_spec_is_rejected(tmp_path: Path, capsys) -> None:  # type: i
 
     assert rc == 2
     assert "risk_tier_ineligible" in capsys.readouterr().err
+
+
+def test_create_remote_branch_pushes_resolved_origin_main(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    calls: list[list[str]] = []
+
+    def fake_run(cmd: list[str], **_: Any):  # type: ignore[no-untyped-def]
+        calls.append(cmd)
+        if cmd[:3] == ["git", "rev-parse", "--verify"] and cmd[3] == "origin/main":
+            return type("CP", (), {"stdout": "abc123\n"})()
+        if cmd[:3] == ["git", "rev-parse", "--verify"] and cmd[3] == "HEAD":
+            return type("CP", (), {"stdout": "abc123\n"})()
+        if cmd[:2] == ["git", "push"]:
+            return type("CP", (), {"stdout": ""})()
+        raise AssertionError(f"unexpected command: {cmd}")
+
+    monkeypatch.setattr(dispatch_spec.subprocess, "run", fake_run)
+
+    dispatch_spec.create_remote_branch("origin", "spec/widget")
+
+    assert calls[-1] == ["git", "push", "origin", "abc123:refs/heads/spec/widget"]
+
+
+def test_create_remote_branch_errors_when_head_is_not_origin_main(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    def fake_run(cmd: list[str], **_: Any):  # type: ignore[no-untyped-def]
+        if cmd[:3] == ["git", "rev-parse", "--verify"] and cmd[3] == "origin/main":
+            return type("CP", (), {"stdout": "abc123\n"})()
+        if cmd[:3] == ["git", "rev-parse", "--verify"] and cmd[3] == "HEAD":
+            return type("CP", (), {"stdout": "def456\n"})()
+        raise AssertionError(f"unexpected command: {cmd}")
+
+    monkeypatch.setattr(dispatch_spec.subprocess, "run", fake_run)
+
+    try:
+        dispatch_spec.create_remote_branch("origin", "spec/widget")
+    except RuntimeError as exc:
+        assert "does not match origin/main" in str(exc)
+    else:
+        raise AssertionError("expected RuntimeError")
