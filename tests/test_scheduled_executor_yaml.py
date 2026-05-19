@@ -36,4 +36,4 @@ def test_phase6_documentation_slice3() -> None:
     assert "scheduled-executor.yml" in contributing
     assert "Phase 6" in blueprint
     assert "implemented" in blueprint
-    assert (REPO_ROOT / "docs" / "phase6-exit-drill" / "STATUS.md").is_file()
+    assert (REPO_ROOT / "docs" / "archive" / "exit-drills" / "phase6" / "STATUS.md").is_file()

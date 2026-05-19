@@ -356,7 +356,6 @@ still follows markdownlint normally.
 
 ### Template exit-drill logs *(forks may delete)*
 
-Drill kits: [`docs/phase4-exit-drills/`](./docs/phase4-exit-drills/),
-[`docs/phase6-exit-drill/`](./docs/phase6-exit-drill/). Template spec history:
-[`docs/archive/`](./docs/archive/). Forks can `rm -rf docs/archive` and the drill
-directories; see `docs/post-fork-checklist.md` §9.
+Drill kits and spikes live under [`docs/archive/`](./docs/archive/) (`exit-drills/`,
+`spikes/`, `template-specs/`). Forks can `rm -rf docs/archive`; see
+`docs/post-fork-checklist.md` §9.

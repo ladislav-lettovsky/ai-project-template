@@ -48,7 +48,7 @@ of merging consequential work without human eyes.
   `origin/main`, seed an empty commit when the branch still matches `main`,
   and open a PR via `gh pr create` with spec link + `dispatch-source:
   scheduled` + schema-valid `REVIEWER_JSON` stub. Spike notes:
-  [`docs/phase6-d1-spike/NOTES.md`](../phase6-d1-spike/NOTES.md). `codex exec`
+  [`docs/archive/spikes/phase6-d1/NOTES.md`](../spikes/phase6-d1/NOTES.md). `codex exec`
   in Actions is **deferred** (needs `CODEX_API_KEY` + isolation); `--transport
   issue` remains a legacy fallback. Phase 6.1 may add Codex-in-CI after secrets
   exist.
@@ -150,7 +150,7 @@ Router, while leaving the rest of the policy unchanged.
   cron), dispatched via the chosen D1 transport, and a PR opens. The
   existing Router labels it `review:codex` (or `review:human` if the
   drill spec triggers a gate, which is informative — log the result).
-  The drill outcome is recorded in `docs/phase6-exit-drill/STATUS.md`
+  The drill outcome is recorded in `docs/archive/exit-drills/phase6/STATUS.md`
   with the PR link.
 
 ## Non-Goals
@@ -188,8 +188,8 @@ New files:
 - `tests/test_queue_specs.py`, `tests/test_dispatch_spec.py`,
   `tests/test_events_schema_dispatch_source.py`,
   `tests/test_scheduled_executor_yaml.py` (smoke-parses the YAML).
-- `docs/phase6-exit-drill/README.md` and `docs/phase6-exit-drill/STATUS.md`
-  — drill kit and observation log, modelled on `docs/phase4-exit-drills/`.
+- `docs/archive/exit-drills/phase6/README.md` and `docs/archive/exit-drills/phase6/STATUS.md`
+  — drill kit and observation log, modelled on `docs/archive/exit-drills/phase4/`.
 
 Modified files:
 
@@ -260,7 +260,7 @@ No modifications to: `scripts/route_pr.py`, `.routing-policy.json`,
 - R7 -> `grep -qE 'Phase 6.*(in-progress|implemented)' docs/blueprint.md`
 - R8 -> `uv run pytest tests/test_queue_specs.py tests/test_dispatch_spec.py tests/test_events_schema_dispatch_source.py tests/test_scheduled_executor_yaml.py -q`
 - R9 -> `! grep -E '\|\| true|continue-on-error: true' .github/workflows/scheduled-executor.yml`
-- R10 -> `test -f docs/phase6-exit-drill/STATUS.md` AND drill PR linked in `STATUS.md`
+- R10 -> `test -f docs/archive/exit-drills/phase6/STATUS.md` AND drill PR linked in `STATUS.md`
 - FULL -> `just check`
 
 ## Edge Cases
@@ -355,7 +355,7 @@ No modifications to: `scripts/route_pr.py`, `.routing-policy.json`,
    spec (e.g., a `docs/specs/_drills/hello-world.md`), commit it on
    `main`, trigger the scheduler via `workflow_dispatch:`, observe
    the PR open and route, and record the outcome in
-   `docs/phase6-exit-drill/STATUS.md`. Mark Phase 6 implemented in
+   `docs/archive/exit-drills/phase6/STATUS.md`. Mark Phase 6 implemented in
    `docs/blueprint.md`.
 
 ## Done When
@@ -370,5 +370,5 @@ No modifications to: `scripts/route_pr.py`, `.routing-policy.json`,
 - [ ] Branch name starts with `spec/phase6-scheduled-executor` (Invariant 1)
 - [ ] PR description links this spec (Invariant 9)
 - [ ] PR body contains `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` block
-- [ ] Exit drill PR recorded in `docs/phase6-exit-drill/STATUS.md`
+- [ ] Exit drill PR recorded in `docs/archive/exit-drills/phase6/STATUS.md`
 - [ ] Blueprint Phase 6 status updated from "in-progress" to "implemented"

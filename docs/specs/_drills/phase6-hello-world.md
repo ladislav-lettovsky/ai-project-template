@@ -61,7 +61,7 @@ Validate scheduler → open PR → Router handoff without touching red-zone file
 
 ## Validation Contract
 
-- R1 -> `workflow_dispatch` on `scheduled-executor.yml` with drill recorded in `docs/phase6-exit-drill/STATUS.md`
+- R1 -> `workflow_dispatch` on `scheduled-executor.yml` with drill recorded in `docs/archive/exit-drills/phase6/STATUS.md`
 
 ## Edge Cases
 
@@ -75,7 +75,7 @@ Validate scheduler → open PR → Router handoff without touching red-zone file
 
 ## Observability
 
-Exit drill log in `docs/phase6-exit-drill/STATUS.md`.
+Exit drill log in `docs/archive/exit-drills/phase6/STATUS.md`.
 
 ## Rollback / Recovery
 
@@ -87,4 +87,4 @@ Close drill PR; delete `spec/phase6-hello-world` branch; set `status: retired` o
 
 ## Done When
 
-- [ ] Exit drill recorded in `docs/phase6-exit-drill/STATUS.md`
+- [ ] Exit drill recorded in `docs/archive/exit-drills/phase6/STATUS.md`

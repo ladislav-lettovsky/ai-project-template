@@ -25,7 +25,7 @@ docs marking Phase 4 complete.
 
 ## Decisions
 
-- D1: Drill kit lives under `docs/phase4-exit-drills/` with copy-paste PR bodies
+- D1: Drill kit lives under `docs/archive/exit-drills/phase4/` with copy-paste PR bodies
   and a `STATUS.md` observation log — not under `.scratch/` (durable traceability).
 - D2: Red-zone `AGENTS.md` edit for drill B is human-authored (Invariant 7).
 
@@ -37,7 +37,7 @@ red-zone `review:human` on GitHub.
 
 ## Requirements (STRICT)
 
-- [ ] R1: Add `docs/phase4-exit-drills/` with `README.md`, `STATUS.md`, and
+- [ ] R1: Add `docs/archive/exit-drills/phase4/` with `README.md`, `STATUS.md`, and
   schema-valid PR body templates for drills B (`human-redzone`) and C (`blocked`).
 - [ ] R2: Update `docs/blueprint.md` to mark Phase 4 **implemented** and list
   exit-criteria status with links to `STATUS.md`.
@@ -53,7 +53,7 @@ red-zone `review:human` on GitHub.
 
 ## Interfaces
 
-- `docs/phase4-exit-drills/**` (new)
+- `docs/archive/exit-drills/phase4/**` (new)
 - `docs/archive/template-specs/phase4-exit-drills.md` (this file)
 - `docs/blueprint.md`, `CONTRIBUTING.md` (docs only)
 
@@ -79,7 +79,7 @@ red-zone `review:human` on GitHub.
 
 ## Validation Contract
 
-- R1 -> `just validate-reviewer docs/phase4-exit-drills/blocked-pr-body.md` and `human-redzone-pr-body.md` exit 0
+- R1 -> `just validate-reviewer docs/archive/exit-drills/phase4/blocked-pr-body.md` and `human-redzone-pr-body.md` exit 0
 - R2 -> `grep -q 'Phase 4 (implemented)' docs/blueprint.md`
 - R3 -> `grep -q 'Branch protection' CONTRIBUTING.md` (Phase 4 Router section)
 - R4 -> `STATUS.md` lists PR links for all three outcome rows
