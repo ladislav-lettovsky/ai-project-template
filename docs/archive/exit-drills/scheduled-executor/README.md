@@ -1,7 +1,7 @@
-# Phase 6 exit drill kit
+# Scheduled executor exit drill kit
 
-Observability checklist for
-[Phase 6 exit criterion](../../template-specs/scheduled-executor.md)
+Observability checklist for the
+[scheduled-executor exit criterion](../../template-specs/scheduled-executor.md)
 (R10). Record outcomes in [`STATUS.md`](STATUS.md).
 
 ## Drill — scheduled dispatch → open PR → Router label
@@ -11,7 +11,7 @@ Observability checklist for
    hello-world example is archived at
    [`hello-world-fixture.md`](hello-world-fixture.md) (`status: complete` — not queued).
 2. Confirm no `spec/<drill-slug>` branch and no open PR citing the active fixture path.
-3. Run **Actions → Phase 6 — Scheduled Executor → Run workflow** (`workflow_dispatch`).
+3. Run **Actions → Scheduled Executor → Run workflow** (`workflow_dispatch`).
 4. Expect workflow summary: eligible ≥ 1, selected `docs/specs/_drills/<slug>.md` (or the
    path you placed), dispatch `pr_url` in summary.
 5. Open the PR; confirm body links the spec, `dispatch-source: scheduled`, and valid

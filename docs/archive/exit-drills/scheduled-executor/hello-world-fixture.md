@@ -1,4 +1,4 @@
-# Phase 6 exit drill — hello world
+# Scheduled executor exit drill — hello world
 
 ## Metadata
 
@@ -12,17 +12,17 @@
 
 ## Context
 
-Trivial T0/low fixture for Phase 6 exit drill (R10). The scheduled executor should
+Trivial T0/low fixture for the scheduled-executor exit drill (R10). The scheduled executor should
 queue and dispatch this spec; no production code changes are intended. Archived under
 `docs/archive/exit-drills/scheduled-executor/` after the drill completed so cron does not re-queue it.
 
 ## Assumptions
 
-- A1: Drill runs only on the template repo with Phase 6 workflow enabled.
+- A1: Drill runs only on the template repo with the scheduled-executor workflow enabled.
 
 ## Decisions
 
-- D1: No implementation beyond an empty seed commit on `spec/hello-world-fixture` (legacy branch `spec/phase6-hello-world`).
+- D1: No implementation beyond an empty seed commit on `spec/hello-world-fixture`.
 
 ## Problem Statement
 
@@ -80,7 +80,8 @@ Exit drill log in `docs/archive/exit-drills/scheduled-executor/STATUS.md`.
 
 ## Rollback / Recovery
 
-Close drill PR; delete the drill branch (`spec/test-hello-world` or legacy `spec/phase6-hello-world`). Fixture remains in this archive path.
+Close drill PR; delete the drill branch (`spec/hello-world-fixture` or later `spec/test-hello-world`).
+Fixture remains in this archive path.
 
 ## Implementation Slices
 

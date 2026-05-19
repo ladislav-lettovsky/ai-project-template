@@ -128,11 +128,11 @@ Router, while leaving the rest of the policy unchanged.
   reads the dispatching branch's commit trailer or PR body marker
   `dispatch-source: scheduled` to set the field; absence means
   `manual`. No backfill of historical rows.
-- [ ] R6: Update `CONTRIBUTING.md` with a Phase 6 section explaining
+- [ ] R6: Update `CONTRIBUTING.md` with a scheduled-executor section explaining
   the scheduler's eligibility gate (D2), the v1 stop-at-open-PR
   behavior (D3), the failure-visibility contract (D6), and how to
   disable the workflow (rollback).
-- [ ] R7: Update `docs/blueprint.md` to mark Phase 6 status (still
+- [ ] R7: Update `docs/blueprint.md` to mark scheduled-executor status (still
   in-progress until D1 spike resolves; `[implemented]` after the
   exit drill in R10 lands a dry-run PR).
 - [ ] R8: Add deterministic tests covering: queue discovery (fixture
@@ -196,8 +196,8 @@ Modified files:
 - `docs/telemetry/README.md` — `dispatch_source` field documented.
 - `scripts/append_event.py` — populate `dispatch_source` when the
   source PR carries the trailer.
-- `CONTRIBUTING.md` — Phase 6 section.
-- `docs/blueprint.md` — Phase 6 status pointer.
+- `CONTRIBUTING.md` — scheduled-executor section.
+- `docs/blueprint.md` — scheduled-executor / Codex-in-CI status pointer.
 
 No modifications to: `scripts/route_pr.py`, `.routing-policy.json`,
 `.reviewer-schema.json`, `scripts/lint_spec.py`,
@@ -256,8 +256,8 @@ No modifications to: `scripts/route_pr.py`, `.routing-policy.json`,
 - R4 -> `uv run pytest tests/test_scheduled_executor_yaml.py -q` AND
   `test -f .github/workflows/scheduled-executor.yml`
 - R5 -> `uv run pytest tests/test_events_schema_dispatch_source.py -q`
-- R6 -> `grep -q 'Phase 6' CONTRIBUTING.md`
-- R7 -> `grep -qE 'Phase 6.*(in-progress|implemented)' docs/blueprint.md`
+- R6 -> `grep -qi 'scheduled executor' CONTRIBUTING.md`
+- R7 -> `grep -qiE 'scheduled executor.*implemented|codex in ci.*implemented' docs/blueprint.md`
 - R8 -> `uv run pytest tests/test_queue_specs.py tests/test_dispatch_spec.py tests/test_events_schema_dispatch_source.py tests/test_scheduled_executor_yaml.py -q`
 - R9 -> `! grep -E '\|\| true|continue-on-error: true' .github/workflows/scheduled-executor.yml`
 - R10 -> `test -f docs/archive/exit-drills/scheduled-executor/STATUS.md` AND drill PR linked in `STATUS.md`
@@ -355,7 +355,7 @@ No modifications to: `scripts/route_pr.py`, `.routing-policy.json`,
    spec (e.g., a `docs/specs/_drills/hello-world.md`), commit it on
    `main`, trigger the scheduler via `workflow_dispatch:`, observe
    the PR open and route, and record the outcome in
-   `docs/archive/exit-drills/scheduled-executor/STATUS.md`. Mark Phase 6 implemented in
+   `docs/archive/exit-drills/scheduled-executor/STATUS.md`. Mark scheduled executor implemented in
    `docs/blueprint.md`.
 
 ## Done When
@@ -371,4 +371,4 @@ No modifications to: `scripts/route_pr.py`, `.routing-policy.json`,
 - [ ] PR description links this spec (Invariant 9)
 - [ ] PR body contains `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` block
 - [ ] Exit drill PR recorded in `docs/archive/exit-drills/scheduled-executor/STATUS.md`
-- [ ] Blueprint Phase 6 status updated from "in-progress" to "implemented"
+- [ ] Blueprint scheduled-executor status updated from "in-progress" to "implemented"

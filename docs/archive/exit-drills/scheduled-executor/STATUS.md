@@ -1,4 +1,4 @@
-# Phase 6 exit drill — observation log
+# Scheduled executor exit drill — observation log
 
 > Historical paths below cite `docs/specs/…` as at drill time. Shipped template specs
 > now live under `docs/archive/template-specs/` (see `docs/archive/README.md`).
@@ -16,14 +16,15 @@
 - **Outcome:** Job green, but dispatch step failed silently (`pipefail` off). Selected
   `docs/archive/template-specs/router-smoke.md` (lexicographically before `_drills/`) and hit a
   relative-path bug in `dispatch_spec.py` when loading the spec from the workflow cwd.
-- **Follow-up:** `fix/phase6-exit-drill-dispatch` — resolve spec paths against `--repo-root`,
+- **Follow-up:** `fix/scheduled-executor-exit-drill-dispatch` — resolve spec paths against `--repo-root`,
   prefer `_drills/` eligible specs in the workflow `jq` sort, enable `set -o pipefail` on dispatch.
 
 ## Drill PR (exit criterion)
 
 - **Drill PR:** [#56](https://github.com/ladislav-lettovsky/ai-project-template/pull/56)
-- **Branch:** `spec/phase6-hello-world` (empty seed commit + stub PR body)
-- **Body checks:** Links `docs/specs/_drills/hello-world-fixture.md`; contains
+- **Branch:** `spec/hello-world-fixture` (empty seed commit + stub PR body; later drills use
+  `spec/test-hello-world`)
+- **Body checks:** Links `docs/specs/_drills/hello-world-fixture.md` (since moved to archive); contains
   `dispatch-source: scheduled`; schema-valid `REVIEWER_JSON` stub.
 - **Router label:** `review:human` — expected for placeholder Reviewer JSON (`confidence: 0`,
   `invariant_risk: high` in stub per policy). Not `review:codex`; drill still validates

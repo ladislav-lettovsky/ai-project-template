@@ -46,7 +46,8 @@ def test_scheduled_executor_documented() -> None:
     blueprint = (REPO_ROOT / "docs" / "blueprint.md").read_text(encoding="utf-8")
     assert "Scheduled executor" in contributing
     assert "scheduled-executor.yml" in contributing
-    assert "Phase 6" in blueprint
+    assert "Scheduled executor" in blueprint
+    assert "Codex in CI" in blueprint
     assert "implemented" in blueprint
     assert (
         REPO_ROOT / "docs" / "archive" / "exit-drills" / "scheduled-executor" / "STATUS.md"

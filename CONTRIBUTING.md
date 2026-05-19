@@ -314,7 +314,8 @@ opens a `scheduler-queue` tracking issue only (rollback).
 **Without `OPENAI_API_KEY`:** transport stays `pr` — stop at open PR; a human or local
 Codex session runs Executor and Reviewer; `route-pr.yml` labels the PR.
 
-**With `OPENAI_API_KEY` (Phase 6.1):** transport is `codex`; the `codex_agents` job runs
+**With `OPENAI_API_KEY` (Codex-in-CI):** transport is `codex`; the `codex_executor` and
+`codex_reviewer` jobs run
 `openai/codex-action@v1` for Executor (workspace-write) and Reviewer (read-only), applies
 Reviewer JSON via `scripts/codex_ci.py apply-reviewer`, and validates with
 `scripts/validate_reviewer.py`. Optional squash-merge when repository variable

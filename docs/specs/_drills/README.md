@@ -14,8 +14,8 @@ Before re-running smoke, ensure:
 
 - No open PR whose body cites `docs/specs/_drills/test-hello-world.md`
 - No remote branch `spec/test-hello-world` (delete after closing the smoke PR)
-- No legacy branch `spec/phase6-hello-world` from earlier drills (delete if present)
+- No stale drill branches besides the current smoke branch (delete leftover `spec/*` after closing drill PRs)
 
 When retiring the fixture from the queue, set `status: complete` or move the file to
-[`docs/archive/exit-drills/scheduled-executor/`](../../archive/exit-drills/scheduled-executor/). Historical
-exit-drill status: [`STATUS.md`](../../archive/exit-drills/scheduled-executor/STATUS.md).
+[`docs/archive/exit-drills/phase6/`](../../archive/exit-drills/phase6/). Historical
+exit-drill status: [`STATUS.md`](../../archive/exit-drills/phase6/STATUS.md).

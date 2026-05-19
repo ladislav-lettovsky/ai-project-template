@@ -1,4 +1,4 @@
-# Phase 6 D1 — dispatch transport spike
+# Scheduled executor D1 — dispatch transport spike
 
 Authorizing spec:
 [`docs/archive/template-specs/scheduled-executor.md`](../../template-specs/scheduled-executor.md).
@@ -8,7 +8,7 @@ Authorizing spec:
 | Option | Verdict |
 | --- | --- |
 | (a) Codex async/cloud API via `actions/github-script` | Rejected for v1 — no stable template contract; org-specific endpoints. |
-| (b) `codex exec` in GitHub-hosted Actions | **Deferred** — requires `CODEX_API_KEY` (or equivalent) repo secret, network egress, and non-deterministic CI without a pinned fixture harness. Documented for Phase 6.1 when secrets are configured. |
+| (b) `codex exec` in GitHub-hosted Actions | **Deferred** — requires `CODEX_API_KEY` (or equivalent) repo secret, network egress, and non-deterministic CI without a pinned fixture harness. Documented for Codex-in-CI when secrets are configured. |
 | (c) Self-hosted runner + Docker-isolated Codex | Rejected for v1 — operational cost exceeds template scope. |
 
 ## Chosen transport (v1)
@@ -18,7 +18,7 @@ Authorizing spec:
 - Satisfies D3 (stop at open PR) using only `GITHUB_TOKEN` scopes already granted to `scheduled-executor.yml`.
 - `scripts/dispatch_spec.py --transport pr` is the workflow default.
 - PR body includes spec link, `dispatch-source: scheduled`, and schema-valid `REVIEWER_JSON` stub.
-- Executor implementation and Reviewer population remain human- or locally-invoked Codex (Phase 6.1).
+- Executor implementation and Reviewer population remain human- or locally-invoked Codex (Codex-in-CI).
 
 ## Legacy rollback
 
