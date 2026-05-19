@@ -14,6 +14,6 @@
     "floor_max_changed_files": 1,
     "floor_max_diff_lines": 50,
     "ceiling_min_reviewer_confidence": 85,
-    "_comment": "Phase 4 ignores adaptive knobs; bounded adaptation is Phase 5 (see docs/blueprint.md)."
+    "_comment": "Router ignores adaptive knobs by default; bounded adaptation uses telemetry (see docs/blueprint.md)."
   }
 }

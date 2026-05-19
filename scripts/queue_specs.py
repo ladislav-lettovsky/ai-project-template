@@ -1,4 +1,4 @@
-"""Discover Phase 6 specs queued for scheduled Executor dispatch.
+"""Discover eligible specs queued for scheduled Executor dispatch.
 
 Usage:
     uv run scripts/queue_specs.py [--remote origin] [--json]
@@ -197,7 +197,7 @@ def read_fixture_json(path: Path) -> Any:
 
 
 def argv_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Discover queued Phase 6 specs.")
+    parser = argparse.ArgumentParser(description="Discover queued eligible specs.")
     parser.add_argument(
         "--remote", default="origin", help="Git remote to inspect for spec branches"
     )

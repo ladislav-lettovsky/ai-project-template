@@ -1,4 +1,4 @@
-# Phase 4 — deterministic PR labeling (docs/blueprint.md §5.7).
+# Deterministic PR labeling (docs/blueprint.md §5.7).
 #
 # Routing outcome does not fail this job — humans may merge even when routed
 # to review:human. Automerge tooling should consult the label separately.
@@ -44,11 +44,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh label create "review:codex" --repo "${{ github.repository }}" --color "0E8A16" \
-            --description "Phase 4 router — automated lane eligible" || true
+            --description "Router — automated lane eligible" || true
           gh label create "review:human" --repo "${{ github.repository }}" --color "B60205" \
-            --description "Phase 4 router — requires human judgement" || true
+            --description "Router — requires human judgement" || true
           gh label create "blocked" --repo "${{ github.repository }}" --color "5319E7" \
-            --description "Phase 4 router — critical finding, do not merge" || true
+            --description "Router — critical finding, do not merge" || true
 
       - name: Build PR context
         env:

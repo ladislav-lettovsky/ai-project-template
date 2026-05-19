@@ -107,8 +107,8 @@ def test_discover_specs_includes_drills_subdirectory(tmp_path: Path) -> None:
     _write_spec(tmp_path, "root-spec")
     drills = tmp_path / "docs" / "specs" / "_drills"
     drills.mkdir(parents=True)
-    top_level_drill = _write_spec(tmp_path, "phase6-hello-world")
-    top_level_drill.rename(drills / "phase6-hello-world.md")
+    top_level_drill = _write_spec(tmp_path, "scheduler-drill")
+    top_level_drill.rename(drills / "scheduler-drill.md")
     slugs = {
         item["slug"]
         for item in queue_specs.discover_specs(
@@ -118,7 +118,7 @@ def test_discover_specs_includes_drills_subdirectory(tmp_path: Path) -> None:
         )
     }
     assert "root-spec" in slugs
-    assert "phase6-hello-world" in slugs
+    assert "scheduler-drill" in slugs
 
 
 def test_red_zone_partial_axes_are_incomplete(tmp_path: Path) -> None:

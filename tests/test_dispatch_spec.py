@@ -113,7 +113,7 @@ def test_dry_run_issue_transport(tmp_path: Path, capsys) -> None:  # type: ignor
     assert rc == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["transport"] == "issue"
-    assert payload["issue"]["label"] == "phase6-queue"
+    assert payload["issue"]["label"] == "scheduler-queue"
 
 
 def test_dispatch_open_pr_monkeypatch(tmp_path: Path, monkeypatch) -> None:  # type: ignore[no-untyped-def]

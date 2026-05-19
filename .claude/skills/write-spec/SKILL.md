@@ -102,7 +102,7 @@ A noun phrase describing the *artifact*, not the *task*. Good:
   concept.
 - `risk_tier`: `T0 | T1 | T2 | T3`. T0 = "could not break anything
   important if wrong." This is the **only** tier that will be eligible
-  for `review:codex` auto-merge in Phase 4. Marking consequential work
+  for `review:codex` auto-merge for `review:codex`. Marking consequential work
   T0 to dodge human review is the worst failure mode in this system —
   when in doubt, escalate.
 - `repo`: the GitHub repo name.

@@ -1,7 +1,7 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "Reviewer Output",
-    "description": "Schema for the structured JSON the Codex Reviewer subagent emits inside <!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON --> blocks in PR bodies. Consumed by scripts/validate_reviewer.py and (Phase 4) scripts/route_pr.py.",
+    "description": "Schema for the structured JSON the Codex Reviewer subagent emits inside <!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON --> blocks in PR bodies. Consumed by scripts/validate_reviewer.py and  scripts/route_pr.py.",
     "type": "object",
     "required": ["summary", "findings", "coverage", "risk_assessment", "confidence"],
     "properties": {
@@ -11,7 +11,7 @@
       },
       "findings": {
         "type": "array",
-        "description": "Structured findings. The Phase 4 Router branches on this array.",
+        "description": "Structured findings. The Router branches on this array.",
         "items": {
           "type": "object",
           "required": ["id", "type", "severity", "requirement_ids", "description", "evidence", "suggested_action"],
@@ -40,7 +40,7 @@
             "severity": {
               "type": "string",
               "enum": ["critical", "warning", "nit"],
-              "description": "critical => blocks merge (Phase 4 routes to 'blocked'); warning => human should look; nit => style/preference."
+              "description": "critical => blocks merge (Router routes to 'blocked'); warning => human should look; nit => style/preference."
             },
             "requirement_ids": {
               "type": "array",
@@ -64,7 +64,7 @@
       },
       "coverage": {
         "type": "object",
-        "description": "Quantitative requirement and test coverage. Phase 4 Router may gate on requirements_covered == requirements_total.",
+        "description": "Quantitative requirement and test coverage. Router may gate on requirements_covered == requirements_total.",
         "required": ["requirements_total", "requirements_covered", "tests_expected", "tests_present"],
         "properties": {
           "requirements_total": {
@@ -115,7 +115,7 @@
         "type": "integer",
         "minimum": 0,
         "maximum": 100,
-        "description": "Reviewer's self-reported confidence in this review, 0-100. Phase 4 Router gates auto-merge on confidence >= 60 by default."
+        "description": "Reviewer's self-reported confidence in this review, 0-100. Router gates auto-merge on confidence >= 60 by default."
       }
     }
   }

@@ -117,13 +117,13 @@ Not required for `just check` or CI. Only if you enable GitHub MCP in
 
 ### Shipped governance features *(Keep)*
 
-**Router (Phase 4)** — `route-pr.yml` labels PRs `review:codex`, `review:human`, or
+**Router** — `route-pr.yml` labels PRs `review:codex`, `review:human`, or
 `blocked`. Automerge bots should gate on `review:codex` + green CI; see CONTRIBUTING.
 
-**Telemetry (Phase 5)** — `docs/telemetry/events.jsonl`, `just telemetry-dashboard`,
+**Telemetry** — `docs/telemetry/events.jsonl`, `just telemetry-dashboard`,
 `just adapt-thresholds` / `adapt-thresholds-write`, `record-telemetry.yml` on merge.
 
-**Scheduled executor (Phase 6, v1)** — `scheduled-executor.yml` queues T0+low `drafted`
+**Scheduled executor** — `scheduled-executor.yml` queues T0+low `drafted`
 specs under `docs/specs/` and opens stub PRs via `dispatch_spec.py`. See
 `docs/blueprint.md` §4 and CONTRIBUTING.md. Template spec history:
 `docs/archive/template-specs/`.

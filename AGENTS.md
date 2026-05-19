@@ -3,7 +3,7 @@
 > **AI-native development governance.** This repo follows the blueprint at
 > [`docs/blueprint.md`](docs/blueprint.md) — a multi-agent system with a Planner
 > (Claude Code), Executor (Codex), Reviewer (Codex),
-> and a deterministic Router (Phase 4 — `.github/workflows/route-pr.yml`).
+> and a deterministic Router (`.github/workflows/route-pr.yml`).
 > Defense-in-depth via hooks → pre-commit → `just check` → CI → branch protection.
 > **After forking:** replace `{PROJECT_NAME}` and every section marked **(Customize)**
 > below. Keep agent roles, commands, invariants, and the red-zone list unless you
@@ -184,7 +184,7 @@ Read-only sessions (Planner subagent, ad-hoc questions) do not need worktrees.
     - `docs/archive/template-specs/` — completed template-build specs (fork: `rm -rf docs/archive`)
     - `docs/specs/README.md` — spec format documentation
     - `docs/specs/_template.md` — fillable spec skeleton
-  - `docs/telemetry/` — events.jsonl + dashboard (Phase 5+)
+  - `docs/telemetry/` — events.jsonl + dashboard
 - `.scratch/` — sanctioned scratchpad for exploratory work (git-ignored contents)
 - `.claude/agents/` — Claude Code subagent definitions
 - `.claude/skills/` — Agent Skills (progressive disclosure playbooks)

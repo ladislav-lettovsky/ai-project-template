@@ -1,4 +1,4 @@
-"""Tests for ``dispatch_source`` telemetry schema (Phase 6 Slice 2)."""
+"""Tests for ``dispatch_source`` telemetry schema (scheduled dispatch)."""
 
 from __future__ import annotations
 

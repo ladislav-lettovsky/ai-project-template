@@ -1,4 +1,4 @@
-"""Deterministic PR Router — Phase 4 (blueprint §4 + §5.3).
+"""Deterministic PR Router — (blueprint §4 + §5.3).
 
 Consumes ``pr.json`` emitted by ``build_pr_context`` plus ``.routing-policy.json``.
 Writes JSON ``{"route": "...", "reasons": [...]}`` to stdout. No LLM calls.
