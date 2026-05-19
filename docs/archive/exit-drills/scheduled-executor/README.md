@@ -1,7 +1,7 @@
 # Phase 6 exit drill kit
 
 Observability checklist for
-[Phase 6 exit criterion](../../template-specs/phase6-scheduled-executor.md)
+[Phase 6 exit criterion](../../template-specs/scheduled-executor.md)
 (R10). Record outcomes in [`STATUS.md`](STATUS.md).
 
 ## Drill — scheduled dispatch → open PR → Router label
@@ -9,7 +9,7 @@ Observability checklist for
 1. For a **new** drill run, copy or draft a fixture under `docs/specs/_drills/` with
    `status: drafted`, `risk_tier: T0`, `complexity: low`, all red-zone `no`. The shipped
    hello-world example is archived at
-   [`phase6-hello-world.md`](phase6-hello-world.md) (`status: complete` — not queued).
+   [`hello-world-fixture.md`](hello-world-fixture.md) (`status: complete` — not queued).
 2. Confirm no `spec/<drill-slug>` branch and no open PR citing the active fixture path.
 3. Run **Actions → Phase 6 — Scheduled Executor → Run workflow** (`workflow_dispatch`).
 4. Expect workflow summary: eligible ≥ 1, selected `docs/specs/_drills/<slug>.md` (or the
@@ -23,6 +23,6 @@ Observability checklist for
 Local dry-run (no GitHub writes):
 
 ```bash
-uv run scripts/queue_specs.py --json | jq '[.[] | select(.slug=="phase6-hello-world")]'
-uv run scripts/dispatch_spec.py --spec docs/archive/exit-drills/phase6/phase6-hello-world.md --dry-run
+uv run scripts/queue_specs.py --json | jq '[.[] | select(.slug=="test-hello-world")]'
+uv run scripts/dispatch_spec.py --spec docs/archive/exit-drills/scheduled-executor/hello-world-fixture.md --dry-run
 ```

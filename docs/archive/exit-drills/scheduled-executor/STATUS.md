@@ -5,7 +5,7 @@
 
 | Step | Signal | Result |
 | --- | --- | --- |
-| Fixture on `main` | `docs/specs/_drills/phase6-hello-world.md` drafted T0/low (later archived) | OK (merged #55) |
+| Fixture on `main` | `docs/specs/_drills/hello-world-fixture.md` drafted T0/low (later archived) | OK (merged #55) |
 | Scheduler run | `workflow_dispatch` on `scheduled-executor.yml` | See run 1 below |
 | Dispatch | PR opened for drill spec | OK via local dispatch → PR #56 |
 | Router | Label on drill PR | `review:human` (see notes) |
@@ -14,7 +14,7 @@
 
 - **Workflow run:** [actions/runs/26080008734](https://github.com/ladislav-lettovsky/ai-project-template/actions/runs/26080008734)
 - **Outcome:** Job green, but dispatch step failed silently (`pipefail` off). Selected
-  `docs/specs/phase4-router-smoke.md` (lexicographically before `_drills/`) and hit a
+  `docs/archive/template-specs/router-smoke.md` (lexicographically before `_drills/`) and hit a
   relative-path bug in `dispatch_spec.py` when loading the spec from the workflow cwd.
 - **Follow-up:** `fix/phase6-exit-drill-dispatch` — resolve spec paths against `--repo-root`,
   prefer `_drills/` eligible specs in the workflow `jq` sort, enable `set -o pipefail` on dispatch.
@@ -23,7 +23,7 @@
 
 - **Drill PR:** [#56](https://github.com/ladislav-lettovsky/ai-project-template/pull/56)
 - **Branch:** `spec/phase6-hello-world` (empty seed commit + stub PR body)
-- **Body checks:** Links `docs/specs/_drills/phase6-hello-world.md`; contains
+- **Body checks:** Links `docs/specs/_drills/hello-world-fixture.md`; contains
   `dispatch-source: scheduled`; schema-valid `REVIEWER_JSON` stub.
 - **Router label:** `review:human` — expected for placeholder Reviewer JSON (`confidence: 0`,
   `invariant_risk: high` in stub per policy). Not `review:codex`; drill still validates
@@ -42,6 +42,6 @@
 
 - **Workflow run:** [actions/runs/26080166522](https://github.com/ladislav-lettovsky/ai-project-template/actions/runs/26080166522)
 - **Outcome:** Failed (dispatch step exit 2; `pipefail` now surfaces errors). Drill spec skipped
-  (`pr_exists` — PR #56 already open). Selected `docs/specs/phase4-router-smoke.md`; empty seed
+  (`pr_exists` — PR #56 already open). Selected `docs/archive/template-specs/router-smoke.md`; empty seed
   commit failed (`git commit` exit 128 — missing `user.name` / `user.email` on runner checkout).
 - **Follow-up:** Set git author in `seed_dispatch_branch` or workflow before dispatch.

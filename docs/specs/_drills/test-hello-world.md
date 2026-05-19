@@ -16,7 +16,7 @@ Standing T0/low fixture so **Scheduled Executor** runs have an eligible spec whe
 operators trigger `workflow_dispatch` or weekday cron fires. No production code
 changes are intended — only branch + PR initiation (and optional Codex agents when
 `OPENAI_API_KEY` is configured). Historical exit-drill notes remain under
-`docs/archive/exit-drills/phase6/` (archived fixture name `phase6-hello-world`).
+`docs/archive/exit-drills/scheduled-executor/` (archived fixture name `phase6-hello-world`).
 
 ## Assumptions
 
@@ -95,7 +95,7 @@ Manual runs: workflow summary on **Scheduled Executor**. Merged drill PRs append
 ## Rollback / Recovery
 
 Close smoke PR; delete remote `spec/test-hello-world`. Set `status: complete` or move
-this file to `docs/archive/exit-drills/phase6/` to stop cron from re-queuing.
+this file to `docs/archive/exit-drills/scheduled-executor/` to stop cron from re-queuing.
 
 ## Implementation Slices
 

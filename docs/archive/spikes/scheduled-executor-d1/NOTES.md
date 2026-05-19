@@ -1,7 +1,7 @@
 # Phase 6 D1 — dispatch transport spike
 
 Authorizing spec:
-[`docs/archive/template-specs/phase6-scheduled-executor.md`](../../template-specs/phase6-scheduled-executor.md).
+[`docs/archive/template-specs/scheduled-executor.md`](../../template-specs/scheduled-executor.md).
 
 ## Candidates evaluated
 
@@ -22,7 +22,7 @@ Authorizing spec:
 
 ## Legacy rollback
 
-`--transport issue` opens a `phase6-queue` tracking issue instead of a PR (Slices 1–3 behavior). Keep for debugging; not used by the scheduled workflow after Slice 4.
+`--transport issue` opens a `scheduler-queue` tracking issue instead of a PR (Slices 1–3 behavior). Keep for debugging; not used by the scheduled workflow after Slice 4.
 
 ## Enabling `codex exec` later
 

@@ -3,6 +3,10 @@
 Historical material for the **ai-project-template** repo itself — not
 authorizing specs for new product work on a fork.
 
+**Naming:** paths and filenames use **capability slugs** only (for example
+`router-smoke.md`, `exit-drills/router/`). Rollout order and “Phase N” labels
+live in [`docs/blueprint.md`](../blueprint.md), not in archive paths.
+
 ## `template-specs/`
 
 Completed (and superseded) specs that built the template through Phases 0–6:
@@ -14,19 +18,19 @@ shell (`__init__.py` only).
 
 ## `exit-drills/`
 
-Phase 4 and Phase 6 **exit drill kits** — `README.md`, `STATUS.md`, and PR body
-templates used to verify Router and scheduler handoffs. Not authorizing work on a
+Router and scheduled-executor **exit drill kits** — `README.md`, `STATUS.md`, and PR
+body templates used to verify Router and scheduler handoffs. Not authorizing work on a
 fork; kept on the living template as observability history.
 
-- [`exit-drills/phase4/`](exit-drills/phase4/) — Router `review:codex` / `review:human` / `blocked`
-- [`exit-drills/phase6/`](exit-drills/phase6/) — scheduled executor drill log and
-  [`phase6-hello-world.md`](exit-drills/phase6/phase6-hello-world.md) fixture (`status: complete`)
+- [`exit-drills/router/`](exit-drills/router/) — Router `review:codex` / `review:human` / `blocked`
+- [`exit-drills/scheduled-executor/`](exit-drills/scheduled-executor/) — scheduled executor drill log and
+  [`hello-world-fixture.md`](exit-drills/scheduled-executor/hello-world-fixture.md) fixture (`status: complete`)
 
 ## `spikes/`
 
-Time-boxed investigation notes (e.g. Phase 6 D1 dispatch transport).
+Time-boxed investigation notes (e.g. scheduled-executor D1 dispatch transport).
 
-- [`spikes/phase6-d1/NOTES.md`](spikes/phase6-d1/NOTES.md)
+- [`spikes/scheduled-executor-d1/NOTES.md`](spikes/scheduled-executor-d1/NOTES.md)
 
 **Active specs** live in [`docs/specs/`](../specs/) only (`_template.md`,
 `_postmortem.md`, optional examples, and work in progress).

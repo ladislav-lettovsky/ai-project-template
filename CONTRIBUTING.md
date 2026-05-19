@@ -337,7 +337,7 @@ branch already exists, dispatch reuses it or opens the PR on retry.
 `CONTRIBUTING.md` / blueprint notes if you remove the feature entirely.
 
 Authorizing spec:
-[`docs/archive/template-specs/phase6-scheduled-executor.md`](docs/archive/template-specs/phase6-scheduled-executor.md).
+[`docs/archive/template-specs/scheduled-executor.md`](docs/archive/template-specs/scheduled-executor.md).
 
 ### Branch protection (Router)
 

@@ -2,13 +2,13 @@
 
 ## Metadata
 
-- spec_id: SPEC-20260515-phase-4-deterministic-router
+- spec_id: SPEC-20260515-deterministic-router
 - owner: template
 - status: complete
 - complexity: medium
 - risk_tier: T1
 - repo: ai-project-template
-- branch: spec/phase-4-deterministic-router
+- branch: spec/deterministic-router
 
 ## Context
 

@@ -2,13 +2,13 @@
 
 ## Metadata
 
-- spec_id: SPEC-20260516-phase4-exit-drills
+- spec_id: SPEC-20260516-router-exit-drills
 - owner: template
 - status: complete
 - complexity: low
 - risk_tier: T0
 - repo: ai-project-template
-- branch: spec/phase4-exit-drills
+- branch: spec/router-exit-drills
 
 ## Context
 
@@ -25,7 +25,7 @@ docs marking Phase 4 complete.
 
 ## Decisions
 
-- D1: Drill kit lives under `docs/archive/exit-drills/phase4/` with copy-paste PR bodies
+- D1: Drill kit lives under `docs/archive/exit-drills/router/` with copy-paste PR bodies
   and a `STATUS.md` observation log — not under `.scratch/` (durable traceability).
 - D2: Red-zone `AGENTS.md` edit for drill B is human-authored (Invariant 7).
 
@@ -37,7 +37,7 @@ red-zone `review:human` on GitHub.
 
 ## Requirements (STRICT)
 
-- [ ] R1: Add `docs/archive/exit-drills/phase4/` with `README.md`, `STATUS.md`, and
+- [ ] R1: Add `docs/archive/exit-drills/router/` with `README.md`, `STATUS.md`, and
   schema-valid PR body templates for drills B (`human-redzone`) and C (`blocked`).
 - [ ] R2: Update `docs/blueprint.md` to mark Phase 4 **implemented** and list
   exit-criteria status with links to `STATUS.md`.
@@ -53,8 +53,8 @@ red-zone `review:human` on GitHub.
 
 ## Interfaces
 
-- `docs/archive/exit-drills/phase4/**` (new)
-- `docs/archive/template-specs/phase4-exit-drills.md` (this file)
+- `docs/archive/exit-drills/router/**` (new)
+- `docs/archive/template-specs/router-exit-drills.md` (this file)
 - `docs/blueprint.md`, `CONTRIBUTING.md` (docs only)
 
 ## Invariants to Preserve
@@ -79,7 +79,7 @@ red-zone `review:human` on GitHub.
 
 ## Validation Contract
 
-- R1 -> `just validate-reviewer docs/archive/exit-drills/phase4/blocked-pr-body.md` and `human-redzone-pr-body.md` exit 0
+- R1 -> `just validate-reviewer docs/archive/exit-drills/router/blocked-pr-body.md` and `human-redzone-pr-body.md` exit 0
 - R2 -> `grep -q 'Phase 4 (implemented)' docs/blueprint.md`
 - R3 -> `grep -q 'Branch protection' CONTRIBUTING.md` (Phase 4 Router section)
 - R4 -> `STATUS.md` lists PR links for all three outcome rows

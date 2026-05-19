@@ -2,13 +2,13 @@
 
 ## Metadata
 
-- spec_id: SPEC-20260518-phase6-scheduled-executor
+- spec_id: SPEC-20260518-scheduled-executor
 - owner: template
 - status: complete
 - complexity: high
 - risk_tier: T2
 - repo: ai-project-template
-- branch: spec/phase6-scheduled-executor
+- branch: spec/scheduled-executor
 
 ## Context
 
@@ -48,7 +48,7 @@ of merging consequential work without human eyes.
   `origin/main`, seed an empty commit when the branch still matches `main`,
   and open a PR via `gh pr create` with spec link + `dispatch-source:
   scheduled` + schema-valid `REVIEWER_JSON` stub. Spike notes:
-  [`docs/archive/spikes/phase6-d1/NOTES.md`](../spikes/phase6-d1/NOTES.md). `codex exec`
+  [`docs/archive/spikes/scheduled-executor-d1/NOTES.md`](../spikes/scheduled-executor-d1/NOTES.md). `codex exec`
   in Actions is **deferred** (needs `CODEX_API_KEY` + isolation); `--transport
   issue` remains a legacy fallback. Phase 6.1 may add Codex-in-CI after secrets
   exist.
@@ -78,7 +78,7 @@ of merging consequential work without human eyes.
 - D6: **Failure is visible, not silent.** Any error (queue parse failure,
   ineligibility, dispatch failure, PR open failure) writes to the
   workflow summary AND opens or comments on a tracking issue tagged
-  `phase6-failure`. The blueprint's anti-pattern #1 (`|| true`) is
+  `scheduler-failure`. The blueprint's anti-pattern #1 (`|| true`) is
   explicitly forbidden in this workflow.
 
 ## Problem Statement
@@ -107,7 +107,7 @@ Router, while leaving the rest of the policy unchanged.
   spec descriptor, performs the v1 dispatch action: (a) create a remote
   branch `spec/<slug>` off the current `main` tip if it does not exist,
   (b) per D1, either invoke the chosen Codex transport OR open a
-  tracking issue tagged `phase6-queue` documenting the queued spec.
+  tracking issue tagged `scheduler-queue` documenting the queued spec.
   When opening a PR, the body MUST (i) link the authorizing spec path
   and (ii) include an empty `<!-- REVIEWER_JSON --> <!-- /REVIEWER_JSON -->`
   fence so `validate_reviewer.py` and `route-pr.yml` treat it as
@@ -118,8 +118,8 @@ Router, while leaving the rest of the policy unchanged.
   `schedule:` cron (weekdays 09:00 UTC) and `workflow_dispatch:`. Steps:
   checkout `main`, `uv sync`, run `queue_specs.py`, select the
   lexicographically-first eligible spec, call `dispatch_spec.py`, write
-  a summary, and (on failure) open or comment on a `phase6-failure`
-  tracking issue. Concurrency group `phase6-scheduled-executor` with
+  a summary, and (on failure) open or comment on a `scheduler-failure`
+  tracking issue. Concurrency group `scheduled-executor` with
   `cancel-in-progress: false`. The workflow MUST NOT run on PRs from
   forks (event-trigger restriction).
 - [ ] R5: Add a `dispatch_source` field to `docs/telemetry/events.jsonl`
@@ -150,7 +150,7 @@ Router, while leaving the rest of the policy unchanged.
   cron), dispatched via the chosen D1 transport, and a PR opens. The
   existing Router labels it `review:codex` (or `review:human` if the
   drill spec triggers a gate, which is informative — log the result).
-  The drill outcome is recorded in `docs/archive/exit-drills/phase6/STATUS.md`
+  The drill outcome is recorded in `docs/archive/exit-drills/scheduled-executor/STATUS.md`
   with the PR link.
 
 ## Non-Goals
@@ -188,8 +188,8 @@ New files:
 - `tests/test_queue_specs.py`, `tests/test_dispatch_spec.py`,
   `tests/test_events_schema_dispatch_source.py`,
   `tests/test_scheduled_executor_yaml.py` (smoke-parses the YAML).
-- `docs/archive/exit-drills/phase6/README.md` and `docs/archive/exit-drills/phase6/STATUS.md`
-  — drill kit and observation log, modelled on `docs/archive/exit-drills/phase4/`.
+- `docs/archive/exit-drills/scheduled-executor/README.md` and `docs/archive/exit-drills/scheduled-executor/STATUS.md`
+  — drill kit and observation log, modelled on `docs/archive/exit-drills/router/`.
 
 Modified files:
 
@@ -260,7 +260,7 @@ No modifications to: `scripts/route_pr.py`, `.routing-policy.json`,
 - R7 -> `grep -qE 'Phase 6.*(in-progress|implemented)' docs/blueprint.md`
 - R8 -> `uv run pytest tests/test_queue_specs.py tests/test_dispatch_spec.py tests/test_events_schema_dispatch_source.py tests/test_scheduled_executor_yaml.py -q`
 - R9 -> `! grep -E '\|\| true|continue-on-error: true' .github/workflows/scheduled-executor.yml`
-- R10 -> `test -f docs/archive/exit-drills/phase6/STATUS.md` AND drill PR linked in `STATUS.md`
+- R10 -> `test -f docs/archive/exit-drills/scheduled-executor/STATUS.md` AND drill PR linked in `STATUS.md`
 - FULL -> `just check`
 
 ## Edge Cases
@@ -277,7 +277,7 @@ No modifications to: `scripts/route_pr.py`, `.routing-policy.json`,
   skips the spec with `skip_reason: metadata_invalid` and surfaces it
   in the workflow summary; the spec is never silently dispatched.
 - EC5: GitHub API rate limit or transient error in `dispatch_spec.py`
-  — workflow fails loudly, opens a `phase6-failure` issue, and does
+  — workflow fails loudly, opens a `scheduler-failure` issue, and does
   not retry within the same run. Cron picks up the next attempt.
 - EC6: Two T0+low specs eligible in the same run — only the
   lexicographically-first one is dispatched (D5); the second waits for
@@ -309,7 +309,7 @@ No modifications to: `scripts/route_pr.py`, `.routing-policy.json`,
 - Workflow summary on every run lists: queue size, eligible count,
   selected spec slug (or "none"), dispatch outcome, and a link to any
   opened PR or tracking issue.
-- Failures open or comment on a `phase6-failure` issue with the
+- Failures open or comment on a `scheduler-failure` issue with the
   workflow run URL and a short excerpt of the failing step.
 - Telemetry: `events.jsonl` gains a `dispatch_source` field (R5);
   merged scheduler-dispatched PRs are distinguishable from manual
@@ -355,7 +355,7 @@ No modifications to: `scripts/route_pr.py`, `.routing-policy.json`,
    spec (e.g., a `docs/specs/_drills/hello-world.md`), commit it on
    `main`, trigger the scheduler via `workflow_dispatch:`, observe
    the PR open and route, and record the outcome in
-   `docs/archive/exit-drills/phase6/STATUS.md`. Mark Phase 6 implemented in
+   `docs/archive/exit-drills/scheduled-executor/STATUS.md`. Mark Phase 6 implemented in
    `docs/blueprint.md`.
 
 ## Done When
@@ -367,8 +367,8 @@ No modifications to: `scripts/route_pr.py`, `.routing-policy.json`,
 - [ ] `just check` passes
 - [ ] CI green
 - [ ] No invariant violations (INV1–INV5)
-- [ ] Branch name starts with `spec/phase6-scheduled-executor` (Invariant 1)
+- [ ] Branch name starts with `spec/scheduled-executor` (Invariant 1)
 - [ ] PR description links this spec (Invariant 9)
 - [ ] PR body contains `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` block
-- [ ] Exit drill PR recorded in `docs/archive/exit-drills/phase6/STATUS.md`
+- [ ] Exit drill PR recorded in `docs/archive/exit-drills/scheduled-executor/STATUS.md`
 - [ ] Blueprint Phase 6 status updated from "in-progress" to "implemented"

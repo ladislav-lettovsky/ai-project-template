@@ -40,8 +40,8 @@ def test_router_smoke_routes_policy_eligible_pr_to_codex() -> None:
             "confidence": 72,
         },
         "spec": {
-            "slug": "phase4-router-smoke",
-            "path": "docs/archive/template-specs/phase4-router-smoke.md",
+            "slug": "router-smoke",
+            "path": "docs/archive/template-specs/router-smoke.md",
             "risk_tier": "T0",
             "complexity": "low",
         },

@@ -2,13 +2,13 @@
 
 ## Metadata
 
-- spec_id: SPEC-20260516-phase5-telemetry
+- spec_id: SPEC-20260516-telemetry
 - owner: template
 - status: complete
 - complexity: medium
 - risk_tier: T1
 - repo: ai-project-template
-- branch: spec/phase5-telemetry
+- branch: spec/telemetry
 
 ## Context
 
@@ -132,5 +132,5 @@ Revert `events.jsonl` line and policy commit; disable `record-telemetry.yml`.
 
 ## Done When
 
-- [ ] All R* checked; `just check` green on `spec/phase5-telemetry`
+- [ ] All R* checked; `just check` green on `spec/telemetry`
 - [ ] Seed telemetry + one adapt-thresholds write committed
