@@ -193,10 +193,16 @@ PYTHONDONTWRITEBYTECODE = "1"
 [sandbox_workspace_write]
 network_access = true
 
-# Optional GitHub MCP for Reviewer (Phase 5). Requires Docker + PAT in shell — see CONTRIBUTING.
-# Uncomment after: cp .env.example .env && set -a && source .env && set +a
-# [mcp_servers.github]
-# command = "docker"
-# args = ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
-#         "ghcr.io/github/github-mcp-server"]
-# env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]
+# Optional GitHub MCP for Reviewer. Requires Docker + PAT in shell — see CONTRIBUTING.
+# Read-only: GITHUB_READ_ONLY + --read-only + narrow toolsets (Reviewer sandbox does not limit MCP tools).
+[mcp_servers.github]
+command = "docker"
+args = [
+  "run", "-i", "--rm",
+  "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
+  "-e", "GITHUB_READ_ONLY=1",
+  "ghcr.io/github/github-mcp-server",
+  "stdio", "--read-only",
+  "--toolsets=issues,pull_requests",
+]
+env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]
