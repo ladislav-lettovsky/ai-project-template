@@ -4,7 +4,7 @@
 
 - spec_id: SPEC-20260508-tighten-planner-spec-drafting
 - owner: Ladislav Lettovsky
-- status: drafted
+- status: archived
 - complexity: low
 - risk_tier: T1
 - repo: ai-project-template

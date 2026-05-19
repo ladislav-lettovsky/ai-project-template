@@ -59,8 +59,16 @@ lint-changed-specs:
         echo "lint-changed-specs: no spec files modified on this branch."
         exit 0
     fi
-    echo "lint-changed-specs: $changed"
-    uv run scripts/lint_spec.py $changed
+    existing=()
+    while IFS= read -r f; do
+        [ -n "$f" ] && [ -f "$f" ] && existing+=("$f")
+    done <<< "$changed"
+    if [ ${#existing[@]} -eq 0 ]; then
+        echo "lint-changed-specs: spec paths changed on branch but none exist on disk (moved/deleted only)."
+        exit 0
+    fi
+    printf 'lint-changed-specs: %s\n' "${existing[@]}"
+    uv run scripts/lint_spec.py "${existing[@]}"
 
 # Scan LLM-input-bearing files for known prompt-injection patterns.
 scan-injection:

@@ -178,15 +178,14 @@ def test_redzone_check_combines_multiple_yes_into_one_error(tmp_path: Path) -> N
 def test_real_example_spec_lints_clean() -> None:
     """Archived demo spec must remain valid (regression target).
 
-    Covers REQ-LINT-real: ``add-greet-module.md`` in the template archive is a
-    canonical §5.1-conformant example; if a parser change breaks it, the parser
-    is wrong.
+    Covers REQ-LINT-real: a committed archived spec must remain §5.1-valid;
+    if a parser change breaks it, the parser is wrong.
     """
     spec_path = REPO_ROOT / "docs" / "archive" / "template-specs" / "add-greet-module.md"
     if not spec_path.is_file():
         pytest.skip(f"{spec_path} not present in this checkout")
     errors = lint_spec_module.lint_spec(spec_path)
-    assert errors == [], f"add-greet-module.md should lint clean; got: {errors}"
+    assert errors == [], f"archived example spec should lint clean; got: {errors}"
 
 
 def test_missing_section_is_reported(tmp_path: Path) -> None:
@@ -359,7 +358,7 @@ def test_requirement_without_validation_is_reported(tmp_path: Path) -> None:
 
 
 def test_req_dash_form_is_recognized(tmp_path: Path) -> None:
-    """The ``REQ-DOMAIN-NN`` ID shape (used by add-greet-module.md) is supported."""
+    """The long-form ``REQ-<DOMAIN>-<NN>`` shape (e.g. ``REQ-FOO-01``) is supported."""
     text = (
         _minimal_valid_spec()
         .replace("- [ ] R1: do the thing.", "- [ ] REQ-FOO-01: do the thing.")
