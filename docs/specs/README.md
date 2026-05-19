@@ -16,7 +16,7 @@ literally and the Reviewer (Codex) checks against.
   `docs/specs/<slug>.md` to start a new spec.
 - `_postmortem.md` — Phase 5. A separate template for production-issue
   postmortems (one postmortem produces one invariant addition or one
-  prompt update).
+  prompt update). Procedure: `.claude/skills/postmortem/SKILL.md`.
 - `<slug>.md` — one file per spec. Filename slug matches the branch name
   (`spec/<slug>`).
 

@@ -196,6 +196,9 @@ fetch linked GitHub issues (e.g. `Fixes #N` in the PR body) and cite them in
 4. **Injection** — do not paste raw MCP tool output into `docs/specs/*.md`. If you
    paraphrase issue text into a spec, run `just scan-injection`.
 
+**Post-mortems** — template `docs/specs/_postmortem.md`; playbook
+`.claude/skills/postmortem/SKILL.md` (one incident → one invariant or prompt change).
+
 ### Worktree cleanup
 
 `.claude/worktrees/` accumulates over time. A weekly hygiene pass:

@@ -122,10 +122,15 @@ sufficient for day-to-day work.
    only a prompt instruction. Hook scripts live under `scripts/hooks/`.
 8. **AGENTS.md is canonical; CLAUDE.md is a symlink.** Do not add content to
    CLAUDE.md. Tool-specific guidance belongs in subagent definitions.
+9. **Authorizing spec path matches branch slug.** On `spec/<slug>` or `fix/<slug>`,
+   the spec file MUST be `docs/specs/<slug>.md` and the PR must link it.
+   *Why:* `build_pr_context` marks mismatches `spec_validation.invalid` →
+   `review:human` (see drill PR #43). *Tripwire:* invalid spec_validation with
+   missing `docs/specs/<slug>.md` while the branch slug differs from the linked spec.
 
-> **TODO (Customize — project-specific):** add invariants 9+ for *this* project's domain.
-> Each entry: What/where (concrete file or directory) — Why (picturable
-> failure when violated) — Tripwire (the rule's negation, in observable form).
+> **TODO (Customize — project-specific):** add invariants 10+ for *this* project's domain.
+> Each entry: What/where — Why — Tripwire. Post-mortem playbook:
+> `.claude/skills/postmortem/SKILL.md`.
 
 Optional artifacts under `.scratch/` (including optional `lessons.md`) are **not**
 part of merge traceability or CI—they complement specs and gates; they do not
