@@ -26,6 +26,8 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert "openai/codex-action@v1" in text
     assert text.count("safety-strategy: drop-sudo") == 1
     assert "safety-strategy: read-only" in text
+    assert "codex-home: ${{ runner.temp }}/codex-executor" in text
+    assert "codex-home: ${{ runner.temp }}/codex-reviewer" in text
     assert "OPENAI_API_KEY" in text
     assert "codex_enabled" in text
     assert "codex_gate" in text

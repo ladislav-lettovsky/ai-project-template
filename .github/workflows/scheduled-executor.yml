@@ -208,6 +208,7 @@ jobs:
           prompt-file: .scratch/codex-executor-prompt.md
           sandbox: workspace-write
           safety-strategy: drop-sudo
+          codex-home: ${{ runner.temp }}/codex-executor
           output-file: .scratch/codex-executor-output.md
 
       - name: Commit Executor changes
@@ -237,8 +238,8 @@ jobs:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           prompt-file: .scratch/codex-reviewer-prompt.md
           sandbox: read-only
-          # Executor already used drop-sudo; read-only strategy avoids a second drop on GHA.
           safety-strategy: read-only
+          codex-home: ${{ runner.temp }}/codex-reviewer
           output-file: .scratch/codex-reviewer-output.md
 
       - name: Extract and apply Reviewer JSON
