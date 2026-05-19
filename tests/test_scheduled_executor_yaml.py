@@ -22,7 +22,9 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert "github.event.repository.fork == false" in text
     assert "queue_specs.py" in text
     assert "dispatch_spec.py" in text
-    assert "--transport pr" in text
+    assert "codex_agents" in text
+    assert "openai/codex-action@v1" in text
+    assert "OPENAI_API_KEY" in text
     assert "pull-requests: write" in text
     assert "scheduler-failure" in text
     assert "|| true" not in text

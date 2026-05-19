@@ -16,6 +16,8 @@ permissionMode: plan
 model: opus
 memory: project
 color: blue
+mcpServers:
+  - github
 ---
 
 # Planner

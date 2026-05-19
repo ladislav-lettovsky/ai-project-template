@@ -1,4 +1,4 @@
-"""Dispatch one eligible eligible spec (branch + open PR, or legacy issue stub).
+"""Dispatch one eligible spec (branch + open PR, legacy issue, or codex CI handoff).
 
 Usage:
     uv run scripts/dispatch_spec.py --spec docs/specs/<slug>.md --dry-run
@@ -57,7 +57,7 @@ def build_pr_body(spec_path: str) -> str:
 
 def build_issue_body(descriptor: dict[str, Any], pr_body: str) -> str:
     return (
-        "Queued spec dispatch (legacy issue transport) (legacy issue transport).\n\n"
+        "Queued spec dispatch (legacy issue transport).\n\n"
         f"- Spec: [{descriptor['path']}]({descriptor['path']})\n"
         f"- Branch: `spec/{descriptor['slug']}`\n"
         "- Transport: `issue`\n\n"
@@ -232,6 +232,13 @@ def open_pull_request(
     return cp.stdout.strip()
 
 
+def codex_agents_metadata() -> dict[str, Any]:
+    return {
+        "enabled_in_ci": bool(os.environ.get("OPENAI_API_KEY") or os.environ.get("CODEX_API_KEY")),
+        "note": "Run scheduled-executor codex_agents job or `uv run scripts/codex_ci.py exec`.",
+    }
+
+
 def build_dispatch_payload(descriptor: dict[str, Any], *, transport: str) -> dict[str, Any]:
     branch_name = f"spec/{descriptor['slug']}"
     pr_body = build_pr_body(descriptor["path"])
@@ -319,7 +326,7 @@ def dispatch_open_pr(
 
 
 def argv_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Dispatch a single eligible eligible spec.")
+    parser = argparse.ArgumentParser(description="Dispatch a single eligible spec.")
     parser.add_argument("--spec", type=Path, required=True, help="Path to docs/specs/<slug>.md")
     parser.add_argument("--repo-root", type=Path, default=_REPO_ROOT)
     parser.add_argument("--remote", default="origin")
@@ -329,31 +336,29 @@ def argv_parser() -> argparse.ArgumentParser:
         "--transport",
         choices=("pr", "issue", "codex"),
         default=DEFAULT_TRANSPORT,
-        help="pr=open GitHub PR (D1 v1); issue=legacy tracking issue; codex=deferred",
+        help="pr=open GitHub PR; issue=legacy tracking issue; codex=open PR for CI agents (6.1)",
     )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = argv_parser().parse_args(argv)
-    if args.transport == "codex":
-        print(
-            "ERROR: codex exec in CI is deferred; configure CODEX_API_KEY and see "
-            "docs/archive/spikes/phase6-d1/NOTES.md",
-            file=sys.stderr,
-        )
-        return 2
     try:
         spec_path = resolve_spec_path(args.spec, args.repo_root)
         descriptor = load_descriptor(spec_path, args.repo_root)
         payload = build_dispatch_payload(descriptor, transport=args.transport)
         if args.dry_run:
+            if args.transport == "codex":
+                payload["codex_agents"] = codex_agents_metadata()
             print(json.dumps({"dry_run": True, **payload}, indent=2))
             return 0
         if args.transport == "issue":
             result = dispatch_issue_stub(payload=payload, remote=args.remote, repo=args.repo)
         else:
             result = dispatch_open_pr(payload=payload, remote=args.remote, repo=args.repo)
+            if args.transport == "codex":
+                result["transport"] = "codex"
+                result["codex_agents"] = codex_agents_metadata()
     except (OSError, ValueError, subprocess.CalledProcessError, RuntimeError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2

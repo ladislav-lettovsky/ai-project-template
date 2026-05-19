@@ -1,5 +1,6 @@
 # Queue and dispatch T0+low drafted specs (docs/archive/template-specs/phase6-scheduled-executor.md).
-# v1 transport: open PR via scripts/dispatch_spec.py --transport pr (D1); no Codex in CI.
+# v1: open PR via scripts/dispatch_spec.py
+# 6.1: optional codex_agents job when OPENAI_API_KEY is configured
 name: Scheduled Executor
 
 on:
@@ -21,6 +22,10 @@ jobs:
     if: github.event.repository.fork == false
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      pr_url: ${{ steps.dispatch.outputs.pr_url }}
+      branch: ${{ steps.dispatch.outputs.branch }}
+      spec_path: ${{ steps.queue.outputs.spec_path }}
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -102,17 +107,24 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -o pipefail
+          TRANSPORT=pr
+          if [ -n "${{ secrets.OPENAI_API_KEY }}" ]; then
+            TRANSPORT=codex
+          fi
           uv run scripts/dispatch_spec.py \
             --spec "${{ steps.queue.outputs.spec_path }}" \
             --repo "${{ github.repository }}" \
-            --transport pr | tee dispatch.json
+            --transport "${TRANSPORT}" | tee dispatch.json
           PR_URL=$(jq -r '.pr_url // empty' dispatch.json)
           BRANCH=$(jq -r '.branch // empty' dispatch.json)
+          echo "pr_url=${PR_URL}" >> "${GITHUB_OUTPUT}"
+          echo "branch=${BRANCH}" >> "${GITHUB_OUTPUT}"
           {
             echo ""
             echo "### Dispatch outcome"
             echo ""
             echo "- Branch: \`${BRANCH}\`"
+            echo "- Transport: \`${TRANSPORT}\`"
             if [ -n "${PR_URL}" ]; then
               echo "- Pull request: ${PR_URL}"
             fi
@@ -138,3 +150,106 @@ jobs:
           Inspect the failing step log in the run linked above.
           EOFBODY
           )"
+
+  codex_agents:
+    needs: dispatch
+    if: >-
+      needs.dispatch.outputs.pr_url != '' &&
+      secrets.OPENAI_API_KEY != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.dispatch.outputs.branch }}
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: python -m pip install uv
+
+      - name: Sync dependencies
+        run: uv sync --extra dev
+
+      - name: Write executor prompt
+        run: |
+          mkdir -p .scratch
+          uv run scripts/codex_ci.py write-prompt \
+            --role executor \
+            --spec "${{ needs.dispatch.outputs.spec_path }}" \
+            --output .scratch/codex-executor-prompt.md
+
+      - name: Run Executor (Codex)
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: .scratch/codex-executor-prompt.md
+          sandbox: workspace-write
+          safety-strategy: drop-sudo
+          output-file: .scratch/codex-executor-output.md
+
+      - name: Commit Executor changes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No Executor changes to commit."
+            exit 0
+          fi
+          git add -A
+          git commit -m "feat: implement ${{ needs.dispatch.outputs.spec_path }} (scheduled Codex)"
+          git push origin HEAD
+
+      - name: Write reviewer prompt
+        run: |
+          uv run scripts/codex_ci.py write-prompt \
+            --role reviewer \
+            --spec "${{ needs.dispatch.outputs.spec_path }}" \
+            --output .scratch/codex-reviewer-prompt.md
+
+      - name: Run Reviewer (Codex)
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: .scratch/codex-reviewer-prompt.md
+          sandbox: read-only
+          safety-strategy: drop-sudo
+          output-file: .scratch/codex-reviewer-output.md
+
+      - name: Extract and apply Reviewer JSON
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -o pipefail
+          PR_NUMBER=$(uv run python -c "from scripts.codex_ci import parse_pr_number; print(parse_pr_number('${{ needs.dispatch.outputs.pr_url }}'))")
+          uv run python -c "
+          import json
+          from pathlib import Path
+          from scripts import codex_ci
+          text = Path('.scratch/codex-reviewer-output.md').read_text(encoding='utf-8')
+          reviewer = codex_ci.extract_reviewer_json_block(text)
+          Path('.scratch/reviewer.json').write_text(json.dumps(reviewer, indent=2), encoding='utf-8')
+          "
+          uv run scripts/codex_ci.py apply-reviewer \
+            --pr "${PR_NUMBER}" \
+            --reviewer-json .scratch/reviewer.json \
+            --repo "${{ github.repository }}"
+          uv run scripts/validate_reviewer.py .scratch/reviewer.json
+
+      - name: Optional auto-merge
+        if: vars.SCHEDULER_AUTO_MERGE == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=$(uv run python -c "from scripts.codex_ci import parse_pr_number; print(parse_pr_number('${{ needs.dispatch.outputs.pr_url }}'))")
+          uv run scripts/try_auto_merge.py --pr "${PR_NUMBER}" --repo "${{ github.repository }}"

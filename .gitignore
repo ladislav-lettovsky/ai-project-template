@@ -45,6 +45,7 @@ htmlcov/
 
 # Environment
 .env
+.mcp.json
 *.env.local
 
 # Scratch — gitignore contents but keep the directory
