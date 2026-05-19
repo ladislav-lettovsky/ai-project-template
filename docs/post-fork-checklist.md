@@ -15,8 +15,8 @@ much project-specific content you have ready.
 
 ## 1. Rename the Python package (breaks `just check` until done)
 
-The template ships with a placeholder package named `your_package`. Rename
-it consistently across four locations:
+The template ships with a placeholder package named `your_package` (only
+`__init__.py` — no demo modules). Rename it consistently across four locations:
 
 - [ ] `src/your_package/` → `src/<your_package>/` (directory rename)
 - [ ] `pyproject.toml` — `[project] name = "your-project-name"` → your slug
@@ -121,8 +121,6 @@ fork you usually do not need them:
 
 Optional:
 
-- [ ] Delete **`docs/specs/add-greet-module.md`** if you do not want the lint
-      example (update `tests/test_lint_spec.py` on your fork if you remove it).
 - [ ] Disable **`scheduled-executor.yml`** until you want T0+low auto-dispatch
       (see CONTRIBUTING.md Phase 6).
 

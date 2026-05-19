@@ -96,7 +96,7 @@ contributing: [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 #### Layout *(Customize)*
 
-- `src/your_package/` — rename to your package (see post-fork checklist)
+- `src/your_package/` — placeholder package (`__init__.py` only); rename per post-fork checklist
 - `tests/`, `.scratch/`, `docs/blueprint.md`, `CONTRIBUTING.md`
 
 ### Optional: GitHub MCP (Codex Reviewer) *(Keep)*

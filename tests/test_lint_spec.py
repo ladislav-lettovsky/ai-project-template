@@ -176,13 +176,13 @@ def test_redzone_check_combines_multiple_yes_into_one_error(tmp_path: Path) -> N
 
 
 def test_real_example_spec_lints_clean() -> None:
-    """The committed example spec must remain valid (regression target).
+    """Archived demo spec must remain valid (regression target).
 
-    Covers REQ-LINT-real: ``add-greet-module.md`` is the canonical example
-    of a §5.1-conformant spec; if a parser change breaks it, the parser
+    Covers REQ-LINT-real: ``add-greet-module.md`` in the template archive is a
+    canonical §5.1-conformant example; if a parser change breaks it, the parser
     is wrong.
     """
-    spec_path = REPO_ROOT / "docs" / "specs" / "add-greet-module.md"
+    spec_path = REPO_ROOT / "docs" / "archive" / "template-specs" / "add-greet-module.md"
     if not spec_path.is_file():
         pytest.skip(f"{spec_path} not present in this checkout")
     errors = lint_spec_module.lint_spec(spec_path)
