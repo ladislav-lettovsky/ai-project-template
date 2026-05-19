@@ -4,7 +4,7 @@
 
 - spec_id: SPEC-20260515-phase4-route-codex-e2e
 - owner: Ladislav Lettovsky
-- status: drafted
+- status: complete
 - complexity: low
 - risk_tier: T0
 - repo: ai-project-template

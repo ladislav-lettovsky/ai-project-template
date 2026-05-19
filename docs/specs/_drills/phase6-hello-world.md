@@ -4,7 +4,7 @@
 
 - spec_id: SPEC-20260519-phase6-hello-world
 - owner: template
-- status: drafted
+- status: complete
 - complexity: low
 - risk_tier: T0
 - repo: ai-project-template

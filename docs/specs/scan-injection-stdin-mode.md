@@ -4,7 +4,7 @@
 
 - spec_id: SPEC-20260515-scan-injection-stdin-mode
 - owner: Ladislav Lettovsky
-- status: drafted
+- status: complete
 - complexity: low
 - risk_tier: T1
 - repo: ai-project-template

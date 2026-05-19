@@ -100,3 +100,24 @@ says no" is not a successful spec — fix the spec.
 Specs that authorize work touching red-zone files (per AGENTS.md "Red-zone
 files") cannot ship as `risk_tier: T0` regardless of size — see
 `Red-Zone Assessment` in the template.
+
+## Status lifecycle and the Phase 6 scheduler
+
+`status` is not decorative — `scripts/queue_specs.py` only queues specs with
+`status: drafted`. The scheduled executor (`scheduled-executor.yml`) dispatches
+**T0 + low** drafted specs that have no `spec/<slug>` branch and no open/merged PR
+citing the spec path.
+
+| Status | Meaning |
+| --- | --- |
+| `drafted` | Authorized, not started — **eligible for the scheduler** when T0/low |
+| `in-progress` | Branch/PR in flight — not queued |
+| `complete` | Shipped or drill finished — not queued; **keep the file** as history |
+| `archived` | Abandoned or superseded — not queued |
+
+**Do not delete old specs** after merge; set `status: complete` (or `archived` if
+abandoned). Deleting breaks PR links and spec-lint history. Demo specs (`add-greet-*`,
+`add-farewell-*`) and phase exit specs stay in-tree as worked examples.
+
+Drill fixtures live under `docs/specs/_drills/`; mark them `complete` after the exit
+drill so cron does not reopen them.
