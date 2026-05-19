@@ -295,7 +295,7 @@ def test_valid_spec_id_lints_clean(tmp_path: Path, spec_id: str) -> None:
 
 
 def test_all_committed_specs_lint_clean() -> None:
-    """Every committed spec should satisfy the current linter contract."""
+    """Every active spec under docs/specs/ should satisfy the linter contract."""
     spec_dir = REPO_ROOT / "docs" / "specs"
     spec_paths = sorted(
         path
@@ -303,6 +303,20 @@ def test_all_committed_specs_lint_clean() -> None:
         if path.name not in {"_template.md", "_postmortem.md", "README.md"}
     )
 
+    failures = {
+        path.relative_to(REPO_ROOT).as_posix(): lint_spec_module.lint_spec(path)
+        for path in spec_paths
+        if lint_spec_module.lint_spec(path)
+    }
+    assert failures == {}
+
+
+def test_archived_template_specs_lint_clean() -> None:
+    """Template history under docs/archive/template-specs/ stays lint-valid."""
+    archive_dir = REPO_ROOT / "docs" / "archive" / "template-specs"
+    if not archive_dir.is_dir():
+        return
+    spec_paths = sorted(archive_dir.glob("*.md"))
     failures = {
         path.relative_to(REPO_ROOT).as_posix(): lint_spec_module.lint_spec(path)
         for path in spec_paths

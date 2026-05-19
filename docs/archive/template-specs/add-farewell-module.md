@@ -224,6 +224,6 @@ reverting the commit that added `farewell.py` and `test_farewell.py`.
 - [ ] CI green on the PR branch.
 - [ ] Invariants INV1–INV5 hold.
 - [ ] Branch name starts with `spec/add-farewell-module` (Invariant 1).
-- [ ] PR description links this spec at `docs/specs/add-farewell-module.md`.
+- [ ] PR description links this spec at `docs/archive/template-specs/add-farewell-module.md`.
 - [ ] PR body contains a `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` block
   (empty fenced block acceptable until Phase 3 Reviewer lands).

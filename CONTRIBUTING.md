@@ -308,7 +308,8 @@ Legacy `--transport issue` opens a `phase6-queue` tracking issue only (rollback)
 (e.g. `scheduled-executor.yml.disabled`) to stop cron and manual runs. Revert
 `CONTRIBUTING.md` / blueprint notes if you remove the feature entirely.
 
-Authorizing spec: [`docs/specs/phase6-scheduled-executor.md`](docs/specs/phase6-scheduled-executor.md).
+Authorizing spec:
+[`docs/archive/template-specs/phase6-scheduled-executor.md`](docs/archive/template-specs/phase6-scheduled-executor.md).
 
 ### Branch protection (Phase 4 deliverable #4)
 
@@ -335,8 +336,8 @@ A short pre-PR checklist that mirrors the one in `AGENTS.md`:
 5. Diff against `main` looks like what you'd want in a PR review.
 6. PR description links the authorizing spec (Invariant 1).
 7. PR description notes any red-zone touch and which authoring path was taken.
-8. PR body contains an empty `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->`
-   block (the Reviewer fills it).
+8. PR body contains a `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->`
+   block (schema-valid JSON from the Reviewer, or a stub until Reviewer runs).
 
 Saving a PR description locally for `just validate-reviewer <file>` often lands in
 `.scratch/`. That directory is gitignored throwaway content; PR-body stubs usually
@@ -353,9 +354,9 @@ still follows markdownlint normally.
 - [`docs/blueprint.md`](./docs/blueprint.md) — full architecture and phased roadmap.
 - [`docs/specs/README.md`](./docs/specs/README.md) — spec format reference.
 
-### Phase 4 exit drills *(Replace on fork — template history)*
+### Template exit-drill logs *(forks may delete)*
 
-The living template repo used [`docs/phase4-exit-drills/`](./docs/phase4-exit-drills/)
-to record Router smoke outcomes on specific PRs. Forks do not need this log unless
-you run your own exit drill campaign — you may delete `docs/phase4-exit-drills/`.
-Router behavior is documented above under **`route-pr` workflow**.
+Drill kits: [`docs/phase4-exit-drills/`](./docs/phase4-exit-drills/),
+[`docs/phase6-exit-drill/`](./docs/phase6-exit-drill/). Template spec history:
+[`docs/archive/`](./docs/archive/). Forks can `rm -rf docs/archive` and the drill
+directories; see `docs/post-fork-checklist.md` §9.

@@ -1,5 +1,8 @@
 # Phase 6 exit drill — observation log
 
+> Historical paths below cite `docs/specs/…` as at drill time. Shipped template specs
+> now live under `docs/archive/template-specs/` (see `docs/archive/README.md`).
+
 | Step | Signal | Result |
 | --- | --- | --- |
 | Fixture on `main` | `docs/specs/_drills/phase6-hello-world.md` drafted T0/low | OK (merged #55) |

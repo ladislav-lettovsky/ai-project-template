@@ -26,7 +26,7 @@ This spec is documentation-only. It writes down, in one place, *where*
 to look under `CODEX_HOME` (default `~/.codex`), *what* to look for,
 *what counts as strong evidence vs weak or inconclusive evidence*, and
 *how* the verification fits into the calibration workflow documented
-in `docs/specs/reviewer-calibration-workflow.md`. It exists because the
+in `docs/archive/template-specs/reviewer-calibration-workflow.md`. It exists because the
 sibling spec stops at "confirm from session logs" without prescribing
 the procedure, and because Codex's on-disk layout under `CODEX_HOME`
 is undocumented in this repo and likely to drift across Codex
@@ -60,7 +60,7 @@ that configuration; it does not modify the configuration itself.
   therefore structurally prevented from entering version control and
   cannot become part of any merge gate.
 - A6: The sibling spec at
-  `docs/specs/reviewer-calibration-workflow.md` is the canonical
+  `docs/archive/template-specs/reviewer-calibration-workflow.md` is the canonical
   statement of the broader Phase 3 calibration workflow; this spec is
   its companion for the sandbox-confirmation half of the exit gate.
 
@@ -95,14 +95,14 @@ that configuration; it does not modify the configuration itself.
   `CODEX_HOME` rather than relying on any one file.
 - D5: This spec carries `risk_tier: T0` and `complexity: low`. The
   only change that ships is a new Markdown file under `docs/specs/`
-  and a one-line cross-link in `docs/specs/reviewer-calibration-workflow.md`.
+  and a one-line cross-link in `docs/archive/template-specs/reviewer-calibration-workflow.md`.
   Both paths are outside the red-zone list in AGENTS.md.
 
 ## Problem Statement
 
 `docs/blueprint.md` Phase 3 requires a human to confirm, from Codex
 session logs, that the Reviewer ran with `sandbox_mode = "read-only"`.
-`docs/specs/reviewer-calibration-workflow.md` Done When repeats that
+`docs/archive/template-specs/reviewer-calibration-workflow.md` Done When repeats that
 requirement as a checklist item. Neither document answers:
 
 1. *Where* under `CODEX_HOME` (default `~/.codex`) is the evidence?
@@ -126,11 +126,11 @@ discipline is meant to prevent.
 ## Requirements (STRICT)
 
 - [ ] R1: A new spec file exists at
-  `docs/specs/codex-reviewer-readonly-sandbox-verification.md`. The
+  `docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md`. The
   file passes
-  `uv run python scripts/lint_spec.py docs/specs/codex-reviewer-readonly-sandbox-verification.md`
+  `uv run python scripts/lint_spec.py docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md`
   (exit 0) and
-  `uv run pre-commit run markdownlint-cli2 --files docs/specs/codex-reviewer-readonly-sandbox-verification.md`
+  `uv run pre-commit run markdownlint-cli2 --files docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md`
   (exit 0).
 - [ ] R2: The spec contains a runtime-guarantee reminder stating that
   `sandbox_mode` is enforced by the Codex runtime (via
@@ -168,7 +168,7 @@ discipline is meant to prevent.
   control.
 - [ ] R7: The spec's Done When section is cross-linked, in one
   sentence, from the sibling spec
-  `docs/specs/reviewer-calibration-workflow.md` (in its Done When or
+  `docs/archive/template-specs/reviewer-calibration-workflow.md` (in its Done When or
   Context section). The cross-link is the only edit made to the
   sibling spec; no other content changes there.
 - [ ] R8: The spec does NOT instruct any change to
@@ -206,12 +206,12 @@ discipline is meant to prevent.
 
 **Files created:**
 
-- `docs/specs/codex-reviewer-readonly-sandbox-verification.md` — this
+- `docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md` — this
   spec.
 
 **Files modified:**
 
-- `docs/specs/reviewer-calibration-workflow.md` — one-sentence
+- `docs/archive/template-specs/reviewer-calibration-workflow.md` — one-sentence
   cross-link addition in its Done When section (per R7). No other
   changes to that file.
 
@@ -260,9 +260,9 @@ documents an existing manual procedure; it does not introduce one.
 - invariant-protected files: no
 
 > The two files that ship are
-> `docs/specs/codex-reviewer-readonly-sandbox-verification.md` (new)
+> `docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md` (new)
 > and a one-line cross-link in
-> `docs/specs/reviewer-calibration-workflow.md`. Neither is on the
+> `docs/archive/template-specs/reviewer-calibration-workflow.md`. Neither is on the
 > AGENTS.md "Red-zone files" list. `risk_tier: T0` is justified.
 
 ## Test Plan
@@ -272,9 +272,9 @@ file/structure assertions runnable via existing tooling, plus a small
 number of human content checks.
 
 - [ ] T1 -> covers R1
-  Run `uv run python scripts/lint_spec.py docs/specs/codex-reviewer-readonly-sandbox-verification.md`.
+  Run `uv run python scripts/lint_spec.py docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md`.
   Expect exit 0. Then run
-  `uv run pre-commit run markdownlint-cli2 --files docs/specs/codex-reviewer-readonly-sandbox-verification.md`.
+  `uv run pre-commit run markdownlint-cli2 --files docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md`.
   Expect exit 0. Then run `just check` from the repo root and expect
   exit 0.
 - [ ] T2 -> covers R2
@@ -306,7 +306,7 @@ number of human content checks.
   `CODEX_HOME`, (c) capture excerpt to `.scratch/reviewer-calibration.md`
   only. Manual content check.
 - [ ] T7 -> covers R7
-  `git diff main -- docs/specs/reviewer-calibration-workflow.md`
+  `git diff main -- docs/archive/template-specs/reviewer-calibration-workflow.md`
   shows exactly one additive sentence in the Done When section,
   cross-linking this spec. No other lines changed in that file.
 - [ ] T8 -> covers R8
@@ -316,8 +316,8 @@ number of human content checks.
 
 ## Validation Contract
 
-- R1 -> `just lint-spec docs/specs/codex-reviewer-readonly-sandbox-verification.md`
-  AND `uv run pre-commit run markdownlint-cli2 --files docs/specs/codex-reviewer-readonly-sandbox-verification.md`
+- R1 -> `just lint-spec docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md`
+  AND `uv run pre-commit run markdownlint-cli2 --files docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md`
   AND `just check`
 - R2 -> manual content check per T2 (linter validates structure, not
   prose)
@@ -325,7 +325,7 @@ number of human content checks.
 - R4 -> manual content check per T4
 - R5 -> manual content check per T5
 - R6 -> manual content check per T6
-- R7 -> `git diff main -- docs/specs/reviewer-calibration-workflow.md`
+- R7 -> `git diff main -- docs/archive/template-specs/reviewer-calibration-workflow.md`
   shows one additive sentence in Done When; no other line changes
 - R8 -> `git diff main -- .codex/config.toml .claude/ scripts/hooks/
   pyproject.toml .reviewer-schema.json scripts/validate_reviewer.py
@@ -404,9 +404,9 @@ relax this; only the runtime configuration can.
 ## Rollback / Recovery
 
 Purely additive. To roll back, revert the commit that adds
-`docs/specs/codex-reviewer-readonly-sandbox-verification.md` and
+`docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md` and
 the one-line cross-link addition to
-`docs/specs/reviewer-calibration-workflow.md`. No data, schema, or
+`docs/archive/template-specs/reviewer-calibration-workflow.md`. No data, schema, or
 runtime behavior depends on this spec; rollback is a no-op for the
 running system.
 
@@ -416,11 +416,11 @@ This spec implements as a single commit. There is no Slice 2.
 
 1. **Slice 1 (single commit, T0):** On branch
    `spec/codex-reviewer-readonly-sandbox-verification`, add
-   `docs/specs/codex-reviewer-readonly-sandbox-verification.md` and
+   `docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md` and
    add the one-sentence cross-link in
-   `docs/specs/reviewer-calibration-workflow.md` Done When. Run
-   `just lint-spec docs/specs/codex-reviewer-readonly-sandbox-verification.md`,
-   `uv run pre-commit run markdownlint-cli2 --files docs/specs/codex-reviewer-readonly-sandbox-verification.md docs/specs/reviewer-calibration-workflow.md`,
+   `docs/archive/template-specs/reviewer-calibration-workflow.md` Done When. Run
+   `just lint-spec docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md`,
+   `uv run pre-commit run markdownlint-cli2 --files docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md docs/archive/template-specs/reviewer-calibration-workflow.md`,
    and `just check` locally — all must exit 0. Open the PR; PR body
    links this spec; PR body carries the
    `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` block per
@@ -490,9 +490,9 @@ the implementation steps of this spec.
 - [ ] T1–T8 executed with the documented expected outcomes.
 - [ ] Validation Contract satisfied: every `R*` maps to a passing
   validator.
-- [ ] `just lint-spec docs/specs/codex-reviewer-readonly-sandbox-verification.md`
+- [ ] `just lint-spec docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md`
   exits 0.
-- [ ] `uv run pre-commit run markdownlint-cli2 --files docs/specs/codex-reviewer-readonly-sandbox-verification.md docs/specs/reviewer-calibration-workflow.md`
+- [ ] `uv run pre-commit run markdownlint-cli2 --files docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md docs/archive/template-specs/reviewer-calibration-workflow.md`
   exits 0.
 - [ ] `just check` green locally.
 - [ ] CI green on the PR branch.
@@ -504,10 +504,10 @@ the implementation steps of this spec.
 - [ ] PR body contains a
   `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` block.
 - [ ] The sibling spec at
-  `docs/specs/reviewer-calibration-workflow.md` carries a single
+  `docs/archive/template-specs/reviewer-calibration-workflow.md` carries a single
   one-sentence cross-link to this spec in its Done When section
   (per R7); no other lines in that file change.
 - [ ] Maintainers extending or revising the broader Phase 3
   calibration workflow consult this spec for the sandbox-verification
-  half; see `docs/specs/reviewer-calibration-workflow.md` for the
+  half; see `docs/archive/template-specs/reviewer-calibration-workflow.md` for the
   full workflow.

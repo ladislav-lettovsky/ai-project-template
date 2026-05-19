@@ -52,6 +52,9 @@ import validate_reviewer  # noqa: E402
 EXCLUDED_SPEC_DOC_NAMES = frozenset(
     {"README.md", "_template.md", "_postmortem.md", ".gitkeep"},
 )
+ACTIVE_SPEC_DIR = "docs/specs"
+ARCHIVE_SPEC_DIR = "docs/archive/template-specs"
+AUTHORIZING_SPEC_PREFIXES = (f"{ACTIVE_SPEC_DIR}/", f"{ARCHIVE_SPEC_DIR}/")
 
 
 def slug_from_branch(head_ref_name: str) -> str | None:
@@ -64,10 +67,22 @@ def slug_from_branch(head_ref_name: str) -> str | None:
 
 
 def is_authorizing_spec_doc(repo_rel_path: str) -> bool:
-    if not repo_rel_path.startswith("docs/specs/"):
+    if not repo_rel_path.startswith(AUTHORIZING_SPEC_PREFIXES):
         return False
     name = Path(repo_rel_path).name
     return name not in EXCLUDED_SPEC_DOC_NAMES and name.endswith(".md")
+
+
+def resolve_authorizing_spec_path(repo_root: Path, slug: str) -> Path | None:
+    """Return the spec file for ``slug`` under active or archive dirs."""
+    candidates = (
+        repo_root / ACTIVE_SPEC_DIR / f"{slug}.md",
+        repo_root / ARCHIVE_SPEC_DIR / f"{slug}.md",
+    )
+    for path in candidates:
+        if path.is_file():
+            return path
+    return None
 
 
 def count_authorizing_specs_changed(paths: list[str]) -> int:
@@ -153,9 +168,12 @@ def build_context_dict(
             "branch head must match spec/<slug> or fix/<slug> when using authorizing specs"
         )
     else:
-        spec_abs = repo_root / "docs" / "specs" / f"{slug}.md"
-        if not spec_abs.is_file():
-            spec_errors.append(f"authorizing spec file missing at docs/specs/{slug}.md")
+        spec_abs = resolve_authorizing_spec_path(repo_root, slug)
+        if spec_abs is None:
+            spec_errors.append(
+                f"authorizing spec file missing at {ACTIVE_SPEC_DIR}/{slug}.md "
+                f"or {ARCHIVE_SPEC_DIR}/{slug}.md"
+            )
         else:
             spec_errors += lint_spec.lint_spec(spec_abs)
             section_text = lint_spec.split_sections(spec_abs.read_text(encoding="utf-8"))

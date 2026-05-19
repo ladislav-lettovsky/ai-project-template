@@ -125,10 +125,10 @@ artifacts that enforce the workflow's outputs (durable, machine-checked).
 ## Requirements (STRICT)
 
 - [ ] R1: A new spec file exists at
-  `docs/specs/reviewer-calibration-workflow.md`. The file passes
-  `just lint-spec docs/specs/reviewer-calibration-workflow.md` (i.e.
+  `docs/archive/template-specs/reviewer-calibration-workflow.md`. The file passes
+  `just lint-spec docs/archive/template-specs/reviewer-calibration-workflow.md` (i.e.
   `scripts/lint_spec.py` exits 0 against it). The file also passes
-  `uv run pre-commit run markdownlint-cli2 --files docs/specs/reviewer-calibration-workflow.md`.
+  `uv run pre-commit run markdownlint-cli2 --files docs/archive/template-specs/reviewer-calibration-workflow.md`.
 - [ ] R2: The spec's Context, Decisions, and Problem Statement
   sections together state explicitly that (a) the Phase 3 calibration
   workflow requires scoring 10 consecutive PRs as useful / noise /
@@ -189,7 +189,7 @@ artifacts that enforce the workflow's outputs (durable, machine-checked).
 
 **Files created:**
 
-- `docs/specs/reviewer-calibration-workflow.md` — this spec.
+- `docs/archive/template-specs/reviewer-calibration-workflow.md` — this spec.
 
 **Files possibly modified (optional, see D4 and Implementation Slices):**
 
@@ -240,7 +240,7 @@ No new entrypoints, CLI commands, schemas, or APIs.
 - invariant-protected files: no
 
 > The default Implementation Slice (Slice 1) only adds
-> `docs/specs/reviewer-calibration-workflow.md`, which is NOT on the
+> `docs/archive/template-specs/reviewer-calibration-workflow.md`, which is NOT on the
 > red-zone list. If the optional cross-reference in AGENTS.md is
 > taken (Slice 2), the assessment changes: `invariant-protected
 > files: yes`, and this spec must be re-tiered to `risk_tier: T1`
@@ -254,9 +254,9 @@ This spec produces no executable code. The "tests" are deterministic
 file/structure assertions runnable via existing tooling.
 
 - [ ] T1 -> covers R1
-  Run `uv run python scripts/lint_spec.py docs/specs/reviewer-calibration-workflow.md`.
+  Run `uv run python scripts/lint_spec.py docs/archive/template-specs/reviewer-calibration-workflow.md`.
   Expect exit code 0. Then run
-  `uv run pre-commit run markdownlint-cli2 --files docs/specs/reviewer-calibration-workflow.md`.
+  `uv run pre-commit run markdownlint-cli2 --files docs/archive/template-specs/reviewer-calibration-workflow.md`.
   Expect exit code 0.
 - [ ] T2 -> covers R2, R3
   Grep the committed spec for the substrings (case-insensitive)
@@ -281,8 +281,8 @@ file/structure assertions runnable via existing tooling.
 
 ## Validation Contract
 
-- R1 -> `just lint-spec docs/specs/reviewer-calibration-workflow.md`
-  AND `uv run pre-commit run markdownlint-cli2 --files docs/specs/reviewer-calibration-workflow.md`
+- R1 -> `just lint-spec docs/archive/template-specs/reviewer-calibration-workflow.md`
+  AND `uv run pre-commit run markdownlint-cli2 --files docs/archive/template-specs/reviewer-calibration-workflow.md`
   AND `just check`
 - R2 -> manual content check per T2 (the spec linter validates
   structure, not prose; this requirement is satisfied by reviewer
@@ -345,7 +345,7 @@ when it lands. (See EC2.)
 ## Rollback / Recovery
 
 Purely additive. To roll back, revert the commit that adds
-`docs/specs/reviewer-calibration-workflow.md` (and, if Slice 2 was
+`docs/archive/template-specs/reviewer-calibration-workflow.md` (and, if Slice 2 was
 taken, revert the one-line additions to AGENTS.md and
 `docs/blueprint.md`). No data, schema, or runtime behavior depends
 on this spec; rollback is a no-op for the running system.
@@ -353,9 +353,9 @@ on this spec; rollback is a no-op for the running system.
 ## Implementation Slices
 
 1. **Slice 1 (default, single commit, T0):** Add
-   `docs/specs/reviewer-calibration-workflow.md` on branch
+   `docs/archive/template-specs/reviewer-calibration-workflow.md` on branch
    `spec/reviewer-calibration-workflow`. Run
-   `just lint-spec docs/specs/reviewer-calibration-workflow.md` and
+   `just lint-spec docs/archive/template-specs/reviewer-calibration-workflow.md` and
    `just check` locally. Open PR; PR body links this spec; PR body
    carries the `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->`
    block per Invariant 1. Stop here unless Slice 2 is judged useful.
@@ -378,9 +378,9 @@ on this spec; rollback is a no-op for the running system.
 - [x] T1–T5 executed with the documented expected outcomes.
 - [x] Validation Contract satisfied: every R\* maps to a passing
   validator.
-- [x] `just lint-spec docs/specs/reviewer-calibration-workflow.md`
+- [x] `just lint-spec docs/archive/template-specs/reviewer-calibration-workflow.md`
   exits 0.
-- [x] `uv run pre-commit run markdownlint-cli2 --files docs/specs/reviewer-calibration-workflow.md`
+- [x] `uv run pre-commit run markdownlint-cli2 --files docs/archive/template-specs/reviewer-calibration-workflow.md`
   exits 0.
 - [x] `just check` green locally.
 - [x] CI green on the PR branch.
@@ -402,5 +402,5 @@ on this spec; rollback is a no-op for the running system.
   confirmation step above is documented in detail (artifact paths
   under `CODEX_HOME`, search commands, strong vs weak evidence, and
   capture-to-`.scratch/` discipline) in
-  `docs/specs/codex-reviewer-readonly-sandbox-verification.md`;
+  `docs/archive/template-specs/codex-reviewer-readonly-sandbox-verification.md`;
   consult that spec before checking this box.

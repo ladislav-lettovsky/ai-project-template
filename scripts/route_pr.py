@@ -4,7 +4,7 @@ Consumes ``pr.json`` emitted by ``build_pr_context`` plus ``.routing-policy.json
 Writes JSON ``{"route": "...", "reasons": [...]}`` to stdout. No LLM calls.
 
 Gate order mirrors the authorizing spec
-``docs/specs/phase-4-deterministic-router.md`` §R4:
+``docs/archive/template-specs/phase-4-deterministic-router.md`` §R4:
 
 1. ``reviewer_validation.status != valid`` → ``review:human``
 2. ``spec_validation.status != valid`` → ``review:human``
@@ -51,7 +51,10 @@ def route_decision(pr: dict, policy: dict) -> tuple[str, list[str]]:
     if pr.get("multiple_authorizing_specs_changed") is True:
         return (
             "review:human",
-            ["PR changes more than one authorizing docs/specs/*.md file (narrow to one scope)."],
+            [
+                "PR changes more than one authorizing spec file "
+                "(docs/specs/ or docs/archive/template-specs/; narrow to one scope)."
+            ],
         )
 
     changed = pr.get("changed_files") or []

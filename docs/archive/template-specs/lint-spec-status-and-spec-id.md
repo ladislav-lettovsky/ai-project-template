@@ -49,7 +49,7 @@ Fix: extend `check_metadata` to enforce both fields against the documented contr
 - [ ] R4: `lint_spec.py` reports an error when the Metadata block is missing a `spec_id:` line, with message containing the substring `"spec_id"`.
 - [ ] R5: `lint_spec.py` reports an error when the Metadata block contains `spec_id: <value>` where `<value>` does not match `^SPEC-\d{8}-[a-z0-9]+(?:-[a-z0-9]+)*$`, with the offending value cited in the message.
 - [ ] R6: `lint_spec.py` accepts `spec_id:` values matching the pattern (e.g. `SPEC-20260515-foo`, `SPEC-20260515-foo-bar-baz`) without raising a spec_id-related error.
-- [ ] R7: `docs/specs/branch-name-hook-allowlist.md` and `docs/specs/scratch-branch-edit-guard.md` have their `status:` migrated from `implemented` to `complete`, so the existing spec corpus lints clean under the new rules.
+- [ ] R7: `docs/archive/template-specs/branch-name-hook-allowlist.md` and `docs/archive/template-specs/scratch-branch-edit-guard.md` have their `status:` migrated from `implemented` to `complete`, so the existing spec corpus lints clean under the new rules.
 
 ## Non-Goals
 
@@ -65,8 +65,8 @@ Files modified:
 
 - `scripts/lint_spec.py` — add `ALLOWED_STATUS` frozenset, `SPEC_ID_RE` compiled regex, and extend `check_metadata` to validate both fields. No new functions exported.
 - `tests/test_lint_spec.py` — add parametrized tests for the new validations (see Test Plan).
-- `docs/specs/branch-name-hook-allowlist.md` — change `status: implemented` → `status: complete`.
-- `docs/specs/scratch-branch-edit-guard.md` — change `status: implemented` → `status: complete`.
+- `docs/archive/template-specs/branch-name-hook-allowlist.md` — change `status: implemented` → `status: complete`.
+- `docs/archive/template-specs/scratch-branch-edit-guard.md` — change `status: implemented` → `status: complete`.
 
 No new files. No public API surface change — `check_metadata` keeps its existing signature `(metadata: dict[str, str]) -> list[str]` and continues to return a list of human-readable error strings.
 
@@ -122,7 +122,7 @@ Behavioural contract (additions to `check_metadata`):
 | R4 | `uv run pytest tests/test_lint_spec.py::test_missing_spec_id_is_reported` |
 | R5 | `uv run pytest tests/test_lint_spec.py::test_malformed_spec_id_is_reported` |
 | R6 | `uv run pytest tests/test_lint_spec.py::test_valid_spec_id_lints_clean` |
-| R7 | `just lint-spec docs/specs/branch-name-hook-allowlist.md docs/specs/scratch-branch-edit-guard.md` (and `just check`) |
+| R7 | `just lint-spec docs/archive/template-specs/branch-name-hook-allowlist.md docs/archive/template-specs/scratch-branch-edit-guard.md` (and `just check`) |
 
 ## Edge Cases
 
@@ -150,7 +150,7 @@ Revert the commit. The change is purely additive within `check_metadata` plus tw
 
 ## Implementation Slices
 
-1. **Slice 0 — Migration.** Edit `docs/specs/branch-name-hook-allowlist.md` and `docs/specs/scratch-branch-edit-guard.md`: change `- status: implemented` to `- status: complete`. Verify with `just lint-spec` on each file (passes under current rules). This slice must land before or with Slice 1.
+1. **Slice 0 — Migration.** Edit `docs/archive/template-specs/branch-name-hook-allowlist.md` and `docs/archive/template-specs/scratch-branch-edit-guard.md`: change `- status: implemented` to `- status: complete`. Verify with `just lint-spec` on each file (passes under current rules). This slice must land before or with Slice 1.
 
 2. **Slice 1 — Validation logic.** In `scripts/lint_spec.py`:
    - Add `ALLOWED_STATUS: frozenset[str] = frozenset({"drafted", "in-progress", "complete", "archived"})` alongside the existing `ALLOWED_*` constants.

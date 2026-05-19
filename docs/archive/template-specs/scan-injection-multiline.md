@@ -296,5 +296,5 @@ artifact genuinely matches under whitespace-insensitive comparison.
 - [ ] CI green.
 - [ ] Invariants INV1–INV6 hold.
 - [ ] Branch name starts with `spec/scan-injection-multiline` (Invariant 1).
-- [ ] PR description links this spec at `docs/specs/scan-injection-multiline.md`.
+- [ ] PR description links this spec at `docs/archive/template-specs/scan-injection-multiline.md`.
 - [ ] PR body contains a `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` block.

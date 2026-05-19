@@ -1,6 +1,7 @@
 # Phase 6 D1 — dispatch transport spike
 
-Authorizing spec: [`docs/specs/phase6-scheduled-executor.md`](../specs/phase6-scheduled-executor.md).
+Authorizing spec:
+[`docs/archive/template-specs/phase6-scheduled-executor.md`](../archive/template-specs/phase6-scheduled-executor.md).
 
 ## Candidates evaluated
 

@@ -123,7 +123,10 @@ Not required for `just check` or CI. Only if you enable GitHub MCP in
 **Telemetry (Phase 5)** — `docs/telemetry/events.jsonl`, `just telemetry-dashboard`,
 `just adapt-thresholds` / `adapt-thresholds-write`, `record-telemetry.yml` on merge.
 
-**Roadmap** — Phase 6 (scheduled executor) is not shipped; see `docs/blueprint.md` §4.
+**Scheduled executor (Phase 6, v1)** — `scheduled-executor.yml` queues T0+low `drafted`
+specs under `docs/specs/` and opens stub PRs via `dispatch_spec.py`. See
+`docs/blueprint.md` §4 and CONTRIBUTING.md. Template spec history:
+`docs/archive/template-specs/`.
 
 ### Why this exists *(Keep — optional trim)*
 

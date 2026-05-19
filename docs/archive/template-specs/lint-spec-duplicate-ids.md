@@ -182,5 +182,5 @@ Purely additive lint check. Roll back by reverting the single commit that adds t
 - [ ] CI green on the PR branch.
 - [ ] Invariants INV1–INV7 hold.
 - [ ] Branch name starts with `spec/lint-spec-duplicate-ids` (Invariant 1).
-- [ ] PR description links this spec at `docs/specs/lint-spec-duplicate-ids.md`.
+- [ ] PR description links this spec at `docs/archive/template-specs/lint-spec-duplicate-ids.md`.
 - [ ] PR body contains a `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` block.

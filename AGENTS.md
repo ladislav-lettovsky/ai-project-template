@@ -180,7 +180,8 @@ Read-only sessions (Planner subagent, ad-hoc questions) do not need worktrees.
 - `tests/` — pytest test suite
 - `docs/` — project documentation
   - `docs/blueprint.md` — the AI-native dev environment blueprint
-  - `docs/specs/` — per-feature specs
+  - `docs/specs/` — active authorizing specs
+    - `docs/archive/template-specs/` — completed template-build specs (fork: `rm -rf docs/archive`)
     - `docs/specs/README.md` — spec format documentation
     - `docs/specs/_template.md` — fillable spec skeleton
   - `docs/telemetry/` — events.jsonl + dashboard (Phase 5+)

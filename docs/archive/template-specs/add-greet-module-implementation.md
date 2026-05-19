@@ -238,6 +238,6 @@ reverting the commit that added `greet.py` and `test_greet.py`.
 - [ ] CI green on the PR branch.
 - [ ] Invariants INV1–INV5 hold.
 - [ ] Branch name starts with `spec/add-greet-module-implementation` (Invariant 1).
-- [ ] PR description links this spec at `docs/specs/add-greet-module-implementation.md`.
+- [ ] PR description links this spec at `docs/archive/template-specs/add-greet-module-implementation.md`.
 - [ ] PR body contains a `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` block
   (empty fenced block acceptable until Phase 3 Reviewer lands).
