@@ -471,9 +471,9 @@ Router said so.
 
 - [x] At least one adapt-thresholds cycle from real telemetry (policy committed; template: `max_diff_lines` 150→125, `min_reviewer_confidence` 60→65).
 - [x] At least one AGENTS.md invariant added/revised from a post-mortem or dashboard pattern (Invariant 9 — spec path vs branch slug; drill PR #43).
-- [ ] At least one Reviewer finding cites MCP-sourced context (issue, Sentry, etc.) — requires enabled `[mcp_servers.github]` and a smoke PR.
+- [x] At least one Reviewer finding cites MCP-sourced context (template: issue #45 cited in Reviewer JSON evidence after MCP smoke).
 
-Human steps for the open MCP item: enable config (uncomment), `source .env`, run Reviewer on a PR with `Fixes #N`; track in your issue tracker.
+Human steps for forks: enable `[mcp_servers.github]`, `source .env`, spawn Reviewer on a PR with `Fixes #N`; use read-only server flags per §5.12.
 
 **Why (picturable):** Without Phase 5, the system cannot improve. Prompts rot as dependencies
 and patterns change. Telemetry + bounded adaptation makes policy quality a **measurable**
@@ -1073,8 +1073,14 @@ NEVER emit prose instead of JSON. If you cannot produce schema-valid JSON, emit 
 # Phase 5: MCP integration (optional — see §5.12; uncomment when PAT + Docker ready)
 # [mcp_servers.github]
 # command = "docker"
-# args = ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
-#         "ghcr.io/github/github-mcp-server"]
+# args = [
+#   "run", "-i", "--rm",
+#   "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
+#   "-e", "GITHUB_READ_ONLY=1",
+#   "ghcr.io/github/github-mcp-server",
+#   "stdio", "--read-only",
+#   "--toolsets=issues,pull_requests",
+# ]
 # env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]
 
 ````
@@ -1120,8 +1126,14 @@ Phase 5 enhancement. Adds external context to the Reviewer (and optionally the P
 # .codex/config.toml — top-level MCP (Codex docs); optional Sentry server similarly
 [mcp_servers.github]
 command = "docker"
-args = ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "ghcr.io/github/github-mcp-server"]
+args = [
+  "run", "-i", "--rm",
+  "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
+  "-e", "GITHUB_READ_ONLY=1",
+  "ghcr.io/github/github-mcp-server",
+  "stdio", "--read-only",
+  "--toolsets=issues,pull_requests",
+]
 env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]
 
 # [mcp_servers.sentry]
@@ -1137,7 +1149,12 @@ mcpServers:
 
 What MCP buys: the Reviewer can cite "this fix to `auth.py` also resolves Sentry issue PROJ-1234" — evidence that lives outside the diff. The Planner can pull issue context directly into the spec rather than the human pasting it.
 
-What MCP doesn't change: the sandbox boundary. A Reviewer with MCP access still runs in `sandbox_mode = "read-only"` — MCP only widens *read* surface, not write surface. Web-search results and MCP tool outputs are run through `scan_injection.py` before being persisted to specs (Anti-pattern #18).
+What MCP doesn't change: the **Codex workspace** sandbox. A Reviewer still runs in
+`sandbox_mode = "read-only"` for files and shell. MCP is separate: configure
+`github-mcp-server` with `GITHUB_READ_ONLY=1` and `stdio --read-only` (and narrow
+toolsets) so write tools are omitted from `tools/list` — otherwise the model may see
+write-capable MCP tools even when the PAT is read-only. Web-search and MCP outputs
+copied into specs are run through `scan_injection.py` before commit (Anti-pattern #18).
 
 **Operator setup (cloners):** `just check` does not need a GitHub token. If you enable
 `[mcp_servers.github]` in `.codex/config.toml`, set `GITHUB_PERSONAL_ACCESS_TOKEN` in

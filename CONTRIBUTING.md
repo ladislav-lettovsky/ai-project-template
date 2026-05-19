@@ -177,19 +177,30 @@ fetch linked GitHub issues (e.g. `Fixes #N` in the PR body) and cite them in
 
    ```bash
    set -a && source .env && set +a
-   codex --profile reviewer
+   codex
    ```
 
-3. **Config** — add `[mcp_servers.github]` to `.codex/config.toml` (red-zone;
-   human-authored). Official shape is documented in
-   [Codex MCP](https://developers.openai.com/codex/mcp); see blueprint §5.12.
-   Example (stdio via Docker):
+   Then spawn the Reviewer subagent (read-only) per `[agents.reviewer]` — see
+   blueprint §5.12. `--profile reviewer` only works if you define
+   `[profiles.reviewer]` in `~/.codex/config.toml` (profiles are user-level).
+
+3. **Config** — `[mcp_servers.github]` in `.codex/config.toml` (red-zone;
+   human-authored). Start the server in **read-only** mode so write tools are not
+   advertised to the model — `sandbox_mode = "read-only"` on the Reviewer does not
+   constrain MCP-side tools. Official shape: [Codex MCP](https://developers.openai.com/codex/mcp),
+   [github-mcp-server configuration](https://github.com/github/github-mcp-server/blob/main/docs/server-configuration.md).
 
    ```toml
    [mcp_servers.github]
    command = "docker"
-   args = ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
-           "ghcr.io/github/github-mcp-server"]
+   args = [
+     "run", "-i", "--rm",
+     "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
+     "-e", "GITHUB_READ_ONLY=1",
+     "ghcr.io/github/github-mcp-server",
+     "stdio", "--read-only",
+     "--toolsets=issues,pull_requests",
+   ]
    env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]
    ```
 
