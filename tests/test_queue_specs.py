@@ -153,7 +153,10 @@ def test_existing_branch_and_pr_reference_skip_dispatch(tmp_path: Path) -> None:
     prs = [
         {
             "state": "OPEN",
-            "body": "Implements docs/specs/pr-exists.md",
+            "body": (
+                "Implements [docs/specs/pr-exists.md](docs/specs/pr-exists.md).\n\n"
+                "dispatch-source: scheduled\n"
+            ),
             "headRefName": "someone/else",
         }
     ]
@@ -169,6 +172,26 @@ def test_existing_branch_and_pr_reference_skip_dispatch(tmp_path: Path) -> None:
 
     assert by_slug["branch-exists"]["skip_reason"] == "branch_exists"
     assert by_slug["pr-exists"]["skip_reason"] == "pr_exists"
+
+
+def test_chore_pr_mentioning_spec_path_does_not_block(tmp_path: Path) -> None:
+    _write_spec(tmp_path, "test-hello-world")
+    prs = [
+        {
+            "state": "MERGED",
+            "mergedAt": "2026-05-19T00:00:00Z",
+            "body": "Renames docs/specs/_drills/test-hello-world.md for clarity.",
+            "headRefName": "chore/rename-spec",
+        }
+    ]
+
+    [descriptor] = queue_specs.discover_specs(
+        repo_root=tmp_path,
+        remote_branches=set(),
+        pull_requests=prs,
+    )
+
+    assert descriptor["eligible"] is True
 
 
 def test_cli_uses_json_fixtures(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
