@@ -103,6 +103,24 @@ def test_eligibility_filter(tmp_path: Path) -> None:
     assert by_slug["redzone"]["skip_reason"] == "red_zone_yes"
 
 
+def test_discover_specs_includes_drills_subdirectory(tmp_path: Path) -> None:
+    _write_spec(tmp_path, "root-spec")
+    drills = tmp_path / "docs" / "specs" / "_drills"
+    drills.mkdir(parents=True)
+    top_level_drill = _write_spec(tmp_path, "phase6-hello-world")
+    top_level_drill.rename(drills / "phase6-hello-world.md")
+    slugs = {
+        item["slug"]
+        for item in queue_specs.discover_specs(
+            repo_root=tmp_path,
+            remote_branches=set(),
+            pull_requests=[],
+        )
+    }
+    assert "root-spec" in slugs
+    assert "phase6-hello-world" in slugs
+
+
 def test_red_zone_partial_axes_are_incomplete(tmp_path: Path) -> None:
     _write_spec(tmp_path, "partial-redzone", red_zone={"auth": "no", "billing": "no"})
 

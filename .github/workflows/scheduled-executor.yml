@@ -1,5 +1,5 @@
 # Phase 6 — queue and dispatch T0+low drafted specs (docs/specs/phase6-scheduled-executor.md).
-# v1 transport: issue stub via scripts/dispatch_spec.py (D1); no Codex in this job.
+# v1 transport: open PR via scripts/dispatch_spec.py --transport pr (D1); no Codex in CI.
 name: Phase 6 — Scheduled Executor
 
 on:
@@ -10,6 +10,7 @@ on:
 permissions:
   contents: write
   issues: write
+  pull-requests: write
 
 concurrency:
   group: phase6-scheduled-executor
@@ -103,16 +104,16 @@ jobs:
           uv run scripts/dispatch_spec.py \
             --spec "${{ steps.queue.outputs.spec_path }}" \
             --repo "${{ github.repository }}" \
-            --transport issue | tee dispatch.json
-          ISSUE_URL=$(jq -r '.issue_url // empty' dispatch.json)
+            --transport pr | tee dispatch.json
+          PR_URL=$(jq -r '.pr_url // empty' dispatch.json)
           BRANCH=$(jq -r '.branch // empty' dispatch.json)
           {
             echo ""
             echo "### Dispatch outcome"
             echo ""
             echo "- Branch: \`${BRANCH}\`"
-            if [ -n "${ISSUE_URL}" ]; then
-              echo "- Tracking issue: ${ISSUE_URL}"
+            if [ -n "${PR_URL}" ]; then
+              echo "- Pull request: ${PR_URL}"
             fi
           } >> "${GITHUB_STEP_SUMMARY}"
 

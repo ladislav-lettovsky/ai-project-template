@@ -1,0 +1,90 @@
+# Phase 6 exit drill — hello world
+
+## Metadata
+
+- spec_id: SPEC-20260519-phase6-hello-world
+- owner: template
+- status: drafted
+- complexity: low
+- risk_tier: T0
+- repo: ai-project-template
+- branch: spec/phase6-hello-world
+
+## Context
+
+Trivial T0/low fixture for Phase 6 exit drill (R10). The scheduled executor should
+queue and dispatch this spec; no production code changes are intended.
+
+## Assumptions
+
+- A1: Drill runs only on the template repo with Phase 6 workflow enabled.
+
+## Decisions
+
+- D1: No implementation beyond an empty seed commit on `spec/phase6-hello-world`.
+
+## Problem Statement
+
+Validate scheduler → open PR → Router handoff without touching red-zone files.
+
+## Requirements (STRICT)
+
+- [ ] R1: Scheduler selects this spec when it is the only eligible drafted T0/low fixture.
+
+## Non-Goals
+
+- [ ] NG1: Land application code.
+- [ ] NG2: Auto-merge or automated Reviewer.
+
+## Interfaces
+
+- `docs/specs/_drills/phase6-hello-world.md` — this file only.
+
+## Invariants to Preserve
+
+- [ ] INV1: No red-zone paths in the drill PR diff (empty or seed commit only).
+
+## Red-Zone Assessment
+
+- auth: no
+- billing: no
+- dependencies: no
+- CI: no
+- migrations: no
+- secrets: no
+- infra: no
+- invariant-protected files: no
+
+## Test Plan
+
+- [ ] T1 -> covers R1
+
+## Validation Contract
+
+- R1 -> `workflow_dispatch` on `scheduled-executor.yml` with drill recorded in `docs/phase6-exit-drill/STATUS.md`
+
+## Edge Cases
+
+- EC1: Another eligible spec sorts before `phase6-hello-world` lexicographically — drill waits or temporarily ineligible the other spec.
+
+## Security / Prompt-Injection Review
+
+- source: none (fixture spec only)
+- risk: low
+- mitigation: not required
+
+## Observability
+
+Exit drill log in `docs/phase6-exit-drill/STATUS.md`.
+
+## Rollback / Recovery
+
+Close drill PR; delete `spec/phase6-hello-world` branch; set `status: retired` or remove this file.
+
+## Implementation Slices
+
+1. Slice 1: Merge fixture on `main`; run exit drill; update `STATUS.md`.
+
+## Done When
+
+- [ ] Exit drill recorded in `docs/phase6-exit-drill/STATUS.md`

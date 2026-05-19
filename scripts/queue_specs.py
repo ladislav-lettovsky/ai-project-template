@@ -153,6 +153,14 @@ def pr_references_spec(pr: dict[str, Any], spec_path: str) -> bool:
     return spec_path in str(pr.get("body") or "")
 
 
+def iter_spec_paths(spec_dir: Path) -> list[Path]:
+    paths = [p for p in spec_dir.glob("*.md") if p.name not in EXCLUDED_SPEC_NAMES]
+    drills = spec_dir / "_drills"
+    if drills.is_dir():
+        paths.extend(p for p in drills.glob("*.md") if p.name not in EXCLUDED_SPEC_NAMES)
+    return sorted(paths, key=lambda p: p.as_posix())
+
+
 def discover_specs(
     *,
     repo_root: Path,
@@ -161,9 +169,7 @@ def discover_specs(
 ) -> list[dict[str, Any]]:
     spec_dir = repo_root / "docs" / "specs"
     descriptors: list[dict[str, Any]] = []
-    for path in sorted(spec_dir.glob("*.md")):
-        if path.name in EXCLUDED_SPEC_NAMES:
-            continue
+    for path in iter_spec_paths(spec_dir):
         descriptor = parse_spec_descriptor(path, repo_root)
         skip_reason = metadata_skip_reason(descriptor)
         if skip_reason == "status_not_drafted":

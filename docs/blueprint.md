@@ -482,9 +482,10 @@ and ceilings in `.routing-policy.json` make scheduled adaptation safe.
 
 ### Phase 6 — Endgame: semi-autonomous factory
 
-**Status:** in-progress — queue/dispatcher (Slices 1–2), telemetry `dispatch_source`,
-and `scheduled-executor.yml` (Slice 3) are on `main` or in flight; D1 Codex transport
-spike (Slice 4) and exit drill (Slice 5) remain before `[implemented]`.
+**Status:** implemented — queue/dispatcher, telemetry `dispatch_source`,
+`scheduled-executor.yml` (PR transport per D1 spike), and exit-drill kit shipped.
+Run `workflow_dispatch` on the scheduler and record the drill PR in
+`docs/phase6-exit-drill/STATUS.md` after merge. `codex exec` in CI remains Phase 6.1.
 
 **Deliverable:**
 

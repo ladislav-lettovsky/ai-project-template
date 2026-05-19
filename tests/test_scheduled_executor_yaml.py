@@ -22,6 +22,8 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert "github.event.repository.fork == false" in text
     assert "queue_specs.py" in text
     assert "dispatch_spec.py" in text
+    assert "--transport pr" in text
+    assert "pull-requests: write" in text
     assert "phase6-failure" in text
     assert "|| true" not in text
     assert "continue-on-error: true" not in text
@@ -33,4 +35,5 @@ def test_phase6_documentation_slice3() -> None:
     assert "Phase 6" in contributing
     assert "scheduled-executor.yml" in contributing
     assert "Phase 6" in blueprint
-    assert "in-progress" in blueprint
+    assert "implemented" in blueprint
+    assert (REPO_ROOT / "docs" / "phase6-exit-drill" / "STATUS.md").is_file()

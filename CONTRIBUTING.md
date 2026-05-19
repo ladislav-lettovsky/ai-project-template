@@ -294,11 +294,12 @@ red-zone `yes` rows, or malformed metadata are logged with `skip_reason` and nev
 dispatched. One spec per run: lexicographically first eligible slug (D5).
 
 **v1 stop-at-open-PR (D3):** The workflow calls `scripts/dispatch_spec.py` with
-`--transport issue`, which creates `spec/<slug>` from `origin/main` (when missing)
-and opens a `phase6-queue` tracking issue with the planned PR body. It does **not**
-open a GitHub PR or invoke Codex in CI. A human or local Codex session runs the
-Executor and Reviewer; `route-pr.yml` labels any PR once opened. PR bodies from
-`dispatch_spec.py` include `dispatch-source: scheduled` for telemetry (Slice 2).
+`--transport pr` (default), which creates `spec/<slug>` from `origin/main`, seeds an
+empty commit when needed, and opens a GitHub PR whose body links the spec and carries
+a schema-valid `REVIEWER_JSON` stub. It does **not** invoke Codex in CI. A human or
+local Codex session runs the Executor and Reviewer on that branch; `route-pr.yml`
+labels the PR. PR bodies include `dispatch-source: scheduled` for telemetry (Slice 2).
+Legacy `--transport issue` opens a `phase6-queue` tracking issue only (rollback).
 
 **Failure visibility (D6):** Any failing step fails the job (no `|| true`). A
 `phase6-failure` issue is opened with the workflow run URL.
