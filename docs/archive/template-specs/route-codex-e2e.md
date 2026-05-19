@@ -2,13 +2,13 @@
 
 ## Metadata
 
-- spec_id: SPEC-20260515-phase4-route-codex-e2e
+- spec_id: SPEC-20260515-route-codex-e2e
 - owner: Ladislav Lettovsky
 - status: complete
 - complexity: low
 - risk_tier: T0
 - repo: ai-project-template
-- branch: spec/phase4-route-codex-e2e
+- branch: spec/route-codex-e2e
 
 ## Context
 
@@ -64,7 +64,7 @@ This spec establishes a documented positive observation of the CI happy path.
 
 ## Interfaces
 
-Only one file is added: `docs/archive/template-specs/phase4-route-codex-e2e.md`. The PR body is
+Only one file is added: `docs/archive/template-specs/route-codex-e2e.md`. The PR body is
 the artifact under test for reviewer JSON extraction.
 
 ## Invariants to Preserve
@@ -94,7 +94,7 @@ the artifact under test for reviewer JSON extraction.
 ## Validation Contract
 
 - R1 -> Manual CI observation on the validating PR: reviewer JSON validates,
-  `gh run list --workflow route-pr.yml --branch spec/phase4-route-codex-e2e`
+  `gh run list --workflow route-pr.yml --branch spec/route-codex-e2e`
   shows the latest run as `completed success`, `gh pr view <pr> --json labels`
   includes `review:codex`, and `gh pr view <pr> --json comments` contains a
   comment beginning with `Router decision: review:codex` plus `Reasons:`.
@@ -140,7 +140,7 @@ code, workflow, policy, and schema unchanged.
 - [ ] `just check` green
 - [ ] CI green
 - [ ] No invariant violations
-- [ ] Branch name starts with `spec/phase4-route-codex-e2e`
+- [ ] Branch name starts with `spec/route-codex-e2e`
 - [ ] PR description links this spec
 - [ ] PR body contains a valid `REVIEWER_JSON` block
 - [ ] The `route-pr` workflow completes green on that PR

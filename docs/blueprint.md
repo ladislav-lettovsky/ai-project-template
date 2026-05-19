@@ -309,8 +309,8 @@ or the content belongs in a subagent definition, not in the canonical instructio
 the branch suffix after `spec/` or `fix/`. The PR description MUST link that path.
 `scripts/build_pr_context.py` lint-checks the file when present.
 
-**Why (picturable):** A branch `spec/phase4-exit-drills` with spec at
-`docs/specs/phase4-router-exit-drills.md` yields `spec_validation.invalid`, forces
+**Why (picturable):** A branch `spec/router-exit-drills` with spec at
+`docs/specs/router-exit-drills.md` yields `spec_validation.invalid`, forces
 `review:human`, and breaks Invariant 1 traceability (Router cannot trust `spec.risk_tier`).
 Template Phase 4 exit drill PR #43 hit this failure mode.
 
@@ -446,8 +446,8 @@ Each phase has a **deliverable**, an **exit criterion** (how we knew it was done
 **Exit criterion:** All three routing outcomes observed — `review:codex`, `review:human`
 (red-zone touch, e.g. `AGENTS.md`), and `blocked` (critical finding). Every decision has a
 PR comment with reasons. Log:
-[`docs/archive/exit-drills/phase4/STATUS.md`](docs/archive/exit-drills/phase4/STATUS.md); kit:
-[`docs/archive/exit-drills/phase4/README.md`](docs/archive/exit-drills/phase4/README.md).
+[`docs/archive/exit-drills/router/STATUS.md`](docs/archive/exit-drills/router/STATUS.md); kit:
+[`docs/archive/exit-drills/router/README.md`](docs/archive/exit-drills/router/README.md).
 
 **Why (picturable):** Phase 4 makes the environment **asynchronous**. Before: Codex opens a
 PR and waits. After: Codex opens a PR, the Router labels it, and `review:codex` can proceed
@@ -483,9 +483,9 @@ and ceilings in `.routing-policy.json` make scheduled adaptation safe.
 ### Phase 6 (implemented) — Scheduled executor (v1)
 
 **Status:** **implemented** on `ai-project-template` (May 2026). Authorizing spec:
-[`docs/archive/template-specs/phase6-scheduled-executor.md`](archive/template-specs/phase6-scheduled-executor.md).
-D1 notes: [`docs/archive/spikes/phase6-d1/NOTES.md`](archive/spikes/phase6-d1/NOTES.md). Exit drill:
-[`docs/archive/exit-drills/phase6/STATUS.md`](archive/exit-drills/phase6/STATUS.md).
+[`docs/archive/template-specs/scheduled-executor.md`](archive/template-specs/scheduled-executor.md).
+D1 notes: [`docs/archive/spikes/scheduled-executor-d1/NOTES.md`](archive/spikes/scheduled-executor-d1/NOTES.md). Exit drill:
+[`docs/archive/exit-drills/scheduled-executor/STATUS.md`](archive/exit-drills/scheduled-executor/STATUS.md).
 
 **Shipped (v1):** `queue_specs.py`, `dispatch_spec.py` (`--transport pr`),
 `scheduled-executor.yml`, telemetry `dispatch_source`, CONTRIBUTING scheduled-executor section,
@@ -493,7 +493,7 @@ deterministic tests.
 
 **Exit criterion (v1, met):** Scheduler opens a PR for a T0+low drill spec with spec
 link and schema-valid `REVIEWER_JSON` stub; `route-pr` labels; outcome in
-`docs/archive/exit-drills/phase6/STATUS.md`.
+`docs/archive/exit-drills/scheduled-executor/STATUS.md`.
 
 **Spec layout:** Active specs live in `docs/specs/` only. Completed template-build
 specs live in [`docs/archive/template-specs/`](archive/template-specs/). Forks:

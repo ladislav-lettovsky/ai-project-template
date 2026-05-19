@@ -44,7 +44,7 @@ their `description:` frontmatter and trigger language).
 **Shipped (2026-05):** R1–R4 landed in `.claude/agents/planner.md`, `.codex/agents/planner.toml`,
 and both `write-spec` skills (routing + consequence-based criteria). Remaining doc hygiene
 (`docs/specs/README.md`, duplicate skill section removal) completed in
-`chore/housekeeping-phase6-planner-docs`.
+`chore/housekeeping-planner-docs`.
 
 ## Assumptions
 

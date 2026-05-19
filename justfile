@@ -51,9 +51,9 @@ lint-changed-specs:
     base=$(git merge-base HEAD origin/main 2>/dev/null || echo "")
     if [ -z "$base" ]; then
         # Detached, no upstream, or fresh repo — fall back to working-tree changes.
-        changed=$(git diff --name-only HEAD -- 'docs/specs/*.md' 2>/dev/null | grep -v '^docs/specs/_template\.md$' | grep -v '^docs/specs/README\.md$' | grep -v '^docs/specs/_postmortem\.md$' || true)
+        changed=$(git diff --name-only HEAD -- 'docs/specs/*.md' 2>/dev/null | grep -v '^docs/specs/_template\.md$' | grep -v '^docs/specs/README\.md$' | grep -v '^docs/specs/_postmortem\.md$' | grep -v '^docs/specs/_drills/README\.md$' || true)
     else
-        changed=$(git diff --name-only "$base"..HEAD -- 'docs/specs/*.md' 2>/dev/null | grep -v '^docs/specs/_template\.md$' | grep -v '^docs/specs/README\.md$' | grep -v '^docs/specs/_postmortem\.md$' || true)
+        changed=$(git diff --name-only "$base"..HEAD -- 'docs/specs/*.md' 2>/dev/null | grep -v '^docs/specs/_template\.md$' | grep -v '^docs/specs/README\.md$' | grep -v '^docs/specs/_postmortem\.md$' | grep -v '^docs/specs/_drills/README\.md$' || true)
     fi
     if [ -z "$changed" ]; then
         echo "lint-changed-specs: no spec files modified on this branch."

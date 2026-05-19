@@ -25,7 +25,8 @@ and the Reviewer (Codex) checks against.
   postmortems (one postmortem produces one invariant addition or one
   prompt update). Procedure: `.claude/skills/postmortem/SKILL.md`.
 - `<slug>.md` — one file per spec. Filename slug matches the branch name
-  (`spec/<slug>`).
+  (`spec/<slug>`). Use **capability slugs only** — no `phaseN-` prefix (rollout
+  order is in `docs/blueprint.md`, not in filenames).
 
 ## The structure (enforced)
 
@@ -132,4 +133,4 @@ the archive layout live under `docs/archive/template-specs/` — do not move the
 Active scheduler drill fixtures may live under `docs/specs/_drills/` while a drill
 runs; when finished, move them to `docs/archive/exit-drills/<kit>/` with
 `status: complete` so cron does not re-queue them (see
-[`docs/archive/exit-drills/phase6/`](../archive/exit-drills/phase6/)).
+[`docs/archive/exit-drills/scheduled-executor/`](../archive/exit-drills/scheduled-executor/)).

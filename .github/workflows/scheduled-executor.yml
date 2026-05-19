@@ -1,4 +1,4 @@
-# Queue and dispatch T0+low drafted specs (docs/archive/template-specs/phase6-scheduled-executor.md).
+# Queue and dispatch T0+low drafted specs (docs/archive/template-specs/scheduled-executor.md).
 # v1: open PR via scripts/dispatch_spec.py
 # 6.1: optional codex_agents job when OPENAI_API_KEY is configured
 name: Scheduled Executor

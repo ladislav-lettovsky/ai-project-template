@@ -1,4 +1,4 @@
-"""Codex-in-CI helpers for Phase 6.1 scheduled automation.
+"""Codex-in-CI helpers for scheduled-executor automation.
 
 Builds role-specific prompts, optionally invokes ``codex exec`` locally, and
 merges Reviewer JSON into PR bodies. GitHub Actions uses ``openai/codex-action@v1``

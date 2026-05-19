@@ -2,7 +2,7 @@
 
 Authorizing observation only. PR diff may be trivial; routing is driven by Reviewer JSON below.
 
-Spec: [docs/archive/template-specs/phase4-exit-drills.md](../../template-specs/phase4-exit-drills.md)
+Spec: [docs/archive/template-specs/router-exit-drills.md](../../template-specs/router-exit-drills.md)
 
 <!-- REVIEWER_JSON -->
 ```json
@@ -15,7 +15,7 @@ Spec: [docs/archive/template-specs/phase4-exit-drills.md](../../template-specs/p
       "severity": "critical",
       "requirement_ids": [],
       "description": "Drill-only critical finding; do not merge this PR.",
-      "evidence": "docs/archive/exit-drills/phase4/README.md — Drill C",
+      "evidence": "docs/archive/exit-drills/router/README.md — Drill C",
       "suggested_action": "Close PR after confirming blocked label; no code change required."
     }
   ],

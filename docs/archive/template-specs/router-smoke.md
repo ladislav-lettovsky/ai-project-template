@@ -2,13 +2,13 @@
 
 ## Metadata
 
-- spec_id: SPEC-20260515-phase4-router-smoke
+- spec_id: SPEC-20260515-router-smoke
 - owner: Ladislav Lettovsky
 - status: complete
 - complexity: low
 - risk_tier: T0
 - repo: ai-project-template
-- branch: spec/phase4-router-smoke
+- branch: spec/router-smoke
 
 ## Context
 
@@ -105,6 +105,6 @@ Revert the commit. The new test file is additive; removing it leaves the router 
 - [ ] `just check` green
 - [ ] CI green
 - [ ] No invariant violations
-- [ ] Branch name starts with `spec/phase4-router-smoke` (Invariant 1)
+- [ ] Branch name starts with `spec/router-smoke` (Invariant 1)
 - [ ] PR description links this spec
 - [ ] PR body contains `<!-- REVIEWER_JSON --> ... <!-- /REVIEWER_JSON -->` block

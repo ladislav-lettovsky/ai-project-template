@@ -4,7 +4,7 @@ Consumes ``pr.json`` emitted by ``build_pr_context`` plus ``.routing-policy.json
 Writes JSON ``{"route": "...", "reasons": [...]}`` to stdout. No LLM calls.
 
 Gate order mirrors the authorizing spec
-``docs/archive/template-specs/phase-4-deterministic-router.md`` §R4:
+``docs/archive/template-specs/deterministic-router.md`` §R4:
 
 1. ``reviewer_validation.status != valid`` → ``review:human``
 2. ``spec_validation.status != valid`` → ``review:human``

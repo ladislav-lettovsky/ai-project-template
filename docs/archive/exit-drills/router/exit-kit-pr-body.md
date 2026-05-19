@@ -28,12 +28,12 @@ Schema-valid Reviewer JSON for merging the exit documentation PR. Expect
 ## Summary
 
 - Marks Phase 4 **implemented** in `docs/blueprint.md`.
-- Adds `docs/archive/exit-drills/phase4/` (README, STATUS, PR body templates).
+- Adds `docs/archive/exit-drills/router/` (README, STATUS, PR body templates).
 - Extends `CONTRIBUTING.md` with branch-protection guidance for `route-pr`.
 
 ## Exit criteria
 
-All three routing outcomes recorded in [STATUS.md](docs/archive/exit-drills/phase4/STATUS.md):
+All three routing outcomes recorded in [STATUS.md](docs/archive/exit-drills/router/STATUS.md):
 
 - `review:codex` — #39
 - `review:human` (red-zone) — #42
@@ -46,4 +46,4 @@ Drill PRs #41 and #42 are observation-only; close without merge.
 - [x] `just check` on this branch
 - [x] Drills B/C observed on #42 / #41
 
-Spec: [docs/archive/template-specs/phase4-exit-drills.md](docs/archive/template-specs/phase4-exit-drills.md)
+Spec: [docs/archive/template-specs/router-exit-drills.md](docs/archive/template-specs/router-exit-drills.md)

@@ -51,11 +51,11 @@ def _minimal_reviewer_fence() -> str:
 
 @pytest.fixture(scope="session")
 def example_gh_blob() -> dict:
-    slug_branch = "spec/phase-4-deterministic-router"
+    slug_branch = "spec/deterministic-router"
     return {
         "headRefName": slug_branch,
         "body": _minimal_reviewer_fence(),
-        "files": [{"path": "docs/archive/template-specs/phase-4-deterministic-router.md"}],
+        "files": [{"path": "docs/archive/template-specs/deterministic-router.md"}],
         "additions": 5,
         "deletions": 2,
     }
@@ -86,9 +86,7 @@ def test_build_context_fork_flag_inference(tmp_path: Path) -> None:
 
 
 def test_build_context_dict_happy(example_gh_blob: dict) -> None:
-    canonical = (
-        REPO_ROOT / "docs" / "archive" / "template-specs" / "phase-4-deterministic-router.md"
-    )
+    canonical = REPO_ROOT / "docs" / "archive" / "template-specs" / "deterministic-router.md"
     assert canonical.is_file()
 
     blob = build_pr_context.build_context_dict(

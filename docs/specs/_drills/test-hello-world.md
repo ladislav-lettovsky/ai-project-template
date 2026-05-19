@@ -16,7 +16,8 @@ Standing T0/low fixture so **Scheduled Executor** runs have an eligible spec whe
 operators trigger `workflow_dispatch` or weekday cron fires. No production code
 changes are intended — only branch + PR initiation (and optional Codex agents when
 `OPENAI_API_KEY` is configured). Historical exit-drill notes remain under
-`docs/archive/exit-drills/phase6/` (archived fixture name `phase6-hello-world`).
+`docs/archive/exit-drills/scheduled-executor/` (archived
+[`hello-world-fixture.md`](../../archive/exit-drills/scheduled-executor/hello-world-fixture.md)).
 
 ## Assumptions
 
@@ -31,7 +32,7 @@ changes are intended — only branch + PR initiation (and optional Codex agents 
 
 Provide an always-eligible (when no competing drafted T0/low specs) target so the
 scheduler queue is non-empty for manual verification of dispatch and optional
-`codex_agents`.
+`codex_executor` / `codex_reviewer`.
 
 ## Requirements (STRICT)
 
@@ -78,8 +79,8 @@ scheduler queue is non-empty for manual verification of dispatch and optional
 
 - EC1: Another eligible drafted spec sorts before this path lexicographically — only one
   spec dispatches per run; temporarily set the other to `complete` or remove it for smoke.
-- EC2: Leftover `spec/test-hello-world` or legacy `spec/phase6-hello-world` branch or open
-  PR — spec is ineligible until branch/PR is closed and deleted.
+- EC2: Leftover `spec/test-hello-world` branch or open PR — spec is ineligible until
+  branch/PR is closed and deleted.
 
 ## Security / Prompt-Injection Review
 
@@ -95,7 +96,7 @@ Manual runs: workflow summary on **Scheduled Executor**. Merged drill PRs append
 ## Rollback / Recovery
 
 Close smoke PR; delete remote `spec/test-hello-world`. Set `status: complete` or move
-this file to `docs/archive/exit-drills/phase6/` to stop cron from re-queuing.
+this file to `docs/archive/exit-drills/scheduled-executor/` to stop cron from re-queuing.
 
 ## Implementation Slices
 
