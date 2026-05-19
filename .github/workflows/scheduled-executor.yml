@@ -237,8 +237,8 @@ jobs:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           prompt-file: .scratch/codex-reviewer-prompt.md
           sandbox: read-only
-          # drop-sudo already applied by Executor step in this job; second drop fails on GHA.
-          safety-strategy: none
+          # Executor already used drop-sudo; read-only strategy avoids a second drop on GHA.
+          safety-strategy: read-only
           output-file: .scratch/codex-reviewer-output.md
 
       - name: Extract and apply Reviewer JSON
