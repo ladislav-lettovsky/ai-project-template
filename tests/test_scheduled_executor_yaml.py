@@ -22,10 +22,11 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert "github.event.repository.fork == false" in text
     assert "queue_specs.py" in text
     assert "dispatch_spec.py" in text
-    assert "codex_agents" in text
-    assert "openai/codex-action@v1" in text
-    assert text.count("safety-strategy: drop-sudo") == 1
-    assert "safety-strategy: read-only" in text
+    assert "codex_executor" in text
+    assert "codex_reviewer" in text
+    assert text.count("openai/codex-action@v1") == 2
+    assert text.count("safety-strategy: drop-sudo") == 2
+    assert "safety-strategy: read-only" not in text
     assert "codex-home: ${{ runner.temp }}/codex-executor" in text
     assert "codex-home: ${{ runner.temp }}/codex-reviewer" in text
     assert "OPENAI_API_KEY" in text
