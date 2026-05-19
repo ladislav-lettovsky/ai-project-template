@@ -43,16 +43,15 @@ of merging consequential work without human eyes.
 
 ## Decisions
 
-- D1: **Dispatch transport.** v1 merged path: queue discovery
-  (`queue_specs.py`) plus a `phase6-queue` GitHub issue per eligible
-  spec — visibility without execution. The D1 spike branch (separate
-  from this spec's branch) validates `codex exec` on a
-  `workflow_dispatch:`-triggered run against one dry-run T0+low fixture
-  spec; cron scheduling stays disabled until the spike passes and this
-  spec's D1 entry is amended with the confirmed transport. Three spike
-  candidates: (a) Codex async/cloud API via `actions/github-script`,
-  (b) `codex exec` inside a GitHub-hosted Actions job (preferred for
-  v1 simplicity), (c) self-hosted runner with Docker-isolated Codex.
+- D1: **Dispatch transport (amended Slice 4).** v1 production path:
+  `scripts/dispatch_spec.py --transport pr` — create `spec/<slug>` from
+  `origin/main`, seed an empty commit when the branch still matches `main`,
+  and open a PR via `gh pr create` with spec link + `dispatch-source:
+  scheduled` + schema-valid `REVIEWER_JSON` stub. Spike notes:
+  [`docs/phase6-d1-spike/NOTES.md`](../phase6-d1-spike/NOTES.md). `codex exec`
+  in Actions is **deferred** (needs `CODEX_API_KEY` + isolation); `--transport
+  issue` remains a legacy fallback. Phase 6.1 may add Codex-in-CI after secrets
+  exist.
 - D2: **Eligibility = T0 + low only in v1.** Every spec the scheduler
   picks up must declare `risk_tier: T0` and `complexity: low`. T1+ is
   out of scope for v1; the workflow logs and skips them.

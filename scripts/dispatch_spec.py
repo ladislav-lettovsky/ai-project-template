@@ -1,7 +1,8 @@
-"""Dispatch one eligible Phase 6 spec using the v1 issue-stub transport.
+"""Dispatch one eligible Phase 6 spec (branch + open PR, or legacy issue stub).
 
 Usage:
     uv run scripts/dispatch_spec.py --spec docs/specs/<slug>.md --dry-run
+    uv run scripts/dispatch_spec.py --spec docs/specs/<slug>.md --transport pr
     uv run scripts/dispatch_spec.py --spec docs/specs/<slug>.md --transport issue
 """
 
@@ -42,6 +43,7 @@ REVIEWER_FENCE = (
     f"<!-- REVIEWER_JSON -->\n{json.dumps(REVIEWER_STUB, indent=2)}\n<!-- /REVIEWER_JSON -->"
 )
 PHASE6_QUEUE_LABEL = "phase6-queue"
+DEFAULT_TRANSPORT = "pr"
 
 
 def build_pr_body(spec_path: str) -> str:
@@ -54,7 +56,7 @@ def build_pr_body(spec_path: str) -> str:
 
 def build_issue_body(descriptor: dict[str, Any], pr_body: str) -> str:
     return (
-        "Phase 6 queued spec dispatch stub.\n\n"
+        "Phase 6 queued spec dispatch (legacy issue transport).\n\n"
         f"- Spec: [{descriptor['path']}]({descriptor['path']})\n"
         f"- Branch: `spec/{descriptor['slug']}`\n"
         "- Transport: `issue`\n\n"
@@ -110,6 +112,21 @@ def create_remote_branch(remote: str, branch_name: str) -> None:
     )
 
 
+def seed_dispatch_branch(remote: str, branch_name: str, *, message: str) -> bool:
+    """Push an empty commit when *branch_name* still points at *main* (enables PR open)."""
+    subprocess.run(["git", "fetch", remote, branch_name], check=True)
+    main_sha = resolve_ref(f"{remote}/main")
+    branch_sha = resolve_ref(f"{remote}/{branch_name}")
+    if branch_sha != main_sha:
+        return False
+    previous = resolve_ref("HEAD")
+    subprocess.run(["git", "checkout", "-B", branch_name, f"{remote}/{branch_name}"], check=True)
+    subprocess.run(["git", "commit", "--allow-empty", "-m", message], check=True)
+    subprocess.run(["git", "push", remote, branch_name], check=True)
+    subprocess.run(["git", "checkout", previous], check=True)
+    return True
+
+
 def open_tracking_issue(
     *,
     title: str,
@@ -127,21 +144,86 @@ def open_tracking_issue(
     return cp.stdout.strip()
 
 
+def find_open_pr_url(*, branch: str, repo: str | None) -> str | None:
+    gh_path = shutil.which("gh")
+    if gh_path is None:
+        raise RuntimeError("gh executable not found in PATH")
+    cmd = [
+        "gh",
+        "pr",
+        "list",
+        "--head",
+        branch,
+        "--state",
+        "open",
+        "--json",
+        "url",
+        "--limit",
+        "1",
+    ]
+    if repo:
+        cmd.extend(["--repo", repo])
+    cp = subprocess.run(cmd, check=True, capture_output=True, text=True)
+    data = json.loads(cp.stdout)
+    if isinstance(data, list) and data:
+        return str(data[0].get("url") or "") or None
+    return None
+
+
+def open_pull_request(
+    *,
+    branch: str,
+    title: str,
+    body: str,
+    repo: str | None,
+) -> str:
+    existing = find_open_pr_url(branch=branch, repo=repo)
+    if existing:
+        return existing
+    gh_path = shutil.which("gh")
+    if gh_path is None:
+        raise RuntimeError("gh executable not found in PATH")
+    cmd = [
+        "gh",
+        "pr",
+        "create",
+        "--base",
+        "main",
+        "--head",
+        branch,
+        "--title",
+        title,
+        "--body",
+        body,
+    ]
+    if repo:
+        cmd.extend(["--repo", repo])
+    cp = subprocess.run(cmd, check=True, capture_output=True, text=True)
+    return cp.stdout.strip()
+
+
 def build_dispatch_payload(descriptor: dict[str, Any], *, transport: str) -> dict[str, Any]:
     branch_name = f"spec/{descriptor['slug']}"
     pr_body = build_pr_body(descriptor["path"])
-    issue_body = build_issue_body(descriptor, pr_body)
-    return {
+    slug = descriptor["slug"]
+    payload: dict[str, Any] = {
         "transport": transport,
         "spec": descriptor,
         "branch": branch_name,
-        "issue": {
-            "title": f"Phase 6 queue: {descriptor['slug']}",
-            "label": PHASE6_QUEUE_LABEL,
-            "body": issue_body,
-        },
         "pr_body": pr_body,
     }
+    if transport == "issue":
+        payload["issue"] = {
+            "title": f"Phase 6 queue: {slug}",
+            "label": PHASE6_QUEUE_LABEL,
+            "body": build_issue_body(descriptor, pr_body),
+        }
+    else:
+        payload["pr"] = {
+            "title": f"spec: {slug}",
+            "body": pr_body,
+        }
+    return payload
 
 
 def dispatch_issue_stub(
@@ -171,6 +253,41 @@ def dispatch_issue_stub(
     }
 
 
+def dispatch_open_pr(
+    *,
+    payload: dict[str, Any],
+    remote: str,
+    repo: str | None,
+) -> dict[str, Any]:
+    branch = payload["branch"]
+    slug = payload["spec"]["slug"]
+    created_branch = False
+    seeded_commit = False
+    if not branch_exists(remote, branch):
+        create_remote_branch(remote, branch)
+        created_branch = True
+    seeded_commit = seed_dispatch_branch(
+        remote,
+        branch,
+        message=f"chore(phase6): initialize spec/{slug} for scheduled dispatch",
+    )
+    pr_meta = payload["pr"]
+    pr_url = open_pull_request(
+        branch=branch,
+        title=pr_meta["title"],
+        body=pr_meta["body"],
+        repo=repo,
+    )
+    return {
+        "ok": True,
+        "transport": "pr",
+        "branch": branch,
+        "created_branch": created_branch,
+        "seeded_commit": seeded_commit,
+        "pr_url": pr_url,
+    }
+
+
 def argv_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Dispatch a single eligible Phase 6 spec.")
     parser.add_argument("--spec", type=Path, required=True, help="Path to docs/specs/<slug>.md")
@@ -178,14 +295,23 @@ def argv_parser() -> argparse.ArgumentParser:
     parser.add_argument("--remote", default="origin")
     parser.add_argument("--repo", help='GitHub "owner/repo" for gh CLI')
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--transport", choices=("issue", "codex"), default="issue")
+    parser.add_argument(
+        "--transport",
+        choices=("pr", "issue", "codex"),
+        default=DEFAULT_TRANSPORT,
+        help="pr=open GitHub PR (D1 v1); issue=legacy tracking issue; codex=deferred",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = argv_parser().parse_args(argv)
     if args.transport == "codex":
-        print("ERROR: codex transport is reserved for a later Phase 6 slice", file=sys.stderr)
+        print(
+            "ERROR: codex exec in CI is deferred; configure CODEX_API_KEY and see "
+            "docs/phase6-d1-spike/NOTES.md",
+            file=sys.stderr,
+        )
         return 2
     try:
         descriptor = load_descriptor(args.spec, args.repo_root)
@@ -193,7 +319,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.dry_run:
             print(json.dumps({"dry_run": True, **payload}, indent=2))
             return 0
-        result = dispatch_issue_stub(payload=payload, remote=args.remote, repo=args.repo)
+        if args.transport == "issue":
+            result = dispatch_issue_stub(payload=payload, remote=args.remote, repo=args.repo)
+        else:
+            result = dispatch_open_pr(payload=payload, remote=args.remote, repo=args.repo)
     except (OSError, ValueError, subprocess.CalledProcessError, RuntimeError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2

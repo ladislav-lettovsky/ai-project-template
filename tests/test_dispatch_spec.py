@@ -68,7 +68,7 @@ def test_build_pr_body_links_spec_and_contains_reviewer_fence() -> None:
     assert validate_reviewer.validate(body, validate_reviewer.load_reviewer_schema()) == []
 
 
-def test_dry_run_payload_has_issue_stub_and_no_remote_calls(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
+def test_dry_run_payload_default_pr_transport(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
     spec_path = _write_spec(tmp_path, "widget")
 
     rc = dispatch_spec.main(
@@ -84,11 +84,65 @@ def test_dry_run_payload_has_issue_stub_and_no_remote_calls(tmp_path: Path, caps
     assert rc == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["dry_run"] is True
-    assert payload["transport"] == "issue"
+    assert payload["transport"] == "pr"
     assert payload["branch"] == "spec/widget"
-    assert payload["issue"]["label"] == "phase6-queue"
-    assert "Planned PR body" in payload["issue"]["body"]
+    assert payload["pr"]["title"] == "spec: widget"
     assert "<!-- REVIEWER_JSON -->" in payload["pr_body"]
+
+
+def test_dry_run_issue_transport(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
+    spec_path = _write_spec(tmp_path, "widget")
+    rc = dispatch_spec.main(
+        [
+            "--repo-root",
+            str(tmp_path),
+            "--spec",
+            str(spec_path),
+            "--dry-run",
+            "--transport",
+            "issue",
+        ]
+    )
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["transport"] == "issue"
+    assert payload["issue"]["label"] == "phase6-queue"
+
+
+def test_dispatch_open_pr_monkeypatch(tmp_path: Path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    spec_path = _write_spec(tmp_path, "widget")
+    calls: list[str] = []
+
+    def fake_branch_exists(_remote: str, _branch: str) -> bool:
+        return False
+
+    def fake_create_branch(_remote: str, _branch: str) -> None:
+        calls.append("create")
+
+    def fake_seed(_remote: str, _branch: str, *, message: str) -> bool:
+        calls.append(message)
+        return True
+
+    def fake_open_pr(*, branch: str, title: str, body: str, repo: str | None) -> str:
+        calls.append(f"pr:{branch}:{title}:{repo}")
+        assert "dispatch-source: scheduled" in body
+        return "https://example.com/pull/1"
+
+    monkeypatch.setattr(dispatch_spec, "branch_exists", fake_branch_exists)
+    monkeypatch.setattr(dispatch_spec, "create_remote_branch", fake_create_branch)
+    monkeypatch.setattr(dispatch_spec, "seed_dispatch_branch", fake_seed)
+    monkeypatch.setattr(dispatch_spec, "open_pull_request", fake_open_pr)
+
+    result = dispatch_spec.dispatch_open_pr(
+        payload=dispatch_spec.build_dispatch_payload(
+            dispatch_spec.load_descriptor(spec_path, tmp_path),
+            transport="pr",
+        ),
+        remote="origin",
+        repo="org/repo",
+    )
+    assert result["pr_url"] == "https://example.com/pull/1"
+    assert "create" in calls
 
 
 def test_ineligible_spec_is_rejected(tmp_path: Path, capsys) -> None:  # type: ignore[no-untyped-def]
