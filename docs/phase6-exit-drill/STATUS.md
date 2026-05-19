@@ -34,3 +34,11 @@
 - Close PR #56 without merge (drill-only branch).
 - After fix merges, re-run **Phase 6 — Scheduled Executor** `workflow_dispatch` to confirm CI
   selects `_drills/phase6-hello-world.md` and opens the PR without local CLI.
+
+## Run 2 — GitHub Actions post-fix (2026-05-19)
+
+- **Workflow run:** [actions/runs/26080166522](https://github.com/ladislav-lettovsky/ai-project-template/actions/runs/26080166522)
+- **Outcome:** Failed (dispatch step exit 2; `pipefail` now surfaces errors). Drill spec skipped
+  (`pr_exists` — PR #56 already open). Selected `docs/specs/phase4-router-smoke.md`; empty seed
+  commit failed (`git commit` exit 128 — missing `user.name` / `user.email` on runner checkout).
+- **Follow-up:** Set git author in `seed_dispatch_branch` or workflow before dispatch.
