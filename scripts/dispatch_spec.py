@@ -106,6 +106,11 @@ def resolve_ref(ref: str) -> str:
     return cp.stdout.strip()
 
 
+def _run_git(cmd: list[str], *, env: dict[str, str] | None = None) -> None:
+    """Run git without writing progress to stdout (CI pipes stdout to dispatch.json)."""
+    subprocess.run(cmd, check=True, capture_output=True, text=True, env=env)
+
+
 def create_remote_branch(remote: str, branch_name: str) -> None:
     main_ref = f"{remote}/main"
     main_sha = resolve_ref(main_ref)
@@ -113,10 +118,7 @@ def create_remote_branch(remote: str, branch_name: str) -> None:
     if head_sha != main_sha:
         msg = f"local HEAD ({head_sha}) does not match {main_ref} ({main_sha})"
         raise RuntimeError(msg)
-    subprocess.run(
-        ["git", "push", remote, f"{main_sha}:refs/heads/{branch_name}"],
-        check=True,
-    )
+    _run_git(["git", "push", remote, f"{main_sha}:refs/heads/{branch_name}"])
 
 
 def git_action_env() -> dict[str, str]:
@@ -136,25 +138,28 @@ def git_action_env() -> dict[str, str]:
 def seed_dispatch_branch(remote: str, branch_name: str, *, message: str) -> bool:
     """Push an empty commit when *branch_name* still points at *main* (enables PR open)."""
     git_env = git_action_env()
-    subprocess.run(["git", "fetch", remote, branch_name], check=True, env=git_env)
+    _run_git(["git", "fetch", remote, branch_name], env=git_env)
     main_sha = resolve_ref(f"{remote}/main")
     branch_sha = resolve_ref(f"{remote}/{branch_name}")
     if branch_sha != main_sha:
         return False
     previous = resolve_ref("HEAD")
-    subprocess.run(
+    _run_git(
         ["git", "checkout", "-B", branch_name, f"{remote}/{branch_name}"],
-        check=True,
         env=git_env,
     )
-    subprocess.run(
-        ["git", "commit", "--allow-empty", "-m", message],
-        check=True,
-        env=git_env,
-    )
-    subprocess.run(["git", "push", remote, branch_name], check=True, env=git_env)
-    subprocess.run(["git", "checkout", previous], check=True, env=git_env)
+    _run_git(["git", "commit", "--allow-empty", "-m", message], env=git_env)
+    _run_git(["git", "push", remote, branch_name], env=git_env)
+    _run_git(["git", "checkout", previous], env=git_env)
     return True
+
+
+def emit_result(result: dict[str, Any], *, json_out: Path | None) -> None:
+    text = json.dumps(result, indent=2)
+    if json_out is not None:
+        json_out.write_text(f"{text}\n", encoding="utf-8")
+    else:
+        print(text)
 
 
 def _gh_hint(action: str, detail: str) -> str:
@@ -361,6 +366,11 @@ def argv_parser() -> argparse.ArgumentParser:
         default=DEFAULT_TRANSPORT,
         help="pr=open GitHub PR; issue=legacy tracking issue; codex=open PR for CI agents (6.1)",
     )
+    parser.add_argument(
+        "--json-out",
+        type=Path,
+        help="Write dispatch result JSON to this file (avoids mixing git stdout with JSON).",
+    )
     return parser
 
 
@@ -373,7 +383,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.dry_run:
             if args.transport == "codex":
                 payload["codex_agents"] = codex_agents_metadata()
-            print(json.dumps({"dry_run": True, **payload}, indent=2))
+            emit_result({"dry_run": True, **payload}, json_out=args.json_out)
             return 0
         if args.transport == "issue":
             result = dispatch_issue_stub(payload=payload, remote=args.remote, repo=args.repo)
@@ -385,7 +395,7 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, ValueError, subprocess.CalledProcessError, RuntimeError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
-    print(json.dumps(result, indent=2))
+    emit_result(result, json_out=args.json_out)
     return 0
 
 

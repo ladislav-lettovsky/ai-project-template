@@ -229,6 +229,14 @@ def test_create_remote_branch_errors_when_head_is_not_origin_main(monkeypatch) -
         raise AssertionError("expected RuntimeError")
 
 
+def test_emit_result_writes_json_out_only(tmp_path: Path) -> None:
+    out = tmp_path / "dispatch.json"
+    dispatch_spec.emit_result({"ok": True, "pr_url": "https://example.com/pull/1"}, json_out=out)
+    assert out.read_text(encoding="utf-8").startswith("{\n")
+    parsed = json.loads(out.read_text(encoding="utf-8"))
+    assert parsed["pr_url"] == "https://example.com/pull/1"
+
+
 def test_run_gh_surfaces_stderr_and_pr_permission_hint(monkeypatch) -> None:  # type: ignore[no-untyped-def]
     def fake_which(name: str) -> str | None:
         return "/usr/bin/gh" if name == "gh" else None
