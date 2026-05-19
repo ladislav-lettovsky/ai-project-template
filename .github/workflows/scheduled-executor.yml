@@ -1,0 +1,138 @@
+# Phase 6 — queue and dispatch T0+low drafted specs (docs/specs/phase6-scheduled-executor.md).
+# v1 transport: issue stub via scripts/dispatch_spec.py (D1); no Codex in this job.
+name: Phase 6 — Scheduled Executor
+
+on:
+  schedule:
+    - cron: "0 9 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: phase6-scheduled-executor
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    if: github.event.repository.fork == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: python -m pip install uv
+
+      - name: Sync dependencies
+        run: uv sync --extra dev
+
+      - name: Fetch origin for branch inspection
+        run: git fetch origin main
+
+      - name: Ensure Phase 6 labels
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ensure_label() {
+            local name="$1"
+            local color="$2"
+            local desc="$3"
+            if gh label list --repo "${{ github.repository }}" --json name \
+              --jq ".[] | select(.name==\"${name}\") | .name" | grep -qx "${name}"; then
+              :
+            else
+              gh label create "${name}" --repo "${{ github.repository }}" \
+                --color "${color}" --description "${desc}"
+            fi
+          }
+          ensure_label phase6-queue 0E8A16 "Phase 6 queued spec dispatch"
+          ensure_label phase6-failure B60205 "Phase 6 scheduler failure"
+
+      - name: Discover queue
+        id: queue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          uv run scripts/queue_specs.py \
+            --remote origin \
+            --repo "${{ github.repository }}" \
+            --json > queue.json
+          QUEUE_SIZE=$(jq 'length' queue.json)
+          ELIGIBLE_COUNT=$(jq '[.[] | select(.eligible == true)] | length' queue.json)
+          SPEC_PATH=$(jq -r '[.[] | select(.eligible == true)] | sort_by(.slug) | .[0].path // empty' queue.json)
+          SPEC_SLUG=$(jq -r '[.[] | select(.eligible == true)] | sort_by(.slug) | .[0].slug // empty' queue.json)
+          echo "queue_size=${QUEUE_SIZE}" >> "${GITHUB_OUTPUT}"
+          echo "eligible_count=${ELIGIBLE_COUNT}" >> "${GITHUB_OUTPUT}"
+          echo "spec_path=${SPEC_PATH}" >> "${GITHUB_OUTPUT}"
+          echo "spec_slug=${SPEC_SLUG}" >> "${GITHUB_OUTPUT}"
+
+      - name: Workflow summary
+        run: |
+          {
+            echo "## Phase 6 scheduled executor"
+            echo ""
+            echo "| Metric | Value |"
+            echo "| --- | --- |"
+            echo "| Queue size | ${{ steps.queue.outputs.queue_size }} |"
+            echo "| Eligible | ${{ steps.queue.outputs.eligible_count }} |"
+            if [ -n "${{ steps.queue.outputs.spec_path }}" ]; then
+              echo "| Selected spec | \`${{ steps.queue.outputs.spec_path }}\` |"
+            else
+              echo "| Selected spec | none |"
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Dispatch selected spec
+        if: steps.queue.outputs.spec_path != ''
+        id: dispatch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          uv run scripts/dispatch_spec.py \
+            --spec "${{ steps.queue.outputs.spec_path }}" \
+            --repo "${{ github.repository }}" \
+            --transport issue | tee dispatch.json
+          ISSUE_URL=$(jq -r '.issue_url // empty' dispatch.json)
+          BRANCH=$(jq -r '.branch // empty' dispatch.json)
+          {
+            echo ""
+            echo "### Dispatch outcome"
+            echo ""
+            echo "- Branch: \`${BRANCH}\`"
+            if [ -n "${ISSUE_URL}" ]; then
+              echo "- Tracking issue: ${ISSUE_URL}"
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "phase6-failure: workflow run ${{ github.run_id }}" \
+            --label phase6-failure \
+            --body "$(cat <<EOFBODY
+          Phase 6 scheduled executor failed.
+
+          - Workflow run: ${RUN_URL}
+          - Event: ${{ github.event_name }}
+          - Ref: ${{ github.ref }}
+
+          Inspect the failing step log in the run linked above.
+          EOFBODY
+          )"

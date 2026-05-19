@@ -482,6 +482,10 @@ and ceilings in `.routing-policy.json` make scheduled adaptation safe.
 
 ### Phase 6 — Endgame: semi-autonomous factory
 
+**Status:** in-progress — queue/dispatcher (Slices 1–2), telemetry `dispatch_source`,
+and `scheduled-executor.yml` (Slice 3) are on `main` or in flight; D1 Codex transport
+spike (Slice 4) and exit drill (Slice 5) remain before `[implemented]`.
+
 **Deliverable:**
 
 1. All repos in scope running the full system (starting with `ai-project-template`, then propagating to any new project forked from it).
