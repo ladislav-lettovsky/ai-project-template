@@ -45,6 +45,17 @@ jobs:
       - name: Sync dependencies
         run: uv sync --extra dev
 
+      - name: Detect Codex CI availability
+        id: codex_gate
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -n "${OPENAI_API_KEY}" ]; then
+            echo "enabled=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "enabled=false" >> "${GITHUB_OUTPUT}"
+          fi
+
       - name: Fetch origin for branch inspection
         run: git fetch origin main
 
