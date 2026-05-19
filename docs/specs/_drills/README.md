@@ -17,5 +17,5 @@ Before re-running smoke, ensure:
 - No stale drill branches besides the current smoke branch (delete leftover `spec/*` after closing drill PRs)
 
 When retiring the fixture from the queue, set `status: complete` or move the file to
-[`docs/archive/exit-drills/phase6/`](../../archive/exit-drills/phase6/). Historical
-exit-drill status: [`STATUS.md`](../../archive/exit-drills/phase6/STATUS.md).
+[`docs/archive/exit-drills/scheduled-executor/`](../../archive/exit-drills/scheduled-executor/). Historical
+exit-drill status: [`STATUS.md`](../../archive/exit-drills/scheduled-executor/STATUS.md).
