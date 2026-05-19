@@ -157,6 +157,34 @@ def seed_dispatch_branch(remote: str, branch_name: str, *, message: str) -> bool
     return True
 
 
+def _gh_hint(action: str, detail: str) -> str:
+    lowered = detail.lower()
+    if action == "pr create" and (
+        "not permitted" in lowered or "resource not accessible" in lowered
+    ):
+        return (
+            " Enable GitHub repo Settings → Actions → General → Workflow permissions: "
+            "Read and write, and check 'Allow GitHub Actions to create and approve "
+            "pull requests'."
+        )
+    return ""
+
+
+def _run_gh(cmd: list[str], *, action: str) -> str:
+    gh_path = shutil.which("gh")
+    if gh_path is None:
+        raise RuntimeError("gh executable not found in PATH")
+    cp = subprocess.run(cmd, capture_output=True, text=True)
+    if cp.returncode != 0:
+        detail = (cp.stderr or cp.stdout or "").strip()
+        msg = f"gh {action} failed"
+        if detail:
+            msg = f"{msg}: {detail}"
+        msg += _gh_hint(action, detail)
+        raise RuntimeError(msg)
+    return cp.stdout.strip()
+
+
 def open_tracking_issue(
     *,
     title: str,
@@ -164,14 +192,10 @@ def open_tracking_issue(
     label: str,
     repo: str | None = None,
 ) -> str:
-    gh_path = shutil.which("gh")
-    if gh_path is None:
-        raise RuntimeError("gh executable not found in PATH")
     cmd = ["gh", "issue", "create", "--title", title, "--body", body, "--label", label]
     if repo:
         cmd.extend(["--repo", repo])
-    cp = subprocess.run(cmd, check=True, capture_output=True, text=True)
-    return cp.stdout.strip()
+    return _run_gh(cmd, action="issue create")
 
 
 def find_open_pr_url(*, branch: str, repo: str | None) -> str | None:
@@ -228,8 +252,7 @@ def open_pull_request(
     ]
     if repo:
         cmd.extend(["--repo", repo])
-    cp = subprocess.run(cmd, check=True, capture_output=True, text=True)
-    return cp.stdout.strip()
+    return _run_gh(cmd, action="pr create")
 
 
 def codex_agents_metadata() -> dict[str, Any]:

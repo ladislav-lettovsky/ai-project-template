@@ -227,3 +227,31 @@ def test_create_remote_branch_errors_when_head_is_not_origin_main(monkeypatch) -
         assert "does not match origin/main" in str(exc)
     else:
         raise AssertionError("expected RuntimeError")
+
+
+def test_run_gh_surfaces_stderr_and_pr_permission_hint(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    def fake_which(name: str) -> str | None:
+        return "/usr/bin/gh" if name == "gh" else None
+
+    def fake_run(cmd: list[str], **_: Any):  # type: ignore[no-untyped-def]
+        return type(
+            "CP",
+            (),
+            {
+                "returncode": 1,
+                "stdout": "",
+                "stderr": "GitHub Actions is not permitted to create pull requests",
+            },
+        )()
+
+    monkeypatch.setattr(dispatch_spec.shutil, "which", fake_which)
+    monkeypatch.setattr(dispatch_spec.subprocess, "run", fake_run)
+
+    try:
+        dispatch_spec._run_gh(["gh", "pr", "create"], action="pr create")
+    except RuntimeError as exc:
+        text = str(exc)
+        assert "not permitted" in text
+        assert "Allow GitHub Actions" in text
+    else:
+        raise AssertionError("expected RuntimeError")

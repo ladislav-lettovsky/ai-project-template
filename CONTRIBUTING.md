@@ -325,6 +325,13 @@ and `uv run scripts/codex_ci.py exec` (requires `codex` CLI + API key).
 **Failure visibility (D6):** Any failing step fails the job (no `|| true`). A
 `scheduler-failure` issue is opened with the workflow run URL.
 
+**GitHub Actions permissions (required for dispatch):** In the repo **Settings →
+Actions → General → Workflow permissions**, choose **Read and write permissions** and
+enable **Allow GitHub Actions to create and approve pull requests**. Without this,
+`gh pr create` in the dispatch step fails after the branch is pushed (you may see a
+leftover `spec/<slug>` branch with no PR). Re-run the workflow after enabling; if the
+branch already exists, dispatch reuses it or opens the PR on retry.
+
 **Disable / rollback:** Rename or delete `.github/workflows/scheduled-executor.yml`
 (e.g. `scheduled-executor.yml.disabled`) to stop cron and manual runs. Revert
 `CONTRIBUTING.md` / blueprint notes if you remove the feature entirely.
