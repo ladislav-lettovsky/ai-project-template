@@ -5,7 +5,7 @@
 
 | Step | Signal | Result |
 | --- | --- | --- |
-| Fixture on `main` | `docs/specs/_drills/phase6-hello-world.md` drafted T0/low | OK (merged #55) |
+| Fixture on `main` | `docs/specs/_drills/phase6-hello-world.md` drafted T0/low (later archived) | OK (merged #55) |
 | Scheduler run | `workflow_dispatch` on `scheduled-executor.yml` | See run 1 below |
 | Dispatch | PR opened for drill spec | OK via local dispatch → PR #56 |
 | Router | Label on drill PR | `review:human` (see notes) |

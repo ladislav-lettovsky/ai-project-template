@@ -6,12 +6,14 @@ Observability checklist for
 
 ## Drill — scheduled dispatch → open PR → Router label
 
-1. Ensure [`docs/specs/_drills/phase6-hello-world.md`](../../../specs/_drills/phase6-hello-world.md)
-   is on `main` with `status: drafted`, `risk_tier: T0`, `complexity: low`, all red-zone `no`.
-2. Confirm no `spec/phase6-hello-world` branch and no open/merged PR citing that spec path.
+1. For a **new** drill run, copy or draft a fixture under `docs/specs/_drills/` with
+   `status: drafted`, `risk_tier: T0`, `complexity: low`, all red-zone `no`. The shipped
+   hello-world example is archived at
+   [`phase6-hello-world.md`](phase6-hello-world.md) (`status: complete` — not queued).
+2. Confirm no `spec/<drill-slug>` branch and no open PR citing the active fixture path.
 3. Run **Actions → Phase 6 — Scheduled Executor → Run workflow** (`workflow_dispatch`).
-4. Expect workflow summary: eligible ≥ 1, selected `docs/specs/_drills/phase6-hello-world.md`,
-   dispatch `pr_url` in summary.
+4. Expect workflow summary: eligible ≥ 1, selected `docs/specs/_drills/<slug>.md` (or the
+   path you placed), dispatch `pr_url` in summary.
 5. Open the PR; confirm body links the spec, `dispatch-source: scheduled`, and valid
    `REVIEWER_JSON` stub; confirm `route-pr` labels `review:codex` (or note `review:human` /
    `blocked` if a gate fires).
@@ -22,5 +24,5 @@ Local dry-run (no GitHub writes):
 
 ```bash
 uv run scripts/queue_specs.py --json | jq '[.[] | select(.slug=="phase6-hello-world")]'
-uv run scripts/dispatch_spec.py --spec docs/specs/_drills/phase6-hello-world.md --dry-run
+uv run scripts/dispatch_spec.py --spec docs/archive/exit-drills/phase6/phase6-hello-world.md --dry-run
 ```

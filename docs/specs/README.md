@@ -1,9 +1,11 @@
 # Specs
 
 This directory holds the **authorizing specs** for non-trivial work in this
-repo. Every PR for work that took more than ~30 minutes of effort cites a
-spec here; the spec is the contract the Executor (Codex) implements
-literally and the Reviewer (Codex) checks against.
+repo. Every PR for work that meets the Planner's consequence-based criteria
+(red-zone touch, multi-file change, public-interface change,
+future-reader-needs-context, or the >30-min-by-hand fallback) cites a spec
+here; the spec is the contract the Executor (Codex) implements literally
+and the Reviewer (Codex) checks against.
 
 > Read first: `docs/blueprint.md` §5.1 (spec structure) and §2 (invariants).
 > The Planner subagent definition at `.claude/agents/planner.md` and the
@@ -127,5 +129,7 @@ the archive layout live under `docs/archive/template-specs/` — do not move the
 **Forking:** remove template history with `rm -rf docs/archive` (see
 `docs/post-fork-checklist.md` §9). Lint example specs live in the archive, not here.
 
-Drill fixtures live under `docs/specs/_drills/`; mark them `complete` after the exit
-drill so cron does not reopen them.
+Active scheduler drill fixtures may live under `docs/specs/_drills/` while a drill
+runs; when finished, move them to `docs/archive/exit-drills/<phase>/` with
+`status: complete` so cron does not re-queue them (see
+[`docs/archive/exit-drills/phase6/`](../archive/exit-drills/phase6/)).

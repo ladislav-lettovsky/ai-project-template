@@ -13,7 +13,8 @@
 ## Context
 
 Trivial T0/low fixture for Phase 6 exit drill (R10). The scheduled executor should
-queue and dispatch this spec; no production code changes are intended.
+queue and dispatch this spec; no production code changes are intended. Archived under
+`docs/archive/exit-drills/phase6/` after the drill completed so cron does not re-queue it.
 
 ## Assumptions
 
@@ -38,7 +39,7 @@ Validate scheduler → open PR → Router handoff without touching red-zone file
 
 ## Interfaces
 
-- `docs/specs/_drills/phase6-hello-world.md` — this file only.
+- `docs/archive/exit-drills/phase6/phase6-hello-world.md` — this file only.
 
 ## Invariants to Preserve
 
@@ -79,7 +80,7 @@ Exit drill log in `docs/archive/exit-drills/phase6/STATUS.md`.
 
 ## Rollback / Recovery
 
-Close drill PR; delete `spec/phase6-hello-world` branch; set `status: retired` or remove this file.
+Close drill PR; delete `spec/phase6-hello-world` branch. Fixture remains in this archive path.
 
 ## Implementation Slices
 

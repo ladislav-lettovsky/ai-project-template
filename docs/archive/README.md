@@ -19,7 +19,8 @@ templates used to verify Router and scheduler handoffs. Not authorizing work on 
 fork; kept on the living template as observability history.
 
 - [`exit-drills/phase4/`](exit-drills/phase4/) — Router `review:codex` / `review:human` / `blocked`
-- [`exit-drills/phase6/`](exit-drills/phase6/) — scheduled executor drill log
+- [`exit-drills/phase6/`](exit-drills/phase6/) — scheduled executor drill log and
+  [`phase6-hello-world.md`](exit-drills/phase6/phase6-hello-world.md) fixture (`status: complete`)
 
 ## `spikes/`
 
