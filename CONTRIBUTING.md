@@ -300,12 +300,12 @@ label application applies to same-repo head branches (see workflow `if:`).
 `workflow_dispatch:`. It never runs on fork repositories (`if:
 github.event.repository.fork == false`).
 
-**Eligibility (D2):** Only specs with `risk_tier: T0`, `complexity: low`, every
+**Eligibility:** Only specs with `risk_tier: T0`, `complexity: low`, every
 Red-Zone Assessment axis `no`, and `status: drafted` are candidates. T1+ specs,
 red-zone `yes` rows, or malformed metadata are logged with `skip_reason` and never
-dispatched. One spec per run: lexicographically first eligible slug (D5).
+dispatched. One spec per run: lexicographically first eligible slug.
 
-**Dispatch (D3):** The workflow calls `scripts/dispatch_spec.py`, which creates
+**Dispatch:** The workflow calls `scripts/dispatch_spec.py`, which creates
 `spec/<slug>` from `origin/main`, seeds an empty commit when needed, and opens a GitHub
 PR whose body links the spec and carries a schema-valid `REVIEWER_JSON` stub. PR bodies
 include `dispatch-source: scheduled` for telemetry (Slice 2). Legacy `--transport issue`
@@ -323,7 +323,7 @@ Reviewer JSON via `scripts/codex_ci.py apply-reviewer`, and validates with
 (`scripts/try_auto_merge.py`). Local replay: `uv run scripts/codex_ci.py write-prompt`
 and `uv run scripts/codex_ci.py exec` (requires `codex` CLI + API key).
 
-**Failure visibility (D6):** Any failing step fails the job (no `|| true`). A
+**Failure visibility:** Any failing step fails the job (no `|| true`). A
 `scheduler-failure` issue is opened with the workflow run URL.
 
 **GitHub Actions permissions (required for dispatch):** In the repo **Settings →

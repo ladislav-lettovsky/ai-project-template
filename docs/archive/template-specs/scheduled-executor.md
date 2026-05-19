@@ -48,7 +48,7 @@ of merging consequential work without human eyes.
   `origin/main`, seed an empty commit when the branch still matches `main`,
   and open a PR via `gh pr create` with spec link + `dispatch-source:
   scheduled` + schema-valid `REVIEWER_JSON` stub. Spike notes:
-  [`docs/archive/spikes/scheduled-executor-d1/NOTES.md`](../spikes/scheduled-executor-d1/NOTES.md). `codex exec`
+  [`docs/archive/spikes/scheduled-executor/NOTES.md`](../spikes/scheduled-executor/NOTES.md). `codex exec`
   in Actions is **deferred** (needs `CODEX_API_KEY` + isolation); `--transport
   issue` remains a legacy fallback. Phase 6.1 may add Codex-in-CI after secrets
   exist.
