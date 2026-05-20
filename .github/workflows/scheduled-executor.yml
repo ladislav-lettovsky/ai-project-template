@@ -323,7 +323,7 @@ jobs:
           BRANCH="${{ needs.dispatch.outputs.branch }}"
           PR_URL="${{ needs.dispatch.outputs.pr_url }}"
           PR_NUMBER="${PR_URL##*/}"
-          gh workflow run ci.yml --ref "${BRANCH}" --repo "${{ github.repository }}"
+          gh workflow run ci.yml --ref main             -f "ref=${BRANCH}" --repo "${{ github.repository }}"
           gh workflow run route-pr.yml --ref main             -f "pr_number=${PR_NUMBER}" --repo "${{ github.repository }}"
 
       - name: Wait for required PR checks
