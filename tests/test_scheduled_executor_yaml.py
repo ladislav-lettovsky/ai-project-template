@@ -42,8 +42,7 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert "trigger_pr_checks" in text
     assert 'gh workflow run ci.yml --ref "${BRANCH}"' in text
     assert "gh run watch" in text
-    assert "headRefOid" in text
-    assert '--ref "${HEAD_SHA}"' in text
+    assert 'gh workflow run route-pr.yml --ref "${BRANCH}"' in text
     assert "Wait for required PR checks" not in text
 
 

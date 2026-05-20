@@ -358,9 +358,10 @@ jobs:
           CI_RUN=$(wait_for_new_run ci.yml "${BRANCH}" "${CI_BEFORE}")
           gh run watch "${CI_RUN}" --repo "${REPO}" --exit-status
 
-          ROUTE_BEFORE=$(latest_run_id route-pr.yml)
-          gh workflow run route-pr.yml --ref "${HEAD_SHA}"             -f "pr_number=${PR_NUMBER}" --repo "${REPO}"
-          ROUTE_RUN=$(wait_for_new_run route-pr.yml "" "${ROUTE_BEFORE}")
+          ROUTE_BEFORE=$(latest_run_id route-pr.yml "${BRANCH}")
+          gh workflow run route-pr.yml --ref "${BRANCH}" \
+            -f "pr_number=${PR_NUMBER}" --repo "${REPO}"
+          ROUTE_RUN=$(wait_for_new_run route-pr.yml "${BRANCH}" "${ROUTE_BEFORE}")
           gh run watch "${ROUTE_RUN}" --repo "${REPO}" --exit-status
 
           if ! gh pr checks "${PR_NUMBER}" --repo "${REPO}" --required > /tmp/pr-checks.txt 2>&1; then
