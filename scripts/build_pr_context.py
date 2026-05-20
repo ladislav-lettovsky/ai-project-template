@@ -53,8 +53,13 @@ EXCLUDED_SPEC_DOC_NAMES = frozenset(
     {"README.md", "_template.md", "_postmortem.md", ".gitkeep"},
 )
 ACTIVE_SPEC_DIR = "docs/specs"
+DRILLS_SPEC_DIR = f"{ACTIVE_SPEC_DIR}/_drills"
 ARCHIVE_SPEC_DIR = "docs/archive/template-specs"
-AUTHORIZING_SPEC_PREFIXES = (f"{ACTIVE_SPEC_DIR}/", f"{ARCHIVE_SPEC_DIR}/")
+AUTHORIZING_SPEC_PREFIXES = (
+    f"{ACTIVE_SPEC_DIR}/",
+    f"{DRILLS_SPEC_DIR}/",
+    f"{ARCHIVE_SPEC_DIR}/",
+)
 
 
 def slug_from_branch(head_ref_name: str) -> str | None:
@@ -74,9 +79,10 @@ def is_authorizing_spec_doc(repo_rel_path: str) -> bool:
 
 
 def resolve_authorizing_spec_path(repo_root: Path, slug: str) -> Path | None:
-    """Return the spec file for ``slug`` under active or archive dirs."""
+    """Return the spec file for ``slug`` under active, drill, or archive dirs."""
     candidates = (
         repo_root / ACTIVE_SPEC_DIR / f"{slug}.md",
+        repo_root / DRILLS_SPEC_DIR / f"{slug}.md",
         repo_root / ARCHIVE_SPEC_DIR / f"{slug}.md",
     )
     for path in candidates:
@@ -171,8 +177,8 @@ def build_context_dict(
         spec_abs = resolve_authorizing_spec_path(repo_root, slug)
         if spec_abs is None:
             spec_errors.append(
-                f"authorizing spec file missing at {ACTIVE_SPEC_DIR}/{slug}.md "
-                f"or {ARCHIVE_SPEC_DIR}/{slug}.md"
+                f"authorizing spec file missing at {ACTIVE_SPEC_DIR}/{slug}.md, "
+                f"{DRILLS_SPEC_DIR}/{slug}.md, or {ARCHIVE_SPEC_DIR}/{slug}.md"
             )
         else:
             spec_errors += lint_spec.lint_spec(spec_abs)
