@@ -356,10 +356,10 @@ jobs:
             local check_name="$1"
             local head_sha="$2"
             local conclusion
-            conclusion=$(gh api "repos/${REPO}/commits/${head_sha}/check-runs"               -q "[.check_runs[] | select(.name=="${check_name}") | .conclusion] | first // """)
+            conclusion=$(gh api "repos/${REPO}/commits/${head_sha}/check-runs"               --jq "([.check_runs[] | select(.name == \"${check_name}\") | .conclusion][0] // \"\")")
             if [ "${conclusion}" != "success" ]; then
               echo "Check ${check_name} missing or not success (got: ${conclusion:-none})" >&2
-              gh api "repos/${REPO}/commits/${head_sha}/check-runs"                 -q '[.check_runs[] | {name, status, conclusion}]' >&2
+              gh api "repos/${REPO}/commits/${head_sha}/check-runs"                 --jq '[.check_runs[] | {name, status, conclusion}]' >&2
               exit 1
             fi
           }
@@ -374,6 +374,7 @@ jobs:
           ROUTE_RUN=$(wait_for_new_run route-pr.yml "${BRANCH}" "${ROUTE_BEFORE}")
           gh run watch "${ROUTE_RUN}" --repo "${REPO}" --exit-status
 
-          HEAD_SHA=$(gh pr view "${PR_NUMBER}" --repo "${REPO}"             --json headRefOid -q .headRefOid)
+          HEAD_SHA=$(gh pr view "${PR_NUMBER}" --repo "${REPO}" \
+            --json headRefOid --jq .headRefOid)
           require_check_success "Lint, type-check, unit tests" "${HEAD_SHA}"
           require_check_success "route" "${HEAD_SHA}"
