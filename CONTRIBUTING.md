@@ -325,10 +325,11 @@ and `uv run scripts/codex_ci.py exec` (requires `codex` CLI + API key).
 
 **PR checks after scheduler dispatch:** Pull requests opened with `GITHUB_TOKEN` do not
 fire `pull_request` workflows (`ci.yml`, `route-pr.yml`). The scheduled-executor
-`trigger_pr_checks` job dispatches those workflows via `workflow_dispatch` (supported
-for `GITHUB_TOKEN`) and waits until required checks (`Lint, type-check, unit tests`,
-`route`) are green. Human-opened PRs are unchanged — they still trigger CI and Router
-on `pull_request` as usual.
+`trigger_pr_checks` job re-reads the PR head SHA (post-Codex), dispatches both
+workflows on the PR branch via `workflow_dispatch`, waits with `gh run watch` (not
+blind `gh pr checks` polling), then asserts required checks are visible on the PR.
+Human-opened PRs are unchanged — they still trigger CI and Router on `pull_request`
+as usual.
 
 **Failure visibility:** Any failing step fails the job (no `|| true`). A
 `scheduler-failure` issue is opened with the workflow run URL.
