@@ -24,6 +24,8 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert "dispatch_spec.py" in text
     assert "codex_executor" in text
     assert "codex_reviewer" in text
+    assert "route_pr_after_review" in text
+    assert "Route PR after Reviewer JSON applied" in text
     assert text.count("openai/codex-action@v1") == 2
     assert text.count("safety-strategy: drop-sudo") == 2
     assert "safety-strategy: read-only" not in text
@@ -58,6 +60,7 @@ def test_scheduled_executor_documented() -> None:
     blueprint = (REPO_ROOT / "docs" / "blueprint.md").read_text(encoding="utf-8")
     assert "Scheduled executor" in contributing
     assert "scheduled-executor.yml" in contributing
+    assert "route_pr_after_review" in contributing
     assert "Scheduled executor" in blueprint
     assert "Codex in CI" in blueprint
     assert "implemented" in blueprint
