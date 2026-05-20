@@ -309,44 +309,80 @@ jobs:
       (needs.codex_reviewer.result == 'success' ||
       needs.codex_reviewer.result == 'skipped')
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 15
     permissions:
       actions: write
       contents: read
       pull-requests: read
     steps:
-      - name: Trigger CI and Router workflows
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          BRANCH="${{ needs.dispatch.outputs.branch }}"
-          PR_URL="${{ needs.dispatch.outputs.pr_url }}"
-          PR_NUMBER="${PR_URL##*/}"
-          gh workflow run ci.yml --ref main             -f "ref=${BRANCH}" --repo "${{ github.repository }}"
-          gh workflow run route-pr.yml --ref main             -f "pr_number=${PR_NUMBER}" --repo "${{ github.repository }}"
-
-      - name: Wait for required PR checks
+      - name: Trigger and wait for PR checks
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ needs.dispatch.outputs.pr_url }}
+          BRANCH: ${{ needs.dispatch.outputs.branch }}
         run: |
           set -euo pipefail
-          PR_NUMBER="${PR_URL##*/}"
           REPO="${{ github.repository }}"
-          for _ in $(seq 1 60); do
-            if gh pr checks "${PR_NUMBER}" --repo "${REPO}" --required > /tmp/pr-checks.txt 2>&1; then
-              if grep -qiE 'fail|failure' /tmp/pr-checks.txt; then
-                cat /tmp/pr-checks.txt
-                exit 1
-              fi
-              if ! grep -qi pending /tmp/pr-checks.txt; then
-                cat /tmp/pr-checks.txt
-                exit 0
-              fi
+          PR_NUMBER="${PR_URL##*/}"
+          HEAD_SHA=$(gh pr view "${PR_NUMBER}" --repo "${REPO}"             --json headRefOid -q .headRefOid)
+
+          latest_run_id() {
+            local workflow_file="$1"
+            local branch="${2:-}"
+            if [ -n "${branch}" ]; then
+              gh run list --workflow="${workflow_file}" --branch="${branch}"                 --repo "${REPO}" --limit 1 --json databaseId                 -q '.[0].databaseId // empty'
+            else
+              gh run list --workflow="${workflow_file}"                 --repo "${REPO}" --limit 1 --json databaseId                 -q '.[0].databaseId // empty'
             fi
-            sleep 15
-          done
-          echo "Timed out waiting for required PR checks" >&2
-          gh pr checks "${PR_NUMBER}" --repo "${REPO}"
-          exit 1
+          }
+
+          wait_for_new_run() {
+            local workflow_file="$1"
+            local branch="${2:-}"
+            local before="$3"
+            local run_id=""
+            for _ in $(seq 1 24); do
+              run_id=$(latest_run_id "${workflow_file}" "${branch}")
+              if [ -n "${run_id}" ] && [ "${run_id}" != "${before}" ]; then
+                printf '%s' "${run_id}"
+                return 0
+              fi
+              sleep 5
+            done
+            echo "Timed out waiting for ${workflow_file} run to start" >&2
+            return 1
+          }
+
+          CI_BEFORE=$(latest_run_id ci.yml "${BRANCH}")
+          gh workflow run ci.yml --ref "${BRANCH}" -f "ref=${BRANCH}" --repo "${REPO}"
+          CI_RUN=$(wait_for_new_run ci.yml "${BRANCH}" "${CI_BEFORE}")
+          gh run watch "${CI_RUN}" --repo "${REPO}" --exit-status
+
+          ROUTE_BEFORE=$(latest_run_id route-pr.yml)
+          gh workflow run route-pr.yml --ref "${HEAD_SHA}"             -f "pr_number=${PR_NUMBER}" --repo "${REPO}"
+          ROUTE_RUN=$(wait_for_new_run route-pr.yml "" "${ROUTE_BEFORE}")
+          gh run watch "${ROUTE_RUN}" --repo "${REPO}" --exit-status
+
+          if ! gh pr checks "${PR_NUMBER}" --repo "${REPO}" --required > /tmp/pr-checks.txt 2>&1; then
+            echo "Required checks not visible on PR after workflow success:" >&2
+            cat /tmp/pr-checks.txt >&2
+            exit 1
+          fi
+          if grep -qiE 'fail|failure' /tmp/pr-checks.txt; then
+            cat /tmp/pr-checks.txt
+            exit 1
+          fi
+          if grep -qi pending /tmp/pr-checks.txt; then
+            echo "Required checks still pending on PR:" >&2
+            cat /tmp/pr-checks.txt
+            exit 1
+          fi
+          cat /tmp/pr-checks.txt
+            exit 1
+          fi
+          if grep -qi pending /tmp/pr-checks.txt; then
+            echo "Required checks still pending on PR:" >&2
+            cat /tmp/pr-checks.txt
+            exit 1
+          fi
+          cat /tmp/pr-checks.txt
