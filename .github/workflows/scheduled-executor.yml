@@ -330,6 +330,69 @@ jobs:
         run: |
           PR_NUMBER=$(uv run python -c "from scripts.codex_ci import parse_pr_number; print(parse_pr_number('${{ needs.dispatch.outputs.pr_url }}'))")
           uv run scripts/try_auto_merge.py --pr "${PR_NUMBER}" --repo "${{ github.repository }}"
+
+  # PR opened fires route-pr while the body still has the dispatch stub (confidence 0).
+  # Re-run the router after Reviewer JSON is applied so labels match final output.
+  route_pr_after_review:
+    needs: [dispatch, codex_reviewer]
+    if: >-
+      needs.dispatch.result == 'success' &&
+      needs.dispatch.outputs.pr_url != '' &&
+      needs.codex_reviewer.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Route PR after Reviewer JSON applied
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ needs.dispatch.outputs.pr_url }}
+          BRANCH: ${{ needs.dispatch.outputs.branch }}
+        run: |
+          set -euo pipefail
+          REPO="${{ github.repository }}"
+          PR_NUMBER="${PR_URL##*/}"
+
+          latest_run_id() {
+            local workflow_file="$1"
+            local branch="${2:-}"
+            if [ -n "${branch}" ]; then
+              gh run list --workflow="${workflow_file}" --branch="${branch}" \
+                --repo "${REPO}" --limit 1 --json databaseId \
+                -q '.[0].databaseId // empty'
+            else
+              gh run list --workflow="${workflow_file}" \
+                --repo "${REPO}" --limit 1 --json databaseId \
+                -q '.[0].databaseId // empty'
+            fi
+          }
+
+          wait_for_new_run() {
+            local workflow_file="$1"
+            local branch="${2:-}"
+            local before="$3"
+            local run_id=""
+            for _ in $(seq 1 24); do
+              run_id=$(latest_run_id "${workflow_file}" "${branch}")
+              if [ -n "${run_id}" ] && [ "${run_id}" != "${before}" ]; then
+                printf '%s' "${run_id}"
+                return 0
+              fi
+              sleep 5
+            done
+            echo "Timed out waiting for ${workflow_file} run to start" >&2
+            return 1
+          }
+
+          ROUTE_BEFORE=$(latest_run_id route-pr.yml "${BRANCH}")
+          gh workflow run route-pr.yml --ref "${BRANCH}" \
+            -f "pr_number=${PR_NUMBER}" --repo "${REPO}"
+          ROUTE_RUN=$(wait_for_new_run route-pr.yml "${BRANCH}" "${ROUTE_BEFORE}")
+          gh run watch "${ROUTE_RUN}" --repo "${REPO}" --exit-status
+
   trigger_pr_checks:
     needs: [dispatch, codex_reviewer, scheduler_dispatch_token_probe]
     if: >-

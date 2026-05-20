@@ -318,7 +318,9 @@ Codex session runs Executor and Reviewer; `route-pr.yml` labels the PR.
 `codex_reviewer` jobs run
 `openai/codex-action@v1` for Executor (workspace-write) and Reviewer (read-only), applies
 Reviewer JSON via `scripts/codex_ci.py apply-reviewer`, and validates with
-`scripts/validate_reviewer.py`. Optional squash-merge when repository variable
+`scripts/validate_reviewer.py`. The `route_pr_after_review` job then dispatches
+`route-pr.yml` so routing uses the final Reviewer block (the initial `pull_request`
+`opened` event still sees the dispatch stub with `confidence: 0`). Optional squash-merge when repository variable
 `SCHEDULER_AUTO_MERGE=true` and the PR is labeled `review:codex` with a clean merge state
 (`scripts/try_auto_merge.py`). Local replay: `uv run scripts/codex_ci.py write-prompt`
 and `uv run scripts/codex_ci.py exec` (requires `codex` CLI + API key).
