@@ -8,13 +8,19 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, edited]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to route (scheduler follow-up)
+        required: true
+        type: string
 
 permissions:
   contents: read
   pull-requests: write
 
 concurrency:
-  group: route-pr-${{ github.event.pull_request.number }}
+  group: route-pr-${{ github.event.pull_request.number || inputs.pr_number }}
   cancel-in-progress: true
 
 jobs:
@@ -22,11 +28,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Resolve PR metadata
+        id: pr_meta
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PRN="${{ inputs.pr_number }}"
+          else
+            PRN="${{ github.event.pull_request.number }}"
+          fi
+          HEAD_SHA=$(gh pr view "${PRN}" --repo "${{ github.repository }}"             --json headRefOid -q .headRefOid)
+          echo "pr_number=${PRN}" >> "${GITHUB_OUTPUT}"
+          echo "head_sha=${HEAD_SHA}" >> "${GITHUB_OUTPUT}"
+
       - name: Checkout PR head
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ steps.pr_meta.outputs.head_sha }}
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
@@ -56,7 +76,7 @@ jobs:
         run: >
           uv run scripts/build_pr_context.py
           --repo "${{ github.repository }}"
-          --pr ${{ github.event.pull_request.number }}
+          --pr ${{ steps.pr_meta.outputs.pr_number }}
           --fork-mode auto
           --out pr.json
 
@@ -67,17 +87,19 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success() || failure()
         with:
-          name: router-${{ github.event.pull_request.number }}
+          name: router-${{ steps.pr_meta.outputs.pr_number }}
           path: |
             pr.json
             route.json
 
       - name: Apply label + explain (same-repo branches)
-        if: github.event.pull_request.head.repo.full_name == github.repository
+        if: >-
+          github.event_name == 'workflow_dispatch' ||
+          github.event.pull_request.head.repo.full_name == github.repository
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PRN="${{ github.event.pull_request.number }}"
+          PRN="${{ steps.pr_meta.outputs.pr_number }}"
           LABEL=$(jq -r '.route' route.json)
           REASONS=$(jq -r '.reasons[] | "- \(.)"' route.json)
           {
@@ -94,11 +116,13 @@ jobs:
           gh pr comment "${PRN}" --repo "${{ github.repository }}" --body-file comment.md
 
       - name: Fork-head note (label mutation skipped)
-        if: github.event.pull_request.head.repo.full_name != github.repository
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PRN="${{ github.event.pull_request.number }}"
+          PRN="${{ steps.pr_meta.outputs.pr_number }}"
           LABEL=$(jq -r '.route' route.json)
           REASONS=$(jq -r '.reasons[] | "- \(.)"' route.json)
           {
