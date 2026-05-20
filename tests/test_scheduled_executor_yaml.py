@@ -43,7 +43,9 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert 'gh workflow run ci.yml --ref "${BRANCH}"' in text
     assert "gh run watch" in text
     assert 'gh workflow run route-pr.yml --ref "${BRANCH}"' in text
-    assert "Wait for required PR checks" not in text
+    assert "require_check_success" in text
+    assert "check-runs" in text
+    assert "gh pr checks" not in text
 
 
 def test_scheduled_executor_documented() -> None:

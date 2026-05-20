@@ -326,8 +326,9 @@ and `uv run scripts/codex_ci.py exec` (requires `codex` CLI + API key).
 **PR checks after scheduler dispatch:** Pull requests opened with `GITHUB_TOKEN` do not
 fire `pull_request` workflows (`ci.yml`, `route-pr.yml`). The scheduled-executor
 `trigger_pr_checks` job dispatches both workflows on the PR branch via
-`workflow_dispatch`, waits with `gh run watch` (not
-blind `gh pr checks` polling), then asserts required checks are visible on the PR.
+`workflow_dispatch`, waits with `gh run watch`, then verifies commit check runs
+(`Lint, type-check, unit tests`, `route`) via the Checks API — `gh pr checks` does
+not list workflow_dispatch results on bot-opened PRs.
 Human-opened PRs are unchanged — they still trigger CI and Router on `pull_request`
 as usual.
 
