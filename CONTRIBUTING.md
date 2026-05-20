@@ -319,8 +319,8 @@ Codex session runs Executor and Reviewer; `route-pr.yml` labels the PR.
 `codex_reviewer` jobs run
 `openai/codex-action@v1` for Executor (workspace-write) and Reviewer (read-only), applies
 Reviewer JSON via `scripts/codex_ci.py apply-reviewer`, and validates with
-`scripts/validate_reviewer.py`. The `route_pr_after_review` job then dispatches
-`route-pr.yml` so routing uses the final Reviewer block (the initial `pull_request`
+`scripts/validate_reviewer.py`. The `trigger_pr_checks` job then dispatches
+`route-pr.yml` on the PR branch so routing uses the final Reviewer block (the initial `pull_request`
 `opened` event still sees the dispatch stub with `confidence: 0`). Optional squash-merge when repository variable
 `SCHEDULER_AUTO_MERGE=true` and the PR is labeled `review:codex` with a clean merge state
 (`scripts/try_auto_merge.py`). Local replay: `uv run scripts/codex_ci.py write-prompt`
@@ -328,24 +328,19 @@ and `uv run scripts/codex_ci.py exec` (requires `codex` CLI + API key).
 
 **PR checks and the merge box:** Pull requests opened with the default
 `GITHUB_TOKEN` do **not** fire `pull_request` workflows (`ci.yml`, `route-pr.yml`).
-The PR merge UI then shows required checks as *Expected — Waiting for status to be
-reported* even when work succeeded elsewhere.
+Pushes from Codex jobs use the same token, so they do not re-trigger checks on the PR
+head either. The `trigger_pr_checks` job always runs after dispatch (and after Codex
+when enabled): it confirms `ci.yml` / `route-pr.yml` on the PR branch still match
+`main`, dispatches both workflows with `--ref spec/<slug>`, waits with `gh run watch`,
+and verifies success on the PR's `headRefOid` so branch protection can go green.
 
-**Recommended (merge-box green):** Add repository secret **`SCHEDULER_DISPATCH_TOKEN`**
-— a fine-scoped PAT (classic: `repo`; fine-grained: Contents read/write, Pull requests
-read/write, Actions read, Workflows read/write on this repo). The workflow validates the
-PAT with `gh api user` before use. If the secret is missing or rejected (HTTP 401),
-dispatch falls back to `GITHUB_TOKEN` and `trigger_pr_checks` runs. When the PAT is
-valid, `gh pr create` triggers normal `pull_request` CI and Router runs and
-`trigger_pr_checks` is **skipped** (no duplicate runs).
-
-**Fallback (workflow green only):** Without `SCHEDULER_DISPATCH_TOKEN`, the
-`trigger_pr_checks` job dispatches `ci.yml` and `route-pr.yml` via
-`workflow_dispatch` from trusted `main` workflow definitions (`--ref main`), waits with
-`gh run watch`, and verifies commit
-check runs (`Lint, type-check, unit tests`, `route`) via the Checks API. That proves
-the pipeline in Actions but does **not** satisfy branch protection in the GitHub PR
-UI.
+**Recommended:** Add repository secret **`SCHEDULER_DISPATCH_TOKEN`** — a
+fine-scoped PAT (classic: `repo`; fine-grained: Contents read/write, Pull requests
+read/write, Actions read, Workflows read/write on this repo). The workflow validates
+the PAT with `gh api user` before use and prefers it for `gh pr create` and for
+`trigger_pr_checks` dispatches. If the secret is missing or rejected (HTTP 401),
+dispatch and check refresh fall back to `GITHUB_TOKEN` (`workflow_dispatch` still
+runs; merge-box green depends on Actions being allowed to dispatch workflows).
 
 **Drill fixtures:** Scheduler smoke specs under `docs/specs/_drills/<slug>.md` are
 resolved by the Router the same as `docs/specs/<slug>.md` (see
