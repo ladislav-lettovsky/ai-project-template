@@ -257,9 +257,11 @@ def test_find_open_pr_url_uses_rest_pulls_api(monkeypatch) -> None:  # type: ign
         )
         is None
     )
-    assert captured[0][:3] == ["gh", "api", "repos/acme/template/pulls"]
-    assert "-f" in captured[0]
-    assert "head=acme:spec/widget" in captured[0]
+    assert captured[0][:3] == [
+        "gh",
+        "api",
+        "repos/acme/template/pulls?head=acme:spec/widget&state=open",
+    ]
 
 
 def test_run_gh_surfaces_stderr_and_pr_permission_hint(monkeypatch) -> None:  # type: ignore[no-untyped-def]
