@@ -229,6 +229,42 @@ def test_create_remote_branch_errors_when_head_is_not_origin_main(monkeypatch) -
         raise AssertionError("expected RuntimeError")
 
 
+def test_ensure_remote_branch_matches_main_allows_origin_main_tip(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    def fake_run(cmd: list[str], **_: Any):  # type: ignore[no-untyped-def]
+        if cmd[:3] == ["git", "fetch", "origin"] and cmd[3] == "spec/widget":
+            return type("CP", (), {"stdout": ""})()
+        if cmd[:3] == ["git", "rev-parse", "--verify"] and cmd[3] == "origin/main":
+            return type("CP", (), {"stdout": "abc123\n"})()
+        if cmd[:3] == ["git", "rev-parse", "--verify"] and cmd[3] == "origin/spec/widget":
+            return type("CP", (), {"stdout": "abc123\n"})()
+        raise AssertionError(f"unexpected command: {cmd}")
+
+    monkeypatch.setattr(dispatch_spec.subprocess, "run", fake_run)
+
+    dispatch_spec.ensure_remote_branch_matches_main("origin", "spec/widget")
+
+
+def test_ensure_remote_branch_matches_main_rejects_drift(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    def fake_run(cmd: list[str], **_: Any):  # type: ignore[no-untyped-def]
+        if cmd[:3] == ["git", "fetch", "origin"] and cmd[3] == "spec/widget":
+            return type("CP", (), {"stdout": ""})()
+        if cmd[:3] == ["git", "rev-parse", "--verify"] and cmd[3] == "origin/main":
+            return type("CP", (), {"stdout": "abc123\n"})()
+        if cmd[:3] == ["git", "rev-parse", "--verify"] and cmd[3] == "origin/spec/widget":
+            return type("CP", (), {"stdout": "def456\n"})()
+        raise AssertionError(f"unexpected command: {cmd}")
+
+    monkeypatch.setattr(dispatch_spec.subprocess, "run", fake_run)
+
+    try:
+        dispatch_spec.ensure_remote_branch_matches_main("origin", "spec/widget")
+    except RuntimeError as exc:
+        assert "points to def456" in str(exc)
+        assert "expected abc123" in str(exc)
+    else:
+        raise AssertionError("expected RuntimeError")
+
+
 def test_emit_result_writes_json_out_only(tmp_path: Path) -> None:
     out = tmp_path / "dispatch.json"
     dispatch_spec.emit_result({"ok": True, "pr_url": "https://example.com/pull/1"}, json_out=out)
