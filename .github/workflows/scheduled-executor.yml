@@ -19,6 +19,22 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  scheduler_dispatch_token_probe:
+    if: github.event.repository.fork == false
+    runs-on: ubuntu-latest
+    outputs:
+      has_scheduler_pat: ${{ steps.probe.outputs.has_scheduler_pat }}
+    steps:
+      - id: probe
+        env:
+          SCHEDULER_DISPATCH_TOKEN: ${{ secrets.SCHEDULER_DISPATCH_TOKEN }}
+        run: |
+          if [ -n "${SCHEDULER_DISPATCH_TOKEN}" ]; then
+            echo "has_scheduler_pat=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "has_scheduler_pat=false" >> "${GITHUB_OUTPUT}"
+          fi
+
   dispatch:
     if: github.event.repository.fork == false
     runs-on: ubuntu-latest
@@ -302,13 +318,13 @@ jobs:
           PR_NUMBER=$(uv run python -c "from scripts.codex_ci import parse_pr_number; print(parse_pr_number('${{ needs.dispatch.outputs.pr_url }}'))")
           uv run scripts/try_auto_merge.py --pr "${PR_NUMBER}" --repo "${{ github.repository }}"
   trigger_pr_checks:
-    needs: [dispatch, codex_reviewer]
+    needs: [dispatch, codex_reviewer, scheduler_dispatch_token_probe]
     if: >-
       needs.dispatch.result == 'success' &&
       needs.dispatch.outputs.pr_url != '' &&
       (needs.codex_reviewer.result == 'success' ||
       needs.codex_reviewer.result == 'skipped') &&
-      secrets.SCHEDULER_DISPATCH_TOKEN == ''
+      needs.scheduler_dispatch_token_probe.outputs.has_scheduler_pat == 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

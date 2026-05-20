@@ -40,6 +40,9 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert "continue-on-error: true" not in text
     assert "validate_reviewer.py .scratch/pr-body.md" in text
     assert "SCHEDULER_DISPATCH_TOKEN" in text
+    assert "scheduler_dispatch_token_probe" in text
+    assert "has_scheduler_pat" in text
+    assert "secrets.SCHEDULER_DISPATCH_TOKEN == ''" not in text
     assert "trigger_pr_checks" in text
     assert 'gh workflow run ci.yml --ref "${BRANCH}"' in text
     assert "gh run watch" in text
