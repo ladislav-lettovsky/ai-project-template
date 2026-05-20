@@ -324,7 +324,6 @@ jobs:
           set -euo pipefail
           REPO="${{ github.repository }}"
           PR_NUMBER="${PR_URL##*/}"
-          HEAD_SHA=$(gh pr view "${PR_NUMBER}" --repo "${REPO}"             --json headRefOid -q .headRefOid)
 
           latest_run_id() {
             local workflow_file="$1"
@@ -353,37 +352,28 @@ jobs:
             return 1
           }
 
+          require_check_success() {
+            local check_name="$1"
+            local head_sha="$2"
+            local conclusion
+            conclusion=$(gh api "repos/${REPO}/commits/${head_sha}/check-runs"               -q "[.check_runs[] | select(.name=="${check_name}") | .conclusion] | first // """)
+            if [ "${conclusion}" != "success" ]; then
+              echo "Check ${check_name} missing or not success (got: ${conclusion:-none})" >&2
+              gh api "repos/${REPO}/commits/${head_sha}/check-runs"                 -q '[.check_runs[] | {name, status, conclusion}]' >&2
+              exit 1
+            fi
+          }
+
           CI_BEFORE=$(latest_run_id ci.yml "${BRANCH}")
           gh workflow run ci.yml --ref "${BRANCH}" -f "ref=${BRANCH}" --repo "${REPO}"
           CI_RUN=$(wait_for_new_run ci.yml "${BRANCH}" "${CI_BEFORE}")
           gh run watch "${CI_RUN}" --repo "${REPO}" --exit-status
 
           ROUTE_BEFORE=$(latest_run_id route-pr.yml "${BRANCH}")
-          gh workflow run route-pr.yml --ref "${BRANCH}" \
-            -f "pr_number=${PR_NUMBER}" --repo "${REPO}"
+          gh workflow run route-pr.yml --ref "${BRANCH}"             -f "pr_number=${PR_NUMBER}" --repo "${REPO}"
           ROUTE_RUN=$(wait_for_new_run route-pr.yml "${BRANCH}" "${ROUTE_BEFORE}")
           gh run watch "${ROUTE_RUN}" --repo "${REPO}" --exit-status
 
-          if ! gh pr checks "${PR_NUMBER}" --repo "${REPO}" --required > /tmp/pr-checks.txt 2>&1; then
-            echo "Required checks not visible on PR after workflow success:" >&2
-            cat /tmp/pr-checks.txt >&2
-            exit 1
-          fi
-          if grep -qiE 'fail|failure' /tmp/pr-checks.txt; then
-            cat /tmp/pr-checks.txt
-            exit 1
-          fi
-          if grep -qi pending /tmp/pr-checks.txt; then
-            echo "Required checks still pending on PR:" >&2
-            cat /tmp/pr-checks.txt
-            exit 1
-          fi
-          cat /tmp/pr-checks.txt
-            exit 1
-          fi
-          if grep -qi pending /tmp/pr-checks.txt; then
-            echo "Required checks still pending on PR:" >&2
-            cat /tmp/pr-checks.txt
-            exit 1
-          fi
-          cat /tmp/pr-checks.txt
+          HEAD_SHA=$(gh pr view "${PR_NUMBER}" --repo "${REPO}"             --json headRefOid -q .headRefOid)
+          require_check_success "Lint, type-check, unit tests" "${HEAD_SHA}"
+          require_check_success "route" "${HEAD_SHA}"
