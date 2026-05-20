@@ -330,9 +330,10 @@ reported* even when work succeeded elsewhere.
 
 **Recommended (merge-box green):** Add repository secret **`SCHEDULER_DISPATCH_TOKEN`**
 — a fine-scoped PAT (classic: `repo`; fine-grained: Contents read/write, Pull requests
-read/write, Actions read, Workflows read/write on this repo). The dispatch step uses
-`secrets.SCHEDULER_DISPATCH_TOKEN || secrets.GITHUB_TOKEN` for `gh pr create`, which
-triggers normal `pull_request` CI and Router runs. When this secret is set,
+read/write, Actions read, Workflows read/write on this repo). The workflow validates the
+PAT with `gh api user` before use. If the secret is missing or rejected (HTTP 401),
+dispatch falls back to `GITHUB_TOKEN` and `trigger_pr_checks` runs. When the PAT is
+valid, `gh pr create` triggers normal `pull_request` CI and Router runs and
 `trigger_pr_checks` is **skipped** (no duplicate runs).
 
 **Fallback (workflow green only):** Without `SCHEDULER_DISPATCH_TOKEN`, the
