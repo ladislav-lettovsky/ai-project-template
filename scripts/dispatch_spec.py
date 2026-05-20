@@ -213,15 +213,12 @@ def find_open_pr_url(*, branch: str, repo: str | None) -> str | None:
         raise RuntimeError("repo owner/name required for find_open_pr_url")
     owner, name = repo.split("/", 1)
     head = f"{owner}:{branch}"
+    # Query string (not `-f`): gh treats `-f` on GET as a POST body and returns 422.
     url = _run_gh(
         [
             "gh",
             "api",
-            f"repos/{owner}/{name}/pulls",
-            "-f",
-            f"head={head}",
-            "-f",
-            "state=open",
+            f"repos/{owner}/{name}/pulls?head={head}&state=open",
             "--jq",
             'if length > 0 then .[0].html_url else "" end',
         ],
