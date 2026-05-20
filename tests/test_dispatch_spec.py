@@ -237,6 +237,31 @@ def test_emit_result_writes_json_out_only(tmp_path: Path) -> None:
     assert parsed["pr_url"] == "https://example.com/pull/1"
 
 
+def test_find_open_pr_url_uses_rest_pulls_api(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    captured: list[list[str]] = []
+
+    def fake_which(name: str) -> str | None:
+        return "/usr/bin/gh" if name == "gh" else None
+
+    def fake_run(cmd: list[str], **_: Any):  # type: ignore[no-untyped-def]
+        captured.append(cmd)
+        return type("CP", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+
+    monkeypatch.setattr(dispatch_spec.shutil, "which", fake_which)
+    monkeypatch.setattr(dispatch_spec.subprocess, "run", fake_run)
+
+    assert (
+        dispatch_spec.find_open_pr_url(
+            branch="spec/widget",
+            repo="acme/template",
+        )
+        is None
+    )
+    assert captured[0][:3] == ["gh", "api", "repos/acme/template/pulls"]
+    assert "-f" in captured[0]
+    assert "head=acme:spec/widget" in captured[0]
+
+
 def test_run_gh_surfaces_stderr_and_pr_permission_hint(monkeypatch) -> None:  # type: ignore[no-untyped-def]
     def fake_which(name: str) -> str | None:
         return "/usr/bin/gh" if name == "gh" else None

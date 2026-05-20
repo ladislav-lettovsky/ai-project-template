@@ -204,29 +204,30 @@ def open_tracking_issue(
 
 
 def find_open_pr_url(*, branch: str, repo: str | None) -> str | None:
-    gh_path = shutil.which("gh")
-    if gh_path is None:
-        raise RuntimeError("gh executable not found in PATH")
-    cmd = [
-        "gh",
-        "pr",
-        "list",
-        "--head",
-        branch,
-        "--state",
-        "open",
-        "--json",
-        "url",
-        "--limit",
-        "1",
-    ]
-    if repo:
-        cmd.extend(["--repo", repo])
-    cp = subprocess.run(cmd, check=True, capture_output=True, text=True)
-    data = json.loads(cp.stdout)
-    if isinstance(data, list) and data:
-        return str(data[0].get("url") or "") or None
-    return None
+    """Return an open PR URL for ``branch``, if any.
+
+      Uses the REST pulls API (not ``gh pr list``) so fine-grained PATs with only
+    pull-request scopes work reliably in Actions.
+    """
+    if not repo:
+        raise RuntimeError("repo owner/name required for find_open_pr_url")
+    owner, name = repo.split("/", 1)
+    head = f"{owner}:{branch}"
+    url = _run_gh(
+        [
+            "gh",
+            "api",
+            f"repos/{owner}/{name}/pulls",
+            "-f",
+            f"head={head}",
+            "-f",
+            "state=open",
+            "--jq",
+            'if length > 0 then .[0].html_url else "" end',
+        ],
+        action="pulls list",
+    )
+    return url or None
 
 
 def open_pull_request(
