@@ -105,6 +105,39 @@ def test_build_context_dict_happy(example_gh_blob: dict) -> None:
     assert blob["spec"]["risk_tier"] == "T1"
 
 
+def test_resolve_authorizing_spec_path_drills(tmp_path: Path) -> None:
+    drills = tmp_path / "docs" / "specs" / "_drills"
+    drills.mkdir(parents=True)
+    drill_spec = drills / "test-hello-world.md"
+    drill_spec.write_text(
+        "---\nstatus: drafted\nrisk_tier: T0\ncomplexity: low\n---\n",
+        encoding="utf-8",
+    )
+    resolved = build_pr_context.resolve_authorizing_spec_path(tmp_path, "test-hello-world")
+    assert resolved == drill_spec
+
+
+def test_build_context_dict_drills_spec() -> None:
+    slug = "test-hello-world"
+    spec = REPO_ROOT / "docs" / "specs" / "_drills" / f"{slug}.md"
+    assert spec.is_file()
+
+    blob = build_pr_context.build_context_dict(
+        repo_full_name="test/ci",
+        gh_json={
+            "headRefName": f"spec/{slug}",
+            "body": _minimal_reviewer_fence(),
+            "files": [],
+            "additions": 0,
+            "deletions": 0,
+        },
+        repo_root=REPO_ROOT,
+        fork_pr=False,
+    )
+    assert blob["spec_validation"]["status"] == "valid"
+    assert blob["spec"]["path"].endswith(f"_drills/{slug}.md")
+
+
 def test_multiple_authorizing_specs_flag(example_gh_blob: dict) -> None:
     dup = dict(example_gh_blob)
     dup["files"] = [

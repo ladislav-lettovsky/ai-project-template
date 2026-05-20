@@ -117,7 +117,7 @@ jobs:
         if: steps.queue.outputs.spec_path != ''
         id: dispatch
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.SCHEDULER_DISPATCH_TOKEN || secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           set -o pipefail
@@ -307,7 +307,8 @@ jobs:
       needs.dispatch.result == 'success' &&
       needs.dispatch.outputs.pr_url != '' &&
       (needs.codex_reviewer.result == 'success' ||
-      needs.codex_reviewer.result == 'skipped')
+      needs.codex_reviewer.result == 'skipped') &&
+      secrets.SCHEDULER_DISPATCH_TOKEN == ''
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

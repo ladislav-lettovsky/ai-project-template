@@ -323,14 +323,28 @@ Reviewer JSON via `scripts/codex_ci.py apply-reviewer`, and validates with
 (`scripts/try_auto_merge.py`). Local replay: `uv run scripts/codex_ci.py write-prompt`
 and `uv run scripts/codex_ci.py exec` (requires `codex` CLI + API key).
 
-**PR checks after scheduler dispatch:** Pull requests opened with `GITHUB_TOKEN` do not
-fire `pull_request` workflows (`ci.yml`, `route-pr.yml`). The scheduled-executor
-`trigger_pr_checks` job dispatches both workflows on the PR branch via
-`workflow_dispatch`, waits with `gh run watch`, then verifies commit check runs
-(`Lint, type-check, unit tests`, `route`) via the Checks API — `gh pr checks` does
-not list workflow_dispatch results on bot-opened PRs.
-Human-opened PRs are unchanged — they still trigger CI and Router on `pull_request`
-as usual.
+**PR checks and the merge box:** Pull requests opened with the default
+`GITHUB_TOKEN` do **not** fire `pull_request` workflows (`ci.yml`, `route-pr.yml`).
+The PR merge UI then shows required checks as *Expected — Waiting for status to be
+reported* even when work succeeded elsewhere.
+
+**Recommended (merge-box green):** Add repository secret **`SCHEDULER_DISPATCH_TOKEN`**
+— a fine-scoped PAT (classic: `repo`; fine-grained: Contents read/write, Pull requests
+read/write, Actions read, Workflows read/write on this repo). The dispatch step uses
+`secrets.SCHEDULER_DISPATCH_TOKEN || secrets.GITHUB_TOKEN` for `gh pr create`, which
+triggers normal `pull_request` CI and Router runs. When this secret is set,
+`trigger_pr_checks` is **skipped** (no duplicate runs).
+
+**Fallback (workflow green only):** Without `SCHEDULER_DISPATCH_TOKEN`, the
+`trigger_pr_checks` job dispatches `ci.yml` and `route-pr.yml` via
+`workflow_dispatch` on the PR branch, waits with `gh run watch`, and verifies commit
+check runs (`Lint, type-check, unit tests`, `route`) via the Checks API. That proves
+the pipeline in Actions but does **not** satisfy branch protection in the GitHub PR
+UI.
+
+**Drill fixtures:** Scheduler smoke specs under `docs/specs/_drills/<slug>.md` are
+resolved by the Router the same as `docs/specs/<slug>.md` (see
+`scripts/build_pr_context.py`).
 
 **Failure visibility:** Any failing step fails the job (no `|| true`). A
 `scheduler-failure` issue is opened with the workflow run URL.
