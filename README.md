@@ -126,7 +126,9 @@ Not required for `just check` or CI. Only if you enable GitHub MCP in
 **Scheduled executor** — `scheduled-executor.yml` queues T0+low `drafted`
 specs under `docs/specs/` and opens stub PRs via `dispatch_spec.py`. See
 `docs/blueprint.md` §4 and CONTRIBUTING.md. Template spec history:
-`docs/archive/template-specs/`.
+`docs/archive/template-specs/`. Scheduler-triggered follow-up checks dispatch
+workflows from trusted `main` definitions (`--ref main`) while validating the
+target PR branch via workflow inputs.
 
 ### Why this exists *(Keep — optional trim)*
 

@@ -47,9 +47,11 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert "gh api user" in text
     assert "secrets.SCHEDULER_DISPATCH_TOKEN == ''" not in text
     assert "trigger_pr_checks" in text
-    assert 'gh workflow run ci.yml --ref "${BRANCH}"' in text
+    assert "gh workflow run ci.yml --ref main" in text
     assert "gh run watch" in text
-    assert 'gh workflow run route-pr.yml --ref "${BRANCH}"' in text
+    assert "gh workflow run route-pr.yml --ref main" in text
+    assert 'gh workflow run ci.yml --ref "${BRANCH}"' not in text
+    assert 'gh workflow run route-pr.yml --ref "${BRANCH}"' not in text
     assert "require_check_success" in text
     assert "check-runs" in text
     assert "gh pr checks" not in text

@@ -154,6 +154,20 @@ def seed_dispatch_branch(remote: str, branch_name: str, *, message: str) -> bool
     return True
 
 
+def ensure_remote_branch_matches_main(remote: str, branch_name: str) -> None:
+    """Fail closed when an existing dispatch branch diverges from ``remote/main``."""
+    git_env = git_action_env()
+    _run_git(["git", "fetch", remote, branch_name], env=git_env)
+    main_sha = resolve_ref(f"{remote}/main")
+    branch_sha = resolve_ref(f"{remote}/{branch_name}")
+    if branch_sha != main_sha:
+        msg = (
+            f"remote branch {branch_name} points to {branch_sha}, "
+            f"expected {main_sha} from {remote}/main"
+        )
+        raise RuntimeError(msg)
+
+
 def emit_result(result: dict[str, Any], *, json_out: Path | None) -> None:
     text = json.dumps(result, indent=2)
     if json_out is not None:
@@ -300,6 +314,8 @@ def dispatch_issue_stub(
     if not branch_exists(remote, branch):
         create_remote_branch(remote, branch)
         created_branch = True
+    else:
+        ensure_remote_branch_matches_main(remote, branch)
     issue = payload["issue"]
     issue_url = open_tracking_issue(
         title=issue["title"],
@@ -329,6 +345,8 @@ def dispatch_open_pr(
     if not branch_exists(remote, branch):
         create_remote_branch(remote, branch)
         created_branch = True
+    else:
+        ensure_remote_branch_matches_main(remote, branch)
     seeded_commit = seed_dispatch_branch(
         remote,
         branch,

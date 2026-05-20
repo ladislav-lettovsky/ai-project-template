@@ -309,7 +309,8 @@ dispatched. One spec per run: lexicographically first eligible slug.
 `spec/<slug>` from `origin/main`, seeds an empty commit when needed, and opens a GitHub
 PR whose body links the spec and carries a schema-valid `REVIEWER_JSON` stub. PR bodies
 include `dispatch-source: scheduled` for telemetry (Slice 2). Legacy `--transport issue`
-opens a `scheduler-queue` tracking issue only (rollback).
+opens a `scheduler-queue` tracking issue only (rollback). If `spec/<slug>` already
+exists, dispatch now fails closed unless that branch still points to `origin/main`.
 
 **Without `OPENAI_API_KEY`:** transport stays `pr` — stop at open PR; a human or local
 Codex session runs Executor and Reviewer; `route-pr.yml` labels the PR.
@@ -340,7 +341,8 @@ valid, `gh pr create` triggers normal `pull_request` CI and Router runs and
 
 **Fallback (workflow green only):** Without `SCHEDULER_DISPATCH_TOKEN`, the
 `trigger_pr_checks` job dispatches `ci.yml` and `route-pr.yml` via
-`workflow_dispatch` on the PR branch, waits with `gh run watch`, and verifies commit
+`workflow_dispatch` from trusted `main` workflow definitions (`--ref main`), waits with
+`gh run watch`, and verifies commit
 check runs (`Lint, type-check, unit tests`, `route`) via the Checks API. That proves
 the pipeline in Actions but does **not** satisfy branch protection in the GitHub PR
 UI.
@@ -356,8 +358,9 @@ resolved by the Router the same as `docs/specs/<slug>.md` (see
 Actions → General → Workflow permissions**, choose **Read and write permissions** and
 enable **Allow GitHub Actions to create and approve pull requests**. Without this,
 `gh pr create` in the dispatch step fails after the branch is pushed (you may see a
-leftover `spec/<slug>` branch with no PR). Re-run the workflow after enabling; if the
-branch already exists, dispatch reuses it or opens the PR on retry.
+leftover `spec/<slug>` branch with no PR). Re-run the workflow after enabling. If the
+branch already exists and no longer matches `origin/main`, dispatch intentionally fails
+until you delete or reset that branch.
 
 **Disable / rollback:** Rename or delete `.github/workflows/scheduled-executor.yml`
 (e.g. `scheduled-executor.yml.disabled`) to stop cron and manual runs. Revert

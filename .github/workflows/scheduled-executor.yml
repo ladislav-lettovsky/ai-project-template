@@ -359,24 +359,25 @@ jobs:
           latest_run_id() {
             local workflow_file="$1"
             local branch="${2:-}"
+            local event="${3:-}"
+            local run_args=(--workflow="${workflow_file}" --repo "${REPO}" --limit 1 --json databaseId)
             if [ -n "${branch}" ]; then
-              gh run list --workflow="${workflow_file}" --branch="${branch}" \
-                --repo "${REPO}" --limit 1 --json databaseId \
-                -q '.[0].databaseId // empty'
-            else
-              gh run list --workflow="${workflow_file}" \
-                --repo "${REPO}" --limit 1 --json databaseId \
-                -q '.[0].databaseId // empty'
+              run_args+=(--branch="${branch}")
             fi
+            if [ -n "${event}" ]; then
+              run_args+=(--event "${event}")
+            fi
+            gh run list "${run_args[@]}" -q '.[0].databaseId // empty'
           }
 
           wait_for_new_run() {
             local workflow_file="$1"
             local branch="${2:-}"
-            local before="$3"
+            local event="${3:-}"
+            local before="$4"
             local run_id=""
             for _ in $(seq 1 24); do
-              run_id=$(latest_run_id "${workflow_file}" "${branch}")
+              run_id=$(latest_run_id "${workflow_file}" "${branch}" "${event}")
               if [ -n "${run_id}" ] && [ "${run_id}" != "${before}" ]; then
                 printf '%s' "${run_id}"
                 return 0
@@ -387,10 +388,11 @@ jobs:
             return 1
           }
 
-          ROUTE_BEFORE=$(latest_run_id route-pr.yml "${BRANCH}")
-          gh workflow run route-pr.yml --ref "${BRANCH}" \
+          ROUTE_BEFORE=$(latest_run_id route-pr.yml main workflow_dispatch)
+          # Run trusted workflow definitions from main, not from the PR branch.
+          gh workflow run route-pr.yml --ref main \
             -f "pr_number=${PR_NUMBER}" --repo "${REPO}"
-          ROUTE_RUN=$(wait_for_new_run route-pr.yml "${BRANCH}" "${ROUTE_BEFORE}")
+          ROUTE_RUN=$(wait_for_new_run route-pr.yml main workflow_dispatch "${ROUTE_BEFORE}")
           gh run watch "${ROUTE_RUN}" --repo "${REPO}" --exit-status
 
   trigger_pr_checks:
@@ -421,20 +423,25 @@ jobs:
           latest_run_id() {
             local workflow_file="$1"
             local branch="${2:-}"
+            local event="${3:-}"
+            local run_args=(--workflow="${workflow_file}" --repo "${REPO}" --limit 1 --json databaseId)
             if [ -n "${branch}" ]; then
-              gh run list --workflow="${workflow_file}" --branch="${branch}"                 --repo "${REPO}" --limit 1 --json databaseId                 -q '.[0].databaseId // empty'
-            else
-              gh run list --workflow="${workflow_file}"                 --repo "${REPO}" --limit 1 --json databaseId                 -q '.[0].databaseId // empty'
+              run_args+=(--branch="${branch}")
             fi
+            if [ -n "${event}" ]; then
+              run_args+=(--event "${event}")
+            fi
+            gh run list "${run_args[@]}" -q '.[0].databaseId // empty'
           }
 
           wait_for_new_run() {
             local workflow_file="$1"
             local branch="${2:-}"
-            local before="$3"
+            local event="${3:-}"
+            local before="$4"
             local run_id=""
             for _ in $(seq 1 24); do
-              run_id=$(latest_run_id "${workflow_file}" "${branch}")
+              run_id=$(latest_run_id "${workflow_file}" "${branch}" "${event}")
               if [ -n "${run_id}" ] && [ "${run_id}" != "${before}" ]; then
                 printf '%s' "${run_id}"
                 return 0
@@ -457,14 +464,16 @@ jobs:
             fi
           }
 
-          CI_BEFORE=$(latest_run_id ci.yml "${BRANCH}")
-          gh workflow run ci.yml --ref "${BRANCH}" -f "ref=${BRANCH}" --repo "${REPO}"
-          CI_RUN=$(wait_for_new_run ci.yml "${BRANCH}" "${CI_BEFORE}")
+          CI_BEFORE=$(latest_run_id ci.yml main workflow_dispatch)
+          # Run trusted workflow definitions from main, but validate the PR branch via input ref.
+          gh workflow run ci.yml --ref main -f "ref=${BRANCH}" --repo "${REPO}"
+          CI_RUN=$(wait_for_new_run ci.yml main workflow_dispatch "${CI_BEFORE}")
           gh run watch "${CI_RUN}" --repo "${REPO}" --exit-status
 
-          ROUTE_BEFORE=$(latest_run_id route-pr.yml "${BRANCH}")
-          gh workflow run route-pr.yml --ref "${BRANCH}"             -f "pr_number=${PR_NUMBER}" --repo "${REPO}"
-          ROUTE_RUN=$(wait_for_new_run route-pr.yml "${BRANCH}" "${ROUTE_BEFORE}")
+          ROUTE_BEFORE=$(latest_run_id route-pr.yml main workflow_dispatch)
+          # Run trusted workflow definitions from main, and route the target PR number.
+          gh workflow run route-pr.yml --ref main             -f "pr_number=${PR_NUMBER}" --repo "${REPO}"
+          ROUTE_RUN=$(wait_for_new_run route-pr.yml main workflow_dispatch "${ROUTE_BEFORE}")
           gh run watch "${ROUTE_RUN}" --repo "${REPO}" --exit-status
 
           HEAD_SHA=$(gh pr view "${PR_NUMBER}" --repo "${REPO}" \
