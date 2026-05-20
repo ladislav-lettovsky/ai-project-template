@@ -12,6 +12,7 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  actions: write
 
 concurrency:
   group: scheduled-executor
@@ -300,3 +301,52 @@ jobs:
         run: |
           PR_NUMBER=$(uv run python -c "from scripts.codex_ci import parse_pr_number; print(parse_pr_number('${{ needs.dispatch.outputs.pr_url }}'))")
           uv run scripts/try_auto_merge.py --pr "${PR_NUMBER}" --repo "${{ github.repository }}"
+  trigger_pr_checks:
+    needs: [dispatch, codex_reviewer]
+    if: >-
+      needs.dispatch.result == 'success' &&
+      needs.dispatch.outputs.pr_url != '' &&
+      (needs.codex_reviewer.result == 'success' ||
+      needs.codex_reviewer.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Trigger CI and Router workflows
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          BRANCH="${{ needs.dispatch.outputs.branch }}"
+          PR_URL="${{ needs.dispatch.outputs.pr_url }}"
+          PR_NUMBER="${PR_URL##*/}"
+          gh workflow run ci.yml --ref "${BRANCH}" --repo "${{ github.repository }}"
+          gh workflow run route-pr.yml --ref main             -f "pr_number=${PR_NUMBER}" --repo "${{ github.repository }}"
+
+      - name: Wait for required PR checks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ needs.dispatch.outputs.pr_url }}
+        run: |
+          set -euo pipefail
+          PR_NUMBER="${PR_URL##*/}"
+          REPO="${{ github.repository }}"
+          for _ in $(seq 1 60); do
+            if gh pr checks "${PR_NUMBER}" --repo "${REPO}" --required > /tmp/pr-checks.txt 2>&1; then
+              if grep -qiE 'fail|failure' /tmp/pr-checks.txt; then
+                cat /tmp/pr-checks.txt
+                exit 1
+              fi
+              if ! grep -qi pending /tmp/pr-checks.txt; then
+                cat /tmp/pr-checks.txt
+                exit 0
+              fi
+            fi
+            sleep 15
+          done
+          echo "Timed out waiting for required PR checks" >&2
+          gh pr checks "${PR_NUMBER}" --repo "${REPO}"
+          exit 1

@@ -39,6 +39,9 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert "|| true" not in text
     assert "continue-on-error: true" not in text
     assert "validate_reviewer.py .scratch/pr-body.md" in text
+    assert "trigger_pr_checks" in text
+    assert "gh workflow run ci.yml" in text
+    assert "gh workflow run route-pr.yml" in text
 
 
 def test_scheduled_executor_documented() -> None:
