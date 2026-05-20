@@ -52,6 +52,7 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert 'gh workflow run ci.yml --ref "${BRANCH}"' in text
     assert "gh run watch" in text
     assert 'gh workflow run route-pr.yml --ref "${BRANCH}"' in text
+    assert 'if [ "${CODEX_REVIEWER_RESULT}" = "success" ]; then' not in text
     assert "gh workflow run ci.yml --ref main" not in text
     assert "gh workflow run route-pr.yml --ref main" not in text
     assert "require_check_success" in text

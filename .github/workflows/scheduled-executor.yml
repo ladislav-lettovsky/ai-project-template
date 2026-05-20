@@ -425,12 +425,10 @@ jobs:
             fi
           }
 
-          if [ "${CODEX_REVIEWER_RESULT}" = "success" ]; then
-            ROUTE_BEFORE=$(latest_run_id route-pr.yml "${BRANCH}" workflow_dispatch)
-            gh workflow run route-pr.yml --ref "${BRANCH}"               -f "pr_number=${PR_NUMBER}" --repo "${REPO}"
-            ROUTE_RUN=$(wait_for_new_run route-pr.yml "${BRANCH}" workflow_dispatch "${ROUTE_BEFORE}")
-            gh run watch "${ROUTE_RUN}" --repo "${REPO}" --exit-status
-          fi
+          ROUTE_BEFORE=$(latest_run_id route-pr.yml "${BRANCH}" workflow_dispatch)
+          gh workflow run route-pr.yml --ref "${BRANCH}"               -f "pr_number=${PR_NUMBER}" --repo "${REPO}"
+          ROUTE_RUN=$(wait_for_new_run route-pr.yml "${BRANCH}" workflow_dispatch "${ROUTE_BEFORE}")
+          gh run watch "${ROUTE_RUN}" --repo "${REPO}" --exit-status
 
           CI_BEFORE=$(latest_run_id ci.yml "${BRANCH}" workflow_dispatch)
           gh workflow run ci.yml --ref "${BRANCH}" -f "ref=${BRANCH}" --repo "${REPO}"
