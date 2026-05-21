@@ -170,6 +170,58 @@ def test_happy_path_codex() -> None:
     assert "satisfied" in reasons[0].lower()
 
 
+def test_defer_scheduled_stub_on_pull_request() -> None:
+    pr = _valid_pr_skeleton()
+    pr["pr_body"] = "dispatch-source: scheduled\n"
+    pr["reviewer"] = {
+        "summary": route_module.DISPATCH_STUB_SUMMARY,
+        "findings": [],
+        "coverage": {
+            "requirements_total": 0,
+            "requirements_covered": 0,
+            "tests_expected": 0,
+            "tests_present": 0,
+        },
+        "risk_assessment": {
+            "scope_fit": "correct",
+            "invariant_risk": "high",
+            "production_risk": "high",
+        },
+        "confidence": 0,
+    }
+    assert route_module.should_defer_scheduled_stub_routing(pr, github_event="pull_request")
+
+
+def test_no_defer_scheduled_stub_on_workflow_dispatch() -> None:
+    pr = _valid_pr_skeleton()
+    pr["pr_body"] = "dispatch-source: scheduled\n"
+    pr["reviewer"] = {
+        "summary": route_module.DISPATCH_STUB_SUMMARY,
+        "findings": [],
+        "coverage": {
+            "requirements_total": 0,
+            "requirements_covered": 0,
+            "tests_expected": 0,
+            "tests_present": 0,
+        },
+        "risk_assessment": {
+            "scope_fit": "correct",
+            "invariant_risk": "high",
+            "production_risk": "high",
+        },
+        "confidence": 0,
+    }
+    assert not route_module.should_defer_scheduled_stub_routing(
+        pr, github_event="workflow_dispatch"
+    )
+
+
+def test_no_defer_when_reviewer_updated() -> None:
+    pr = _valid_pr_skeleton()
+    pr["pr_body"] = "dispatch-source: scheduled\n"
+    assert not route_module.should_defer_scheduled_stub_routing(pr, github_event="pull_request")
+
+
 def test_cli_writes_json_stdout(capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
     """Smoke end-to-end: load pr.json policy file routing."""
     pr_path = tmp_path / "pr.json"
@@ -181,3 +233,40 @@ def test_cli_writes_json_stdout(capsys: pytest.CaptureFixture[str], tmp_path: Pa
     out = capsys.readouterr().out.strip()
     data = json.loads(out)
     assert data["route"] == "review:codex"
+    assert data["skip_label_apply"] is False
+
+
+def test_cli_defers_scheduled_stub(capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
+    pr = _valid_pr_skeleton()
+    pr["pr_body"] = "dispatch-source: scheduled\n"
+    pr["reviewer"] = {
+        "summary": route_module.DISPATCH_STUB_SUMMARY,
+        "findings": [],
+        "coverage": {
+            "requirements_total": 0,
+            "requirements_covered": 0,
+            "tests_expected": 0,
+            "tests_present": 0,
+        },
+        "risk_assessment": {
+            "scope_fit": "correct",
+            "invariant_risk": "high",
+            "production_risk": "high",
+        },
+        "confidence": 0,
+    }
+    pr_path = tmp_path / "pr.json"
+    pr_path.write_text(json.dumps(pr), encoding="utf-8")
+    rc = route_module.main(
+        [
+            str(pr_path),
+            "--policy",
+            str(REPO_ROOT / ".routing-policy.json"),
+            "--github-event",
+            "pull_request",
+        ]
+    )
+    assert rc == 0
+    data = json.loads(capsys.readouterr().out.strip())
+    assert data["skip_label_apply"] is True
+    assert data["route"] == ""

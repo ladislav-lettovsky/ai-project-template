@@ -37,6 +37,32 @@ from red_zone_paths import touches_red_zone  # noqa: E402
 
 REPO_ROOT = _SCRIPTS_DIR.parent
 DEFAULT_POLICY = REPO_ROOT / ".routing-policy.json"
+DISPATCH_STUB_SUMMARY = "Placeholder until Reviewer runs."
+SCHEDULED_DISPATCH_MARKER = "dispatch-source: scheduled"
+
+
+def is_dispatch_reviewer_stub(reviewer: dict) -> bool:
+    """True when Reviewer JSON matches the scheduler dispatch placeholder."""
+    if reviewer.get("confidence") != 0:
+        return False
+    return reviewer.get("summary") == DISPATCH_STUB_SUMMARY
+
+
+def should_defer_scheduled_stub_routing(pr: dict, *, github_event: str | None) -> bool:
+    """Skip label apply on pull_request while scheduled PR still carries dispatch stub.
+
+    ``workflow_dispatch`` (scheduler follow-up after Codex) always routes.
+    """
+    if github_event in (None, "", "workflow_dispatch"):
+        return False
+    body = str(pr.get("pr_body") or "")
+    if SCHEDULED_DISPATCH_MARKER not in body:
+        return False
+    reviewer_val = pr.get("reviewer_validation") or {}
+    if reviewer_val.get("status") != "valid":
+        return False
+    reviewer = pr.get("reviewer") or {}
+    return is_dispatch_reviewer_stub(reviewer)
 
 
 def route_decision(pr: dict, policy: dict) -> tuple[str, list[str]]:
@@ -122,11 +148,32 @@ def main(argv: list[str] | None = None) -> int:
         default=DEFAULT_POLICY,
         help=".routing-policy.json path",
     )
+    p.add_argument(
+        "--github-event",
+        default="",
+        help="GitHub Actions event name (e.g. pull_request, workflow_dispatch)",
+    )
     args = p.parse_args(argv)
     pr_blob = json.loads(args.pr_json.read_text(encoding="utf-8"))
     policy_blob = load_policy(args.policy)
+    if should_defer_scheduled_stub_routing(pr_blob, github_event=args.github_event):
+        payload = {
+            "route": "",
+            "skip_label_apply": True,
+            "reasons": [
+                "Scheduled dispatch stub on PR body; deferring label until "
+                "Codex Reviewer updates REVIEWER_JSON (or scheduler follow-up route)."
+            ],
+        }
+        print(json.dumps(payload, indent=2))
+        return 0
     route_label, reasons = route_decision(pr_blob, policy_blob)
-    print(json.dumps({"route": route_label, "reasons": reasons}, indent=2))
+    print(
+        json.dumps(
+            {"route": route_label, "reasons": reasons, "skip_label_apply": False},
+            indent=2,
+        )
+    )
     return 0
 
 

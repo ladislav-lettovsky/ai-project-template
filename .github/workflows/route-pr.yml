@@ -81,7 +81,11 @@ jobs:
           --out pr.json
 
       - name: Route
-        run: uv run scripts/route_pr.py pr.json --policy .routing-policy.json | tee route.json
+        run: >
+          uv run scripts/route_pr.py pr.json
+          --policy .routing-policy.json
+          --github-event "${{ github.event_name }}"
+          | tee route.json
 
       - name: Upload router artifacts
         uses: actions/upload-artifact@v5
@@ -99,9 +103,21 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           PRN="${{ steps.pr_meta.outputs.pr_number }}"
-          LABEL=$(jq -r '.route' route.json)
+          SKIP=$(jq -r '.skip_label_apply // false' route.json)
           REASONS=$(jq -r '.reasons[] | "- \(.)"' route.json)
+          if [ "${SKIP}" = "true" ]; then
+            {
+              echo "Router: label unchanged (deferred).";
+              echo "";
+              echo "Reasons:";
+              echo "${REASONS}";
+            } > comment.md
+            gh pr comment "${PRN}" --repo "${{ github.repository }}" --body-file comment.md
+            exit 0
+          fi
+          LABEL=$(jq -r '.route' route.json)
           {
             echo "Router decision: \`${LABEL}\`";
             echo "";

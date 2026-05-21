@@ -118,7 +118,8 @@ Not required for `just check` or CI. Only if you enable GitHub MCP in
 ### Shipped governance features *(Keep)*
 
 **Router** — `route-pr.yml` labels PRs `review:codex`, `review:human`, or
-`blocked`. Automerge bots should gate on `review:codex` + green CI; see CONTRIBUTING.
+`blocked`. Scheduled stub PRs defer labels on `pull_request` until post-Codex routing;
+see CONTRIBUTING. Automerge bots should gate on `review:codex` + green CI.
 
 **Telemetry** — `docs/telemetry/events.jsonl`, `just telemetry-dashboard`,
 `just adapt-thresholds` / `adapt-thresholds-write`, `record-telemetry.yml` on merge.
@@ -126,9 +127,9 @@ Not required for `just check` or CI. Only if you enable GitHub MCP in
 **Scheduled executor** — `scheduled-executor.yml` queues T0+low `drafted`
 specs under `docs/specs/` and opens stub PRs via `dispatch_spec.py`. See
 `docs/blueprint.md` §4 and CONTRIBUTING.md. Template spec history:
-`docs/archive/template-specs/`. Scheduler follow-up checks dispatch `ci.yml` and
-`route-pr.yml` on the PR branch (after verifying workflow files match `main`) so
-required checks attach to the PR head.
+`docs/archive/template-specs/`. Scheduler follow-up (`trigger_pr_checks`) dispatches
+`ci.yml` and `route-pr.yml` on the PR branch (workflow files must match `main`) so
+required checks attach to the PR head; optional auto-merge runs after that routing.
 
 ### Why this exists *(Keep — optional trim)*
 

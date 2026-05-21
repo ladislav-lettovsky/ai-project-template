@@ -60,6 +60,10 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert 'HEAD_SHA=$(gh pr view "${PR_NUMBER}"' in text
     assert "headRefOid" in text
     assert "has_scheduler_pat == 'false'" not in text
+    assert "optional_auto_merge" in text
+    assert "needs.trigger_pr_checks.result == 'success'" in text
+    assert "Optional auto-merge after routing" in text
+    assert "deferring label until" not in text or "pull_request route-pr defers" in text
     assert "gh pr checks" not in text
 
 
