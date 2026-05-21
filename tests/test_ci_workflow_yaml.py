@@ -23,3 +23,5 @@ def test_route_workflow_supports_scheduler_dispatch() -> None:
     assert "pr_number:" in text
     assert "Resolve PR metadata" in text
     assert "steps.pr_meta.outputs.pr_number" in text
+    assert "--github-event" in text
+    assert "skip_label_apply" in text

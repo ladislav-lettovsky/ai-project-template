@@ -320,10 +320,13 @@ Codex session runs Executor and Reviewer; `route-pr.yml` labels the PR.
 `openai/codex-action@v1` for Executor (workspace-write) and Reviewer (read-only), applies
 Reviewer JSON via `scripts/codex_ci.py apply-reviewer`, and validates with
 `scripts/validate_reviewer.py`. The `trigger_pr_checks` job then dispatches
-`route-pr.yml` on the PR branch so routing uses the final Reviewer block (the initial `pull_request`
-`opened` event still sees the dispatch stub with `confidence: 0`). Optional squash-merge when repository variable
-`SCHEDULER_AUTO_MERGE=true` and the PR is labeled `review:codex` with a clean merge state
-(`scripts/try_auto_merge.py`). Local replay: `uv run scripts/codex_ci.py write-prompt`
+`route-pr.yml` on the PR branch so routing uses the final Reviewer block. On `pull_request`
+`opened`, `route-pr.yml` **defers** label changes when the body has `dispatch-source: scheduled`
+and the dispatch Reviewer stub (`confidence: 0`) so the PR is not briefly labeled
+`review:human` before Codex runs. Optional squash-merge when repository variable
+`SCHEDULER_AUTO_MERGE=true` runs in `optional_auto_merge` **after** `trigger_pr_checks`
+when the PR is labeled `review:codex` with a clean merge state (`scripts/try_auto_merge.py`).
+Local replay: `uv run scripts/codex_ci.py write-prompt`
 and `uv run scripts/codex_ci.py exec` (requires `codex` CLI + API key).
 
 **PR checks and the merge box:** Pull requests opened with the default
