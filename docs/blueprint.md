@@ -511,11 +511,12 @@ without waiting for a human to run `dispatch_spec.py` locally.
 1. `scripts/codex_ci.py` — Executor/Reviewer prompt files, local `codex exec`, `apply-reviewer` for PR bodies.
 2. `scripts/try_auto_merge.py` — optional squash-merge when `review:codex` and merge state is clean.
 3. `dispatch_spec.py --transport codex` — opens the PR (same as `pr`), records whether CI agents can run, and fails closed if a pre-existing `spec/<slug>` branch no longer matches `origin/main`.
-4. `.github/workflows/scheduled-executor.yml` — `codex_agents` job using `openai/codex-action@v1` when `OPENAI_API_KEY` is configured; `trigger_pr_checks` dispatches `ci.yml` / `route-pr.yml` on the PR branch (workflow files must match `main`) so required checks land on `headRefOid`.
-5. Planner MCP — `mcpServers: [github]` on `.claude/agents/planner.md`; [`.mcp.json.example`](../.mcp.json.example) and CONTRIBUTING setup steps.
-6. Tests: `tests/test_codex_ci.py`, `tests/test_try_auto_merge.py`, extended scheduler YAML contract.
+4. `.github/workflows/scheduled-executor.yml` — `codex_agents` job using `openai/codex-action@v1` when `OPENAI_API_KEY` is configured; `trigger_pr_checks` dispatches `ci.yml` / `route-pr.yml` on the PR branch (workflow files must match `main`) so required checks land on `headRefOid`; `optional_auto_merge` runs after `trigger_pr_checks` when enabled.
+5. `scripts/route_pr.py` + `route-pr.yml` — on `pull_request`, defer label apply when `dispatch-source: scheduled` and the dispatch Reviewer stub remain; `workflow_dispatch` (scheduler follow-up) applies the authoritative label after Codex.
+6. Planner MCP — `mcpServers: [github]` on `.claude/agents/planner.md`; [`.mcp.json.example`](../.mcp.json.example) and CONTRIBUTING setup steps.
+7. Tests: `tests/test_codex_ci.py`, `tests/test_try_auto_merge.py`, extended scheduler YAML contract.
 
-**Operator knobs:** Repository secret `OPENAI_API_KEY`; optional repository variable `SCHEDULER_AUTO_MERGE=true` for guarded auto-merge after routing.
+**Operator knobs:** Repository secret `OPENAI_API_KEY`; optional repository variable `SCHEDULER_AUTO_MERGE=true` for guarded auto-merge after routing (not on the dispatch stub).
 
 **Why (picturable):** Phase 6.1 closed the loop for the T0+low lane — queue → implement → review → label — without a human starting Codex locally, while keeping v1 behavior when no API key is configured.
 
@@ -915,8 +916,10 @@ The **live workflow** is the source of truth. Summary:
 1. Check out the **PR head** ref (not `main`).
 2. `build_pr_context.py --repo … --pr …` → `pr.json` (spec lint + reviewer validation
    inlined).
-3. `route_pr.py pr.json` → `route.json`.
-4. Apply exactly one label (`review:codex` / `review:human` / `blocked`) and post reasons.
+3. `route_pr.py pr.json --github-event …` → `route.json` (may set `skip_label_apply` for
+   scheduled dispatch stubs on `pull_request`; see Phase 6.1).
+4. Apply exactly one label (`review:codex` / `review:human` / `blocked`) and post reasons,
+   unless deferred (comment only: label unchanged).
 5. Upload `pr.json` and `route.json` as artifacts. Fork-head PRs get a comment only (no label
    mutation).
 
