@@ -510,8 +510,8 @@ without waiting for a human to run `dispatch_spec.py` locally.
 
 1. `scripts/codex_ci.py` — Executor/Reviewer prompt files, local `codex exec`, `apply-reviewer` for PR bodies.
 2. `scripts/try_auto_merge.py` — optional squash-merge when `review:codex` and merge state is clean.
-3. `dispatch_spec.py --transport codex` — opens the PR (same as `pr`) and records whether CI agents can run.
-4. `.github/workflows/scheduled-executor.yml` — `codex_agents` job using `openai/codex-action@v1` when `OPENAI_API_KEY` is configured; falls back to v1 open-PR-only when the secret is absent.
+3. `dispatch_spec.py --transport codex` — opens the PR (same as `pr`), records whether CI agents can run, and fails closed if a pre-existing `spec/<slug>` branch no longer matches `origin/main`.
+4. `.github/workflows/scheduled-executor.yml` — `codex_agents` job using `openai/codex-action@v1` when `OPENAI_API_KEY` is configured; `trigger_pr_checks` dispatches `ci.yml` / `route-pr.yml` on the PR branch (workflow files must match `main`) so required checks land on `headRefOid`.
 5. Planner MCP — `mcpServers: [github]` on `.claude/agents/planner.md`; [`.mcp.json.example`](../.mcp.json.example) and CONTRIBUTING setup steps.
 6. Tests: `tests/test_codex_ci.py`, `tests/test_try_auto_merge.py`, extended scheduler YAML contract.
 

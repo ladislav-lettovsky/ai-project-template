@@ -24,8 +24,10 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert "dispatch_spec.py" in text
     assert "codex_executor" in text
     assert "codex_reviewer" in text
-    assert "route_pr_after_review" in text
-    assert "Route PR after Reviewer JSON applied" in text
+    assert "route_pr_after_review" not in text
+    assert "Refresh PR checks on branch head" in text
+    assert "git diff --quiet" in text
+    assert "origin/main:.github/workflows/${wf}" in text
     assert text.count("openai/codex-action@v1") == 2
     assert text.count("safety-strategy: drop-sudo") == 2
     assert "safety-strategy: read-only" not in text
@@ -50,8 +52,14 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert 'gh workflow run ci.yml --ref "${BRANCH}"' in text
     assert "gh run watch" in text
     assert 'gh workflow run route-pr.yml --ref "${BRANCH}"' in text
+    assert 'if [ "${CODEX_REVIEWER_RESULT}" = "success" ]; then' not in text
+    assert "gh workflow run ci.yml --ref main" not in text
+    assert "gh workflow run route-pr.yml --ref main" not in text
     assert "require_check_success" in text
     assert "check-runs" in text
+    assert 'HEAD_SHA=$(gh pr view "${PR_NUMBER}"' in text
+    assert "headRefOid" in text
+    assert "has_scheduler_pat == 'false'" not in text
     assert "gh pr checks" not in text
 
 
@@ -60,7 +68,7 @@ def test_scheduled_executor_documented() -> None:
     blueprint = (REPO_ROOT / "docs" / "blueprint.md").read_text(encoding="utf-8")
     assert "Scheduled executor" in contributing
     assert "scheduled-executor.yml" in contributing
-    assert "route_pr_after_review" in contributing
+    assert "trigger_pr_checks" in contributing
     assert "Scheduled executor" in blueprint
     assert "Codex in CI" in blueprint
     assert "implemented" in blueprint

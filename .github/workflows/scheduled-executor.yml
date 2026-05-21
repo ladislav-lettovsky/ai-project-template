@@ -331,86 +331,34 @@ jobs:
           PR_NUMBER=$(uv run python -c "from scripts.codex_ci import parse_pr_number; print(parse_pr_number('${{ needs.dispatch.outputs.pr_url }}'))")
           uv run scripts/try_auto_merge.py --pr "${PR_NUMBER}" --repo "${{ github.repository }}"
 
-  # PR opened fires route-pr while the body still has the dispatch stub (confidence 0).
-  # Re-run the router after Reviewer JSON is applied so labels match final output.
-  route_pr_after_review:
-    needs: [dispatch, codex_reviewer]
-    if: >-
-      needs.dispatch.result == 'success' &&
-      needs.dispatch.outputs.pr_url != '' &&
-      needs.codex_reviewer.result == 'success'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      actions: write
-      contents: read
-      pull-requests: read
-    steps:
-      - name: Route PR after Reviewer JSON applied
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_URL: ${{ needs.dispatch.outputs.pr_url }}
-          BRANCH: ${{ needs.dispatch.outputs.branch }}
-        run: |
-          set -euo pipefail
-          REPO="${{ github.repository }}"
-          PR_NUMBER="${PR_URL##*/}"
-
-          latest_run_id() {
-            local workflow_file="$1"
-            local branch="${2:-}"
-            if [ -n "${branch}" ]; then
-              gh run list --workflow="${workflow_file}" --branch="${branch}" \
-                --repo "${REPO}" --limit 1 --json databaseId \
-                -q '.[0].databaseId // empty'
-            else
-              gh run list --workflow="${workflow_file}" \
-                --repo "${REPO}" --limit 1 --json databaseId \
-                -q '.[0].databaseId // empty'
-            fi
-          }
-
-          wait_for_new_run() {
-            local workflow_file="$1"
-            local branch="${2:-}"
-            local before="$3"
-            local run_id=""
-            for _ in $(seq 1 24); do
-              run_id=$(latest_run_id "${workflow_file}" "${branch}")
-              if [ -n "${run_id}" ] && [ "${run_id}" != "${before}" ]; then
-                printf '%s' "${run_id}"
-                return 0
-              fi
-              sleep 5
-            done
-            echo "Timed out waiting for ${workflow_file} run to start" >&2
-            return 1
-          }
-
-          ROUTE_BEFORE=$(latest_run_id route-pr.yml "${BRANCH}")
-          gh workflow run route-pr.yml --ref "${BRANCH}" \
-            -f "pr_number=${PR_NUMBER}" --repo "${REPO}"
-          ROUTE_RUN=$(wait_for_new_run route-pr.yml "${BRANCH}" "${ROUTE_BEFORE}")
-          gh run watch "${ROUTE_RUN}" --repo "${REPO}" --exit-status
-
+  # PR opened may fire route-pr on the dispatch stub (confidence 0). After Codex,
+  # refresh CI + route on the PR branch so required checks attach to headRefOid
+  # (merge box). workflow_dispatch --ref main records checks on main, not the PR.
   trigger_pr_checks:
     needs: [dispatch, codex_reviewer, scheduler_dispatch_token_probe]
     if: >-
       needs.dispatch.result == 'success' &&
       needs.dispatch.outputs.pr_url != '' &&
       (needs.codex_reviewer.result == 'success' ||
-      needs.codex_reviewer.result == 'skipped') &&
-      needs.scheduler_dispatch_token_probe.outputs.has_scheduler_pat == 'false'
+      needs.codex_reviewer.result == 'skipped')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     permissions:
       actions: write
       contents: read
       pull-requests: read
     steps:
-      - name: Trigger and wait for PR checks
+      - name: Checkout main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Refresh PR checks on branch head
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCHEDULER_DISPATCH_TOKEN: ${{ secrets.SCHEDULER_DISPATCH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HAS_SCHEDULER_PAT: ${{ needs.scheduler_dispatch_token_probe.outputs.has_scheduler_pat }}
           PR_URL: ${{ needs.dispatch.outputs.pr_url }}
           BRANCH: ${{ needs.dispatch.outputs.branch }}
         run: |
@@ -418,23 +366,42 @@ jobs:
           REPO="${{ github.repository }}"
           PR_NUMBER="${PR_URL##*/}"
 
+          if [ "${HAS_SCHEDULER_PAT}" = "true" ]; then
+            export GH_TOKEN="${SCHEDULER_DISPATCH_TOKEN}"
+          else
+            export GH_TOKEN="${GITHUB_TOKEN}"
+          fi
+
+          git fetch origin main "${BRANCH}"
+          for wf in ci.yml route-pr.yml; do
+            if ! git diff --quiet "origin/main:.github/workflows/${wf}" "origin/${BRANCH}:.github/workflows/${wf}"; then
+              echo "::error::${BRANCH} modified .github/workflows/${wf}; refusing branch dispatch for merge checks" >&2
+              exit 1
+            fi
+          done
+
           latest_run_id() {
             local workflow_file="$1"
             local branch="${2:-}"
+            local event="${3:-}"
+            local run_args=(--workflow="${workflow_file}" --repo "${REPO}" --limit 1 --json databaseId)
             if [ -n "${branch}" ]; then
-              gh run list --workflow="${workflow_file}" --branch="${branch}"                 --repo "${REPO}" --limit 1 --json databaseId                 -q '.[0].databaseId // empty'
-            else
-              gh run list --workflow="${workflow_file}"                 --repo "${REPO}" --limit 1 --json databaseId                 -q '.[0].databaseId // empty'
+              run_args+=(--branch="${branch}")
             fi
+            if [ -n "${event}" ]; then
+              run_args+=(--event "${event}")
+            fi
+            gh run list "${run_args[@]}" -q '.[0].databaseId // empty'
           }
 
           wait_for_new_run() {
             local workflow_file="$1"
             local branch="${2:-}"
-            local before="$3"
+            local event="${3:-}"
+            local before="$4"
             local run_id=""
             for _ in $(seq 1 24); do
-              run_id=$(latest_run_id "${workflow_file}" "${branch}")
+              run_id=$(latest_run_id "${workflow_file}" "${branch}" "${event}")
               if [ -n "${run_id}" ] && [ "${run_id}" != "${before}" ]; then
                 printf '%s' "${run_id}"
                 return 0
@@ -447,27 +414,26 @@ jobs:
 
           require_check_success() {
             local check_name="$1"
-            local head_sha="$2"
+            local commit_sha="$2"
             local conclusion
-            conclusion=$(gh api "repos/${REPO}/commits/${head_sha}/check-runs"               --jq "([.check_runs[] | select(.name == \"${check_name}\") | .conclusion][0] // \"\")")
+            conclusion=$(gh api "repos/${REPO}/commits/${commit_sha}/check-runs"               --jq "([.check_runs[] | select(.name == \"${check_name}\") | .conclusion][0] // \"\")")
             if [ "${conclusion}" != "success" ]; then
-              echo "Check ${check_name} missing or not success (got: ${conclusion:-none})" >&2
-              gh api "repos/${REPO}/commits/${head_sha}/check-runs"                 --jq '[.check_runs[] | {name, status, conclusion}]' >&2
+              echo "Check ${check_name} missing or not success on ${commit_sha} (got: ${conclusion:-none})" >&2
+              gh api "repos/${REPO}/commits/${commit_sha}/check-runs"                 --jq '[.check_runs[] | {name, status, conclusion}]' >&2
               exit 1
             fi
           }
 
-          CI_BEFORE=$(latest_run_id ci.yml "${BRANCH}")
-          gh workflow run ci.yml --ref "${BRANCH}" -f "ref=${BRANCH}" --repo "${REPO}"
-          CI_RUN=$(wait_for_new_run ci.yml "${BRANCH}" "${CI_BEFORE}")
-          gh run watch "${CI_RUN}" --repo "${REPO}" --exit-status
-
-          ROUTE_BEFORE=$(latest_run_id route-pr.yml "${BRANCH}")
-          gh workflow run route-pr.yml --ref "${BRANCH}"             -f "pr_number=${PR_NUMBER}" --repo "${REPO}"
-          ROUTE_RUN=$(wait_for_new_run route-pr.yml "${BRANCH}" "${ROUTE_BEFORE}")
+          ROUTE_BEFORE=$(latest_run_id route-pr.yml "${BRANCH}" workflow_dispatch)
+          gh workflow run route-pr.yml --ref "${BRANCH}"               -f "pr_number=${PR_NUMBER}" --repo "${REPO}"
+          ROUTE_RUN=$(wait_for_new_run route-pr.yml "${BRANCH}" workflow_dispatch "${ROUTE_BEFORE}")
           gh run watch "${ROUTE_RUN}" --repo "${REPO}" --exit-status
 
-          HEAD_SHA=$(gh pr view "${PR_NUMBER}" --repo "${REPO}" \
-            --json headRefOid --jq .headRefOid)
+          CI_BEFORE=$(latest_run_id ci.yml "${BRANCH}" workflow_dispatch)
+          gh workflow run ci.yml --ref "${BRANCH}" -f "ref=${BRANCH}" --repo "${REPO}"
+          CI_RUN=$(wait_for_new_run ci.yml "${BRANCH}" workflow_dispatch "${CI_BEFORE}")
+          gh run watch "${CI_RUN}" --repo "${REPO}" --exit-status
+
+          HEAD_SHA=$(gh pr view "${PR_NUMBER}" --repo "${REPO}"             --json headRefOid --jq .headRefOid)
           require_check_success "Lint, type-check, unit tests" "${HEAD_SHA}"
           require_check_success "route" "${HEAD_SHA}"
