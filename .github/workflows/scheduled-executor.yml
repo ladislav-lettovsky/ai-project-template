@@ -359,7 +359,6 @@ jobs:
           SCHEDULER_DISPATCH_TOKEN: ${{ secrets.SCHEDULER_DISPATCH_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HAS_SCHEDULER_PAT: ${{ needs.scheduler_dispatch_token_probe.outputs.has_scheduler_pat }}
-          CODEX_REVIEWER_RESULT: ${{ needs.codex_reviewer.result }}
           PR_URL: ${{ needs.dispatch.outputs.pr_url }}
           BRANCH: ${{ needs.dispatch.outputs.branch }}
         run: |
