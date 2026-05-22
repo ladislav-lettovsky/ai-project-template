@@ -113,6 +113,16 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run scripts/hooks/inject_active_spec.py"
+          }
+        ]
+      }
     ]
   }
 }

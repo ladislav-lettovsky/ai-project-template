@@ -274,7 +274,7 @@ Expand the eligibility set with a policy-file change, not an in-PR override.
 equivalent), not prompt-only in AGENTS.md: PreToolUse blocks red-zone paths and edits on
 `scratch` (rename to `spec/<slug>` or `fix/<slug>` first); UserPromptSubmit allows `main`,
 `scratch`, or prefixes `chore/`, `docs/`, `feat/`, `fix/`, `refactor/`, `spec/`, `test/`;
-Stop requires green `just check`. Scripts under
+Stop requires green `just check`; SessionStart injects the active spec. Scripts under
 `scripts/hooks/`.
 
 **Why (picturable):** "Do not edit AGENTS.md" in a prompt is a social contract. A PreToolUse
@@ -950,6 +950,9 @@ The hooks configuration in `.claude/settings.json`:
     ],
     "Stop": [
       { "type": "command", "command": "uv run scripts/hooks/require_just_check.py" }
+    ],
+    "SessionStart": [
+      { "type": "command", "command": "uv run scripts/hooks/inject_active_spec.py" }
     ]
   }
 }
@@ -1301,7 +1304,8 @@ Key properties:
 │       ├── check_red_zone.py
 │       ├── check_branch_name.py
 │       ├── check_no_edits_on_scratch.py
-│       └── require_just_check.py
+│       ├── require_just_check.py
+│       └── inject_active_spec.py
 └── [existing repo contents]
 ```
 
