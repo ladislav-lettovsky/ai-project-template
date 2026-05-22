@@ -274,7 +274,7 @@ Expand the eligibility set with a policy-file change, not an in-PR override.
 equivalent), not prompt-only in AGENTS.md: PreToolUse blocks red-zone paths and edits on
 `scratch` (rename to `spec/<slug>` or `fix/<slug>` first); UserPromptSubmit allows `main`,
 `scratch`, or prefixes `chore/`, `docs/`, `feat/`, `fix/`, `refactor/`, `spec/`, `test/`;
-Stop requires green `just check`; SessionStart injects the active spec. Scripts under
+Stop requires green `just check`. Scripts under
 `scripts/hooks/`.
 
 **Why (picturable):** "Do not edit AGENTS.md" in a prompt is a social contract. A PreToolUse
@@ -868,7 +868,7 @@ INJECTION_PATTERNS = [
     "system prompt",
     "developer message",
     "you are now",
-    "bypass",
+    # "bypass" intentionally omitted: too broad, matches legitimate docs prose
     "override instructions",
     "<system>",
     "###INSTRUCTION",
@@ -950,9 +950,6 @@ The hooks configuration in `.claude/settings.json`:
     ],
     "Stop": [
       { "type": "command", "command": "uv run scripts/hooks/require_just_check.py" }
-    ],
-    "SessionStart": [
-      { "type": "command", "command": "uv run scripts/hooks/inject_active_spec.py" }
     ]
   }
 }
@@ -1174,7 +1171,6 @@ env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]
 # .claude/agents/planner.md frontmatter excerpt
 mcpServers:
   - github
-  - linear
 ```
 
 What MCP buys: the Reviewer can cite "this fix to `auth.py` also resolves Sentry issue PROJ-1234" — evidence that lives outside the diff. The Planner can pull issue context directly into the spec rather than the human pasting it.
@@ -1268,8 +1264,15 @@ Key properties:
 │   │   ├── postmortem/SKILL.md     (Phase 5)
 │   │   └── calibrate-reviewer/SKILL.md (Phase 3+)
 │   └── worktrees/                  (auto-managed, gitignored)
+├── .agents/
+│   └── skills/                     (Codex-compatible skill copies — mirrors .claude/skills/)
+│       ├── write-spec/SKILL.md
+│       └── calibrate-reviewer/SKILL.md
 ├── .codex/
-│   └── config.toml                 (Phase 1: Executor; Phase 3: Reviewer; Phase 5: MCP)
+│   ├── config.toml                 (Phase 1: Executor; Phase 3: Reviewer; Phase 5: MCP)
+│   ├── hooks.json                  (Codex hook mirror — same three hooks as .claude/settings.json)
+│   └── agents/
+│       └── planner.toml            (Codex Planner subagent definition)
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml
@@ -1298,14 +1301,13 @@ Key properties:
 │       ├── check_red_zone.py
 │       ├── check_branch_name.py
 │       ├── check_no_edits_on_scratch.py
-│       ├── require_just_check.py
-│       └── inject_active_spec.py
+│       └── require_just_check.py
 └── [existing repo contents]
 ```
 
 Notice what is NOT here:
 
-- No branded `.<name>/` directory beyond the tool-native ones (`.claude/`, `.codex/`, `.cursor/`, `.github/`).
+- No branded `.<name>/` directory beyond the tool-native ones (`.claude/`, `.codex/`, `.cursor/`, `.github/`) and the Agent Skills portable layer (`.agents/skills/`).
 - No `.codex/prompts/` directory. Codex prompts live in `[agents.*].developer_instructions` inside `.codex/config.toml` — the tool's native config layer.
 - No orchestration YAML or per-role handoff files. The spec is the handoff; the reviewer JSON is the evidence.
 - No `scripts/ai_pr.sh` wrapper. The GitHub CLI (`gh pr create`) is sufficient.
