@@ -56,6 +56,12 @@ prompt does not.
 - `just lint-changed-specs` — lint specs touched on the current branch
 - `just scan-injection` — scan LLM-input artifacts for injection patterns
 - `just validate-reviewer <pr-body-file>` — validate Reviewer JSON against `.reviewer-schema.json`
+- `just refresh` — sync dev deps and reinstall pre-commit hooks (after clone or dependency change)
+- `just lint-md` — lint Markdown (.md + .mdc files)
+- `just lint-md-fix` — auto-fix Markdown lint violations
+- `just telemetry-dashboard` — regenerate docs/telemetry/dashboard.md
+- `just adapt-thresholds` — dry-run bounded routing-policy threshold suggestions
+- `just install-hooks` — install pre-commit hooks into .git/hooks/ (one-time)
 - `uv sync`, `uv sync --extra dev`
 - TODO: add your project's entry points (e.g., `uv run python -m your_package`)
 - Read-only git: `git status`, `git diff`, `git log`, `git branch`
