@@ -2,20 +2,21 @@
 name: calibrate-reviewer
 description: |
   Loaded by the human when scoring a Codex Reviewer's JSON output during
-  the calibration window. Walks through the useful/noise/missed three-bucket
-  scoring procedure, tracks progress against the 6-of-10 exit-criterion bar,
-  and prescribes when to iterate the Reviewer's developer_instructions vs.
-  continue collecting data. NOT for general PR review or spec work — only for
-  Reviewer-output assessment.
+  the calibration. Walks through the useful/noise/missed
+  three-bucket scoring procedure, tracks progress against the 6-of-10
+  exit-criterion bar, and prescribes when to iterate the Reviewer's
+  developer_instructions vs. continue collecting data. NOT for general
+  PR review or spec work — only for Reviewer-output assessment.
 ---
 
 # Calibrating the Codex Reviewer
 
-The criterion is behavioral:
+The calibration criterion (per `docs/blueprint.md` §4) is behavioral:
 
-> *"The Codex Reviewer's JSON has been evaluated by human with scoring:
-> useful / noise / missed real issue I caught. At least 6-of-10 PRs should
-> produce at least one useful finding. All must pass schema validation."*
+> *"On 10 consecutive PRs, the Codex Reviewer's JSON has been evaluated by
+> human with scoring: useful / noise / missed real issue I caught. At
+> least 6 of 10 PRs should produce at least one useful finding. All 10
+> must pass schema validation."*
 
 This skill is how you make that judgment.
 
@@ -124,7 +125,7 @@ Do NOT iterate for:
 
 ## Exit-criterion reviewer-calibration checklist
 
-You can declare calibrariont done when ALL of:
+You can declare reviewer calibration done when ALL of:
 
 - [ ] 10 consecutive PRs scored.
 - [ ] All 10 produced schema-valid Reviewer JSON.

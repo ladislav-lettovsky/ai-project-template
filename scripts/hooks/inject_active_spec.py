@@ -43,6 +43,9 @@ def main() -> int:
     for prefix in _SPEC_PREFIXES:
         if branch.startswith(prefix):
             slug = branch[len(prefix) :]
+            # Drill specs live at docs/specs/_drills/{slug}.md — one level deeper.
+            # The hook intentionally does not fall back to that path: drills are
+            # scheduler fixtures, not implementation specs, and must not be injected.
             spec_path = REPO_ROOT / "docs" / "specs" / f"{slug}.md"
             if spec_path.is_file():
                 spec_text = spec_path.read_text(encoding="utf-8", errors="ignore")

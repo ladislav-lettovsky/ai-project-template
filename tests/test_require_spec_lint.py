@@ -1,4 +1,4 @@
-"""Tests for the Stop hook ``scripts/hooks/require_just_check.py``.
+"""Tests for the Stop hook ``scripts/hooks/require_spec_lint.py``.
 
 The hook must:
   * pass (rc 0) when no spec files are modified or untracked;
@@ -20,7 +20,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-HOOK_PATH = REPO_ROOT / "scripts" / "hooks" / "require_just_check.py"
+HOOK_PATH = REPO_ROOT / "scripts" / "hooks" / "require_spec_lint.py"
 LINT_SPEC = REPO_ROOT / "scripts" / "lint_spec.py"
 
 VALID_SPEC = """\
@@ -119,7 +119,7 @@ def _bootstrap_repo(tmp_path: Path) -> Path:
     repo = tmp_path / "repo"
     (repo / "scripts" / "hooks").mkdir(parents=True)
     (repo / "docs" / "specs").mkdir(parents=True)
-    (repo / "scripts" / "hooks" / "require_just_check.py").write_text(
+    (repo / "scripts" / "hooks" / "require_spec_lint.py").write_text(
         HOOK_PATH.read_text(), encoding="utf-8"
     )
     (repo / "scripts" / "lint_spec.py").write_text(LINT_SPEC.read_text(), encoding="utf-8")
@@ -132,7 +132,7 @@ def _bootstrap_repo(tmp_path: Path) -> Path:
 def _run_hook(repo: Path) -> subprocess.CompletedProcess[str]:
     """Run the hook script with ``{}`` on stdin (Claude Code feeds JSON)."""
     return subprocess.run(
-        [sys.executable, str(repo / "scripts" / "hooks" / "require_just_check.py")],
+        [sys.executable, str(repo / "scripts" / "hooks" / "require_spec_lint.py")],
         input="{}",
         capture_output=True,
         text=True,
@@ -204,13 +204,13 @@ def test_no_git_fails_open(tmp_path: Path) -> None:
     """Run the hook in a directory that's not a git repo → must not block."""
     workdir = tmp_path / "no-git"
     (workdir / "scripts" / "hooks").mkdir(parents=True)
-    (workdir / "scripts" / "hooks" / "require_just_check.py").write_text(
+    (workdir / "scripts" / "hooks" / "require_spec_lint.py").write_text(
         HOOK_PATH.read_text(), encoding="utf-8"
     )
     result = subprocess.run(
         [
             sys.executable,
-            str(workdir / "scripts" / "hooks" / "require_just_check.py"),
+            str(workdir / "scripts" / "hooks" / "require_spec_lint.py"),
         ],
         input="{}",
         capture_output=True,
@@ -225,7 +225,7 @@ def test_malformed_stdin_fails_open(tmp_path: Path) -> None:
     """Garbage on stdin must not block — the hook ignores it."""
     repo = _bootstrap_repo(tmp_path)
     result = subprocess.run(
-        [sys.executable, str(repo / "scripts" / "hooks" / "require_just_check.py")],
+        [sys.executable, str(repo / "scripts" / "hooks" / "require_spec_lint.py")],
         input="not json at all",
         capture_output=True,
         text=True,

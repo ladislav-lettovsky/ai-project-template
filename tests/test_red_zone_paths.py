@@ -6,6 +6,8 @@ import importlib.util
 import sys
 from pathlib import Path
 
+import pytest
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RZ_PATH = REPO_ROOT / "scripts" / "red_zone_paths.py"
 
@@ -32,3 +34,22 @@ def test_red_zone_github_workflow_prefix() -> None:
 
 def test_router_touches_aggregate() -> None:
     assert red_zone_paths.touches_red_zone(["LICENSE", ".github/workflows/ci.yml"])
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "auth/secrets.py",
+        "billing/invoice.py",
+        "migrations/001.sql",
+        "infra/terraform.tf",
+    ],
+)
+def test_domain_prefixes_are_red_zone(path: str) -> None:
+    """auth/, billing/, migrations/, infra/ prefixes must be enforced."""
+    assert red_zone_paths.is_red_zone(path), f"{path!r} should be red-zone"
+
+
+def test_non_red_zone_path_passes() -> None:
+    """A regular source file must not be considered red-zone."""
+    assert not red_zone_paths.is_red_zone("src/your_package/__init__.py")

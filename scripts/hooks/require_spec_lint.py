@@ -117,7 +117,7 @@ def main() -> int:
         return 0
 
     print(
-        "BLOCKED by require_just_check Stop hook.\n"
+        "BLOCKED by require_spec_lint Stop hook.\n"
         "\n"
         "The current branch has modified spec files that fail "
         "`scripts/lint_spec.py`. Fix the lint errors below before "

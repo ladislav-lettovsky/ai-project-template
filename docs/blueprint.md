@@ -949,7 +949,7 @@ The hooks configuration in `.claude/settings.json`:
       { "type": "command", "command": "uv run scripts/hooks/check_branch_name.py" }
     ],
     "Stop": [
-      { "type": "command", "command": "uv run scripts/hooks/require_just_check.py" }
+      { "type": "command", "command": "uv run scripts/hooks/require_spec_lint.py" }
     ],
     "SessionStart": [
       { "type": "command", "command": "uv run scripts/hooks/inject_active_spec.py" }
@@ -1268,7 +1268,8 @@ Key properties:
 │   │   └── calibrate-reviewer/SKILL.md (Phase 3+)
 │   └── worktrees/                  (auto-managed, gitignored)
 ├── .agents/
-│   └── skills/                     (Codex-compatible skill copies — mirrors .claude/skills/)
+│   └── skills/                     (Agent Skills portable layer — content must stay identical
+│       │                            to .claude/skills/; enforced by test_agents_skills_sync.py)
 │       ├── write-spec/SKILL.md
 │       └── calibrate-reviewer/SKILL.md
 ├── .codex/
@@ -1304,7 +1305,7 @@ Key properties:
 │       ├── check_red_zone.py
 │       ├── check_branch_name.py
 │       ├── check_no_edits_on_scratch.py
-│       ├── require_just_check.py
+│       ├── require_spec_lint.py
 │       └── inject_active_spec.py
 └── [existing repo contents]
 ```
