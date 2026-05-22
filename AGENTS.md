@@ -157,6 +157,10 @@ uv.lock
 justfile
 .routing-policy.json
 .reviewer-schema.json
+auth/**
+billing/**
+migrations/**
+infra/**
 ```
 
 To intentionally edit a red-zone file, do so from a human terminal session

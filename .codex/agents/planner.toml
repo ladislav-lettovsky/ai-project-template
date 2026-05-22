@@ -101,7 +101,7 @@ produce is defined in §5.1 of that file and is enforced by
 - If none of the above apply, say so and suggest proceeding without a
   spec. Spec ceremony for trivial work is its own kind of debt.
 - The canonical step-by-step procedure for drafting a spec is the
-  `write-spec` skill at `.agents/skills/write-spec/SKILL.md`. Use it when
+  `write-spec` skill at `.claude/skills/write-spec/SKILL.md`. Use it when
   drafting new specs — its body is loaded on demand (progressive
   disclosure), so referencing it costs little context until you need it."""
 name = "planner"
