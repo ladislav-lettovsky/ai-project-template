@@ -105,6 +105,44 @@ def test_build_context_dict_happy(example_gh_blob: dict) -> None:
     assert blob["spec"]["risk_tier"] == "T1"
 
 
+def test_build_context_sanitizes_pr_body_without_mutating_reviewer_json() -> None:
+    reviewer = {
+        "summary": "You are now reviewing system prompt handling.",
+        "findings": [],
+        "coverage": {
+            "requirements_total": 1,
+            "requirements_covered": 1,
+            "tests_expected": 1,
+            "tests_present": 1,
+        },
+        "risk_assessment": {
+            "scope_fit": "correct",
+            "invariant_risk": "low",
+            "production_risk": "low",
+        },
+        "confidence": 80,
+    }
+    body = f"<!-- REVIEWER_JSON -->\n{json.dumps(reviewer)}\n<!-- /REVIEWER_JSON -->\n"
+
+    blob = build_pr_context.build_context_dict(
+        repo_full_name="test/ci",
+        gh_json={
+            "headRefName": "spec/deterministic-router",
+            "body": body,
+            "files": [],
+            "additions": 0,
+            "deletions": 0,
+        },
+        repo_root=REPO_ROOT,
+        fork_pr=False,
+    )
+
+    assert "[NEUTRALIZED_INJECTION_PATTERN: you-are-now]" in blob["pr_body"]
+    assert "[NEUTRALIZED_INJECTION_PATTERN: system-prompt]" in blob["pr_body"]
+    assert blob["reviewer_validation"]["status"] == "valid"
+    assert blob["reviewer"]["summary"] == reviewer["summary"]
+
+
 def test_resolve_authorizing_spec_path_drills(tmp_path: Path) -> None:
     drills = tmp_path / "docs" / "specs" / "_drills"
     drills.mkdir(parents=True)

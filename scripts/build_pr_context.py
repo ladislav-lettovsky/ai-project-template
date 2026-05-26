@@ -49,9 +49,6 @@ if str(_SCRIPTS_DIR) not in sys.path:
 import lint_spec  # noqa: E402
 import validate_reviewer  # noqa: E402
 
-EXCLUDED_SPEC_DOC_NAMES = frozenset(
-    {"README.md", "_template.md", "_postmortem.md", ".gitkeep"},
-)
 ACTIVE_SPEC_DIR = "docs/specs"
 DRILLS_SPEC_DIR = f"{ACTIVE_SPEC_DIR}/_drills"
 ARCHIVE_SPEC_DIR = "docs/archive/template-specs"
@@ -75,7 +72,7 @@ def is_authorizing_spec_doc(repo_rel_path: str) -> bool:
     if not repo_rel_path.startswith(AUTHORIZING_SPEC_PREFIXES):
         return False
     name = Path(repo_rel_path).name
-    return name not in EXCLUDED_SPEC_DOC_NAMES and name.endswith(".md")
+    return name not in lint_spec.EXCLUDED_SPEC_DOC_NAMES and name.endswith(".md")
 
 
 def resolve_authorizing_spec_path(repo_root: Path, slug: str) -> Path | None:
@@ -149,7 +146,12 @@ def build_context_dict(
     fork_pr: bool,
 ) -> dict:
     branch_name = str(gh_json.get("headRefName") or "")
-    body = str(gh_json.get("body") or "")
+    raw_body = str(gh_json.get("body") or "")
+
+    # Sanitize external PR body payload to neutralize prompt injection patterns
+    import scan_injection
+
+    body = scan_injection.sanitize_external_payload(raw_body)
     files = gh_json.get("files") or []
     changed_paths: list[str] = []
     # gh returns list of Path objects keyed as {"path":"..."}; tolerate both.
@@ -193,7 +195,7 @@ def build_context_dict(
         schema_path=repo_root / ".reviewer-schema.json"
     )
     reviewer_obj, reviewer_errs = validate_reviewer.parse_validated_review_or_errors(
-        body, schema_dict
+        raw_body, schema_dict
     )
     reviewer_validity = {
         "status": "valid" if not reviewer_errs else "invalid",

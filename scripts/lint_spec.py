@@ -331,6 +331,50 @@ def lint_spec(path: Path) -> list[str]:
     return errors
 
 
+EXCLUDED_SPEC_DOC_NAMES = frozenset({"README.md", "_template.md", "_postmortem.md", ".gitkeep"})
+
+
+def check_global_spec_id_uniqueness(repo_root: Path) -> list[str]:
+    """Check for duplicate spec_id values across all active and archived specs."""
+    spec_dirs = [
+        repo_root / "docs" / "specs",
+        repo_root / "docs" / "archive" / "template-specs",
+    ]
+    seen: dict[str, Path] = {}
+    errors: list[str] = []
+    for sdir in spec_dirs:
+        if not sdir.is_dir():
+            continue
+        for path in sdir.rglob("*.md"):
+            if path.name in EXCLUDED_SPEC_DOC_NAMES:
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+                sections = split_sections(text)
+                metadata = parse_metadata(sections.get("Metadata", ""))
+                spec_id = metadata.get("spec_id")
+                if spec_id:
+                    if spec_id in seen:
+                        p1_rel = (
+                            path.relative_to(repo_root).as_posix()
+                            if repo_root in path.parents
+                            else path.name
+                        )
+                        p2_rel = (
+                            seen[spec_id].relative_to(repo_root).as_posix()
+                            if repo_root in seen[spec_id].parents
+                            else seen[spec_id].name
+                        )
+                        errors.append(
+                            f"Collision: SPEC_ID '{spec_id}' is defined in both '{p1_rel}' and '{p2_rel}'"
+                        )
+                    else:
+                        seen[spec_id] = path
+            except Exception:
+                continue
+    return errors
+
+
 def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     if not args:
@@ -340,6 +384,8 @@ def main(argv: list[str] | None = None) -> int:
     overall_errors: list[str] = []
     for arg in args:
         path = Path(arg)
+        if path.name in EXCLUDED_SPEC_DOC_NAMES:
+            continue
         if not path.is_file():
             print(f"ERROR: {path}: file not found", file=sys.stderr)
             overall_errors.append(str(path))
@@ -347,6 +393,13 @@ def main(argv: list[str] | None = None) -> int:
         for err in lint_spec(path):
             print(f"ERROR: {path}: {err}", file=sys.stderr)
             overall_errors.append(str(path))
+
+    # Perform global uniqueness check
+    repo_root = Path(__file__).resolve().parent.parent
+    global_errors = check_global_spec_id_uniqueness(repo_root)
+    for err in global_errors:
+        print(f"ERROR: global: {err}", file=sys.stderr)
+        overall_errors.append("global")
 
     return 1 if overall_errors else 0
 

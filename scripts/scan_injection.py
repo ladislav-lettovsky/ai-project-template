@@ -29,6 +29,7 @@ Design notes:
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -79,6 +80,13 @@ def scan_file(path: Path) -> list[str]:
     return _scan_text(text)
 
 
+def _pattern_re(pattern: str) -> re.Pattern[str]:
+    parts = pattern.split()
+    if len(parts) <= 1:
+        return re.compile(re.escape(pattern), re.IGNORECASE)
+    return re.compile(r"\s+".join(re.escape(part) for part in parts), re.IGNORECASE)
+
+
 def iter_targets(args: list[str]) -> list[Path]:
     """Expand a list of file/dir arguments into the set of files to scan.
 
@@ -98,6 +106,21 @@ def iter_targets(args: list[str]) -> list[Path]:
                 if child.is_file() and child.suffix in SCAN_EXTENSIONS:
                     paths.append(child)
     return paths
+
+
+def sanitize_external_payload(text: str) -> str:
+    """Neutralizes potential prompt-injection patterns in raw text before agent consumption."""
+    sanitized = text
+    for pattern in INJECTION_PATTERNS:
+        pattern_re = _pattern_re(pattern)
+        # Neutralize by hyphenating spaces and stripping regex/formatting characters
+        neutralized_name = (
+            pattern.replace(" ", "-").replace("<", "").replace(">", "").replace(":", "")
+        )
+        sanitized = pattern_re.sub(
+            f"[NEUTRALIZED_INJECTION_PATTERN: {neutralized_name}]", sanitized
+        )
+    return sanitized
 
 
 def main(argv: list[str] | None = None) -> int:
