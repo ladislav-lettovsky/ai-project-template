@@ -100,6 +100,24 @@ def iter_targets(args: list[str]) -> list[Path]:
     return paths
 
 
+def sanitize_external_payload(text: str) -> str:
+    """Neutralizes potential prompt-injection patterns in raw text before agent consumption."""
+    import re
+
+    sanitized = text
+    for pattern in INJECTION_PATTERNS:
+        escaped_pattern = re.escape(pattern)
+        pattern_re = re.compile(escaped_pattern, re.IGNORECASE)
+        # Neutralize by hyphenating spaces and stripping regex/formatting characters
+        neutralized_name = (
+            pattern.replace(" ", "-").replace("<", "").replace(">", "").replace(":", "")
+        )
+        sanitized = pattern_re.sub(
+            f"[NEUTRALIZED_INJECTION_PATTERN: {neutralized_name}]", sanitized
+        )
+    return sanitized
+
+
 def main(argv: list[str] | None = None) -> int:
     args = argv if argv is not None else sys.argv[1:]
     if "--stdin" in args:

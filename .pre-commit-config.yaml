@@ -51,6 +51,19 @@ repos:
         pass_filenames: false
         types: [python]
 
+      - id: lint-specs
+        name: Lint Modified Specs
+        entry: uv run scripts/lint_spec.py
+        language: system
+        files: ^docs/specs/.*\.md$
+        exclude: ^docs/specs/(README|_template|_postmortem)\.md$
+
+      - id: scan-injection
+        name: Scan for Prompt Injections
+        entry: uv run scripts/scan_injection.py
+        language: system
+        types: [markdown, json, toml, text]
+
   # ---------- Markdown lint (Node-managed, isolated from uv toolchain) ----------
   # Same engine and config we run via `npx markdownlint-cli2` locally.
   # Repo-root `.markdownlint-cli2.jsonc`, `.markdownlint.json`, and `.markdownlintignore` are auto-loaded.

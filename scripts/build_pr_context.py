@@ -150,6 +150,11 @@ def build_context_dict(
 ) -> dict:
     branch_name = str(gh_json.get("headRefName") or "")
     body = str(gh_json.get("body") or "")
+
+    # Sanitize external PR body payload to neutralize prompt injection patterns
+    import scan_injection
+
+    body = scan_injection.sanitize_external_payload(body)
     files = gh_json.get("files") or []
     changed_paths: list[str] = []
     # gh returns list of Path objects keyed as {"path":"..."}; tolerate both.

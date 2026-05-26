@@ -134,3 +134,17 @@ Active scheduler drill fixtures may live under `docs/specs/_drills/` while a dri
 runs; when finished, move them to `docs/archive/exit-drills/<kit>/` with
 `status: complete` so cron does not re-queue them (see
 [`docs/archive/exit-drills/scheduled-executor/`](../archive/exit-drills/scheduled-executor/)).
+
+## Advanced Architectural Enhancements
+
+### 1. Repository-Wide Spec Registry & `spec_id` Collision Guard
+
+The spec linter (`scripts/lint_spec.py`) performs a global uniqueness check across all spec directories (`docs/specs/` and `docs/archive/template-specs/`). If a developer copy-pastes an existing specification file to bootstrap a new feature but forgets to change the `spec_id` metadata, the linter will immediately identify the duplicate and report the conflict. This preserves the transactional integrity of our telemetry database (`events.jsonl`) and the pull request context router.
+
+### 2. Git Pre-Commit Hook Integration
+
+The spec linter (`lint-specs`) and prompt-injection scanner (`scan-injection`) are registered as **local pre-commit hooks** inside `.pre-commit-config.yaml`. This guarantees immediate, commit-time quality gates locally, preventing developers or agents from committing invalid specs or prompt-injection hazards to the git history.
+
+### 3. Automated Sanitization Middleware (Indirect Injection Defense)
+
+To protect agent execution environments (Planner, Executor, Reviewer) from **Indirect Prompt Injections** embedded in untrusted external payloads (such as malicious pull request descriptions or issue comments), the context builder (`scripts/build_pr_context.py`) utilizes real-time input-sanitization middleware (`sanitize_external_payload()` from `scripts/scan_injection.py`). This intercepts known injection patterns case-insensitively and replaces them with neutralized placeholders (e.g., `[NEUTRALIZED_INJECTION_PATTERN: ignore-previous-instructions]`) before the data enters the LLM's active prompt memory context.
