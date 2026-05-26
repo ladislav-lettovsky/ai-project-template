@@ -62,7 +62,8 @@ repos:
         name: Scan for Prompt Injections
         entry: uv run scripts/scan_injection.py
         language: system
-        types: [markdown, json, toml, text]
+        pass_filenames: false
+        types_or: [markdown, json, toml, text]
 
   # ---------- Markdown lint (Node-managed, isolated from uv toolchain) ----------
   # Same engine and config we run via `npx markdownlint-cli2` locally.
