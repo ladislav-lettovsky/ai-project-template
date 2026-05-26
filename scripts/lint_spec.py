@@ -384,6 +384,8 @@ def main(argv: list[str] | None = None) -> int:
     overall_errors: list[str] = []
     for arg in args:
         path = Path(arg)
+        if path.name in EXCLUDED_SPEC_DOC_NAMES:
+            continue
         if not path.is_file():
             print(f"ERROR: {path}: file not found", file=sys.stderr)
             overall_errors.append(str(path))
