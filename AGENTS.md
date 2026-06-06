@@ -249,3 +249,47 @@ These complement specs and CI; they do not replace them.
 6. PR description links the authorizing spec (Invariant 1)
 7. Any spec touched on this branch lints clean (the `Stop` hook will block
    session completion otherwise)
+
+## Cursor Cloud specific instructions
+
+This repository is a **Python governance template**, not a deployable web app or
+service. There are no long-running processes to start for local development or
+testing. The quality gate (`just check`) is the end-to-end verification path.
+
+### Toolchain
+
+- **Python 3.12+** — pinned in `.python-version`; `uv` creates `.venv` per checkout.
+- **`uv`** and **`just`** must be on `PATH` (typically `~/.local/bin`). Install once
+  per VM if missing: [uv](https://docs.astral.sh/uv/getting-started/installation/),
+  [just](https://github.com/casey/just#installation).
+- After clone or dependency changes: `uv sync --frozen` (or `just refresh` when
+  `git config core.hooksPath` is unset).
+
+### Running the quality gate
+
+- **`just check` on `main` fails** the `no-commit-to-branch` pre-commit hook. Work on
+  `scratch` or a feature branch (`spec/<slug>`, `fix/<slug>`, `cursor/<name>-35aa`, etc.).
+- **`just install-hooks` may fail** when Cursor sets `core.hooksPath` (agent hooks).
+  That is expected; `just check` still works because it invokes
+  `uv run pre-commit run --all-files` directly.
+- No network or secrets are required for `just check` / `just test` (222 deterministic
+  unit tests, no `@pytest.mark.integration` tests in the template).
+
+### Hello-world (governance tooling)
+
+After `uv sync --frozen`, verify core scripts without a running server:
+
+```bash
+just lint-spec docs/specs/modernize-toolchain.md
+uv run python -c "import your_package"
+uv run scripts/queue_specs.py
+```
+
+The PR router (`scripts/route_pr.py`) and other governance utilities are documented
+in `README.md` and exercised by `tests/`.
+
+### Optional (not required for `just check`)
+
+- **direnv** — auto-activates `.venv` and loads `.env` when present.
+- **GitHub MCP / Codex Reviewer** — needs `GITHUB_PERSONAL_ACCESS_TOKEN` in `.env`;
+  see `README.md` § "Optional: GitHub MCP".
