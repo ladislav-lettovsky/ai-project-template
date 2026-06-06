@@ -511,7 +511,7 @@ without waiting for a human to run `dispatch_spec.py` locally.
 1. `scripts/codex_ci.py` — Executor/Reviewer prompt files, local `codex exec`, `apply-reviewer` for PR bodies.
 2. `scripts/try_auto_merge.py` — optional squash-merge when `review:codex` and merge state is clean.
 3. `dispatch_spec.py --transport codex` — opens the PR (same as `pr`), records whether CI agents can run, and fails closed if a pre-existing `spec/<slug>` branch no longer matches `origin/main`.
-4. `.github/workflows/scheduled-executor.yml` — `codex_agents` job using `openai/codex-action@v1` when `OPENAI_API_KEY` is configured; `trigger_pr_checks` dispatches `ci.yml` / `route-pr.yml` on the PR branch (workflow files must match `main`) so required checks land on `headRefOid`; `optional_auto_merge` runs after `trigger_pr_checks` when enabled.
+4. `.github/workflows/scheduled-executor.yml` — `codex_agents` job using a SHA-pinned `openai/codex-action` when `OPENAI_API_KEY` is configured; `trigger_pr_checks` dispatches `ci.yml` / `route-pr.yml` on the PR branch (workflow files must match `main`) so required checks land on `headRefOid`; `optional_auto_merge` runs after `trigger_pr_checks` when enabled.
 5. `scripts/route_pr.py` + `route-pr.yml` — on `pull_request`, defer label apply when `dispatch-source: scheduled` and the dispatch Reviewer stub remain; `workflow_dispatch` (scheduler follow-up) applies the authoritative label after Codex.
 6. Planner MCP — `mcpServers: [github]` on `.claude/agents/planner.md`; [`.mcp.json.example`](../.mcp.json.example) and CONTRIBUTING setup steps.
 7. Tests: `tests/test_codex_ci.py`, `tests/test_try_auto_merge.py`, extended scheduler YAML contract.
@@ -1321,7 +1321,7 @@ Notice what is NOT here:
 
 ## 6. Open questions (post-build)
 
-1. **Codex-in-CI cost and isolation at scale.** Phase 6.1 uses `openai/codex-action@v1` with `OPENAI_API_KEY`. At high PR volume, per-run cost and runner isolation matter; `events.jsonl` can gain per-PR cost fields if needed. OpenTelemetry was not adopted — `events.jsonl` remains the source of truth.
+1. **Codex-in-CI cost and isolation at scale.** Phase 6.1 uses a SHA-pinned `openai/codex-action` with `OPENAI_API_KEY`. At high PR volume, per-run cost and runner isolation matter; `events.jsonl` can gain per-PR cost fields if needed. OpenTelemetry was not adopted — `events.jsonl` remains the source of truth.
 
 2. **Cost of two-Codex per PR.** Phase 3 established Executor + Reviewer on every PR. At low volume this is trivial; at 100 PRs/week it matters. Phase 5 telemetry can be extended with per-PR cost fields if `events.jsonl` proves under-instrumented.
 

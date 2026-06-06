@@ -50,21 +50,24 @@ jobs:
       codex_enabled: ${{ steps.codex_gate.outputs.enabled }}
     steps:
       - name: Checkout main
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: main
           fetch-depth: 0
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v6
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: "3.12"
+          python-version-file: .python-version
 
       - name: Install uv
-        run: python -m pip install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          version: "0.11.19"
+          enable-cache: true
 
       - name: Sync dependencies
-        run: uv sync --extra dev
+        run: uv sync --frozen
 
       - name: Detect Codex CI availability
         id: codex_gate
@@ -207,21 +210,24 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: ${{ needs.dispatch.outputs.branch }}
           fetch-depth: 0
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v6
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: "3.12"
+          python-version-file: .python-version
 
       - name: Install uv
-        run: python -m pip install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          version: "0.11.19"
+          enable-cache: true
 
       - name: Sync dependencies
-        run: uv sync --extra dev
+        run: uv sync --frozen
 
       - name: Write executor prompt
         run: |
@@ -232,7 +238,7 @@ jobs:
             --output .scratch/codex-executor-prompt.md
 
       - name: Run Executor (Codex)
-        uses: openai/codex-action@v1
+        uses: openai/codex-action@e0fdf01220eb9a88167c4898839d273e3f2609d1 # v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           prompt-file: .scratch/codex-executor-prompt.md
@@ -267,21 +273,24 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: ${{ needs.dispatch.outputs.branch }}
           fetch-depth: 0
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v6
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: "3.12"
+          python-version-file: .python-version
 
       - name: Install uv
-        run: python -m pip install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          version: "0.11.19"
+          enable-cache: true
 
       - name: Sync dependencies
-        run: uv sync --extra dev
+        run: uv sync --frozen
 
       - name: Write reviewer prompt
         run: |
@@ -292,7 +301,7 @@ jobs:
             --output .scratch/codex-reviewer-prompt.md
 
       - name: Run Reviewer (Codex)
-        uses: openai/codex-action@v1
+        uses: openai/codex-action@e0fdf01220eb9a88167c4898839d273e3f2609d1 # v1
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           prompt-file: .scratch/codex-reviewer-prompt.md
@@ -341,7 +350,7 @@ jobs:
       pull-requests: read
     steps:
       - name: Checkout main
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: main
           fetch-depth: 0
@@ -445,21 +454,24 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout main
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: main
           fetch-depth: 0
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v6
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: "3.12"
+          python-version-file: .python-version
 
       - name: Install uv
-        run: python -m pip install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          version: "0.11.19"
+          enable-cache: true
 
       - name: Sync dependencies
-        run: uv sync --extra dev
+        run: uv sync --frozen
 
       - name: Optional auto-merge after routing
         env:

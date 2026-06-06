@@ -11,10 +11,15 @@ This file is mostly **Keep** except where noted.
 
 ## Development Setup
 
+Install Python 3.12+, uv, just, and direnv, then enable direnv's shell hook.
+
 ```bash
 # Clone the repository
 git clone https://github.com/<you>/<your-project>.git
 cd <your-project>
+
+# Trust the tracked direnv configuration for this checkout
+direnv allow
 
 # One-shot rehydrate: syncs dev deps and installs pre-commit hooks
 just refresh
@@ -23,7 +28,11 @@ just refresh
 `just refresh` is the canonical setup command. Run it after a fresh
 clone, after `git worktree add`, or after pulling a branch that changed
 `pyproject.toml` or `uv.lock`. Under the hood it is just
-`uv sync --extra dev` + `uv run pre-commit install`.
+`uv sync --frozen` + `uv run pre-commit install`.
+
+The tracked `.envrc` points tools at the checkout-local `.venv`, watches
+`pyproject.toml` and `uv.lock`, and loads `.env` when present. Use the ignored
+`.envrc.local` for machine-specific shell configuration; do not commit secrets.
 
 ## Per-checkout virtual environments
 
@@ -317,7 +326,7 @@ Codex session runs Executor and Reviewer; `route-pr.yml` labels the PR.
 
 **With `OPENAI_API_KEY` (Codex-in-CI):** transport is `codex`; the `codex_executor` and
 `codex_reviewer` jobs run
-`openai/codex-action@v1` for Executor (workspace-write) and Reviewer (read-only), applies
+a SHA-pinned `openai/codex-action` for Executor (workspace-write) and Reviewer (read-only), applies
 Reviewer JSON via `scripts/codex_ci.py apply-reviewer`, and validates with
 `scripts/validate_reviewer.py`. The `trigger_pr_checks` job then dispatches
 `route-pr.yml` on the PR branch so routing uses the final Reviewer block. On `pull_request`

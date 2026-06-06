@@ -23,8 +23,8 @@
 
 A GitHub **template repository** for modern Python / AI projects. Click the green
 **"Use this template"** button to bootstrap a new repo with `uv`, `ruff`, `ty`,
-pre-commit, `just`, GitHub Actions CI, Cursor rules, and a multi-agent governance
-system preconfigured.
+pre-commit, `just`, direnv, GitHub Actions CI, Cursor rules, and a multi-agent
+governance system preconfigured.
 
 The design — Planner / Executor / Reviewer, specs, hooks, Router — is in
 [`docs/blueprint.md`](./docs/blueprint.md).
@@ -54,14 +54,19 @@ workflows and doc links unless you remove features.
 
 ### Quick start *(Keep)*
 
+Install Python 3.12+, uv, just, and direnv, then enable direnv's shell hook.
+
 ```bash
-uv sync --extra dev
+uv sync --frozen
+direnv allow
 just install-hooks    # one-time
 just check
 ```
 
 Green `just check` means the fork is healthy. Full bootstrap (rename package, fill
 `AGENTS.md`, trim example specs): [docs/post-fork-checklist.md](./docs/post-fork-checklist.md).
+Direnv activates the checkout-local `.venv` and loads `.env` when present; keep
+machine-specific overrides in the ignored `.envrc.local`.
 
 Architecture and invariants: [docs/blueprint.md](./docs/blueprint.md). Day-to-day
 contributing: [CONTRIBUTING.md](./CONTRIBUTING.md).
@@ -72,7 +77,7 @@ contributing: [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 - `pyproject.toml` — metadata, dependencies, `ruff` + `ty` + `jsonschema`
 - `justfile` — `just check` is the full quality gate (same as CI)
-- `.pre-commit-config.yaml`, `.github/workflows/ci.yml`, `.python-version`
+- `.pre-commit-config.yaml`, `.github/workflows/ci.yml`, `.python-version`, `.envrc`
 
 #### Multi-agent governance
 

@@ -24,7 +24,7 @@ The template ships with a placeholder package named `your_package` (only
       ["src/your_package"]` → `["src/<your_package>"]`
 - [ ] `tests/test_smoke.py` — `import your_package` → `import <your_package>`
 
-After this step, `uv sync --extra dev && just check` should pass.
+After this step, `uv sync --frozen && just check` should pass.
 
 ## 2. Update LICENSE and project metadata
 
@@ -130,7 +130,7 @@ Do this before your first real spec PR so `docs/specs/` lists only your work.
 
 After this checklist, your project should:
 
-- Pass `just check` from a fresh clone with `uv sync --extra dev`
+- Pass `just check` from a fresh clone with `uv sync --frozen`
 - Have a meaningful `AGENTS.md` with 3-5 real invariants
 - Have at least one domain-specific Cursor rule
 - Be at roughly 32-34/40 on the portfolio modernization rubric — the
