@@ -1,7 +1,8 @@
 """Codex-in-CI helpers for scheduled-executor automation.
 
 Builds role-specific prompts, optionally invokes ``codex exec`` locally, and
-merges Reviewer JSON into PR bodies. GitHub Actions uses ``openai/codex-action@v1``
+merges Reviewer JSON into PR bodies. GitHub Actions uses a SHA-pinned
+``openai/codex-action``
 with prompts written by :func:`write_prompt`.
 """
 

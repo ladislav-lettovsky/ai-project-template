@@ -6,6 +6,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = REPO_ROOT / ".github/workflows" / "scheduled-executor.yml"
+CODEX_ACTION_SHA = "e0fdf01220eb9a88167c4898839d273e3f2609d1"
 
 
 def test_scheduled_executor_workflow_exists() -> None:
@@ -28,7 +29,7 @@ def test_scheduled_executor_yaml_contract() -> None:
     assert "Refresh PR checks on branch head" in text
     assert "git diff --quiet" in text
     assert "origin/main:.github/workflows/${wf}" in text
-    assert text.count("openai/codex-action@v1") == 2
+    assert text.count(f"openai/codex-action@{CODEX_ACTION_SHA}") == 2
     assert text.count("safety-strategy: drop-sudo") == 2
     assert "safety-strategy: read-only" not in text
     assert "codex-home: ${{ runner.temp }}/codex-executor" in text

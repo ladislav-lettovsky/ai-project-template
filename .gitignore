@@ -45,6 +45,7 @@ htmlcov/
 
 # Environment
 .env
+.envrc.local
 .mcp.json
 *.env.local
 

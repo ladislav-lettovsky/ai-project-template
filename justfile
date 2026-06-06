@@ -7,7 +7,7 @@ install-hooks:
 # that changed pyproject.toml / uv.lock. The .venv is per-checkout (git-ignored),
 # so every worktree needs its own sync.
 refresh:
-    uv sync --extra dev
+    uv sync --frozen
     uv run pre-commit install
 
 # Run all pre-commit hooks against every file in the repo
