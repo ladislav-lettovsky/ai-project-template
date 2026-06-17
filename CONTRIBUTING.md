@@ -389,6 +389,14 @@ Configure in GitHub **Settings → Branches → Branch protection rules** for
    automation, add a rule so only PRs labeled **`review:codex`** may auto-merge
    (and still require green CI). PRs labeled **`blocked`** or **`review:human`**
    must not auto-merge.
+4. **Telemetry recording (`record-telemetry.yml`):** After a feature PR merges,
+   the workflow opens a short-lived **`chore/telemetry/pr-<N>`** PR instead of
+   pushing directly to `main` (direct pushes fail when required checks are not
+   recorded on the new commit). Enable **Settings → General → Allow GitHub
+   Actions to create and approve pull requests** and repository **auto-merge**
+   so telemetry PRs can squash-merge when CI and Router checks are green.
+   Telemetry PR titles start with `chore(telemetry):` and are skipped by the
+   recorder to avoid loops.
 
 ## Before saying "done"
 
