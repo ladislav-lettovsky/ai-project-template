@@ -19,8 +19,10 @@ Historical rows without `dispatch_source` remain valid; readers should treat mis
 
 ## Recording events
 
-On each merged PR, `.github/workflows/record-telemetry.yml` rebuilds `pr.json`,
-runs `route_pr.py`, and appends via `scripts/append_event.py`.
+On each merged PR (except telemetry chore PRs), `.github/workflows/record-telemetry.yml`
+rebuilds `pr.json`, runs `route_pr.py`, appends via `scripts/append_event.py`, and
+opens a short-lived `chore/telemetry/pr-<N>` PR so branch protection checks run before
+telemetry lands on `main`. See **Branch protection (Router)** in `CONTRIBUTING.md`.
 
 Local replay:
 
